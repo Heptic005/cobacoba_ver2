@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 // import 'package:dakara_weighbridge/SQLite/db_helper.dart'; // Commented out for now if not used directly for dropdowns yet, but needed for recent transactions?
 import 'package:dakara_weighbridge/SQLite/db_helper.dart';
+import 'package:dakara_weighbridge/Json/listtransaction_json.dart';
 
 class Transaction extends StatefulWidget {
   const Transaction({super.key});
@@ -558,7 +559,7 @@ class _TransactionState extends State<Transaction> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         DropdownButtonFormField<String>(
-          value: value,
+          initialValue: value,
           items:
               items.map((String item) {
                 return DropdownMenuItem<String>(
@@ -627,8 +628,8 @@ class _TransactionState extends State<Transaction> {
             style: TextStyle(fontSize: 16, color: Colors.white),
           ),
           const SizedBox(height: 16),
-          FutureBuilder<List<Map<String, Object?>>>(
-            future: DbHelper.instance.getLatestTransactions(5),
+          FutureBuilder<List<ListTransactionJson>>(
+            future: DbHelper.instance.getListTransaction(),
             builder: (context, snapshot) {
               if (snapshot.connectionState != ConnectionState.done) {
                 return const SizedBox(
@@ -657,10 +658,10 @@ class _TransactionState extends State<Transaction> {
                     (_, __) => Divider(color: _textGrey.withValues(alpha: 0.12)),
                 itemBuilder: (ctx, i) {
                   final it = items[i];
-                  final plate = it['vehiclePlate']?.toString() ?? '-';
-                  final bruto = it['bruto']?.toString() ?? '0';
-                  final netto = it['netto']?.toString() ?? '0';
-                  final intimeRaw = it['inTime']?.toString();
+                  final plate = it.vehiclePlate?.toString() ?? '-';
+                  final bruto = it.bruto?.toString() ?? '0';
+                  final netto = it.netto?.toString() ?? '0';
+                  final intimeRaw = it.inTime?.toString();
                   final intime = _formatShortDate(intimeRaw);
 
                   return Padding(

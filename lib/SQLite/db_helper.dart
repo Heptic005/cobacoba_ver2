@@ -1,4 +1,8 @@
+import 'package:dakara_weighbridge/Json/listaccount_json.dart';
+import 'package:dakara_weighbridge/Json/listcustomer_json.dart';
 import 'package:dakara_weighbridge/Json/listproduct_json.dart';
+import 'package:dakara_weighbridge/Json/listsupplier_json.dart';
+import 'package:dakara_weighbridge/Json/listtransaction_json.dart';
 import 'package:path/path.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
@@ -29,7 +33,7 @@ class DbHelper {
 	     "accountUsername"	TEXT NOT NULL UNIQUE,
 	     "accountPassword"	TEXT NOT NULL,
 	     "accountPosition"	TEXT NOT NULL,
-	      PRIMARY KEY("accountId")
+	      PRIMARY KEY("accountId" AUTOINCREMENT)
         );
       ''';
 
@@ -39,7 +43,7 @@ class DbHelper {
 	    "customerName"	TEXT NOT NULL,
 	    "customerAddress"	TEXT NOT NULL,
 	    "customerPhone"	TEXT NOT NULL,
-	    PRIMARY KEY("customerId")
+	    PRIMARY KEY("customerId" AUTOINCREMENT)
       );
       ''';
 
@@ -48,7 +52,7 @@ class DbHelper {
 	    "productId"	INTEGER NOT NULL UNIQUE,
 	    "productName"	TEXT NOT NULL,
 	    "productCode"	TEXT NOT NULL,
-	    PRIMARY KEY("productId")
+	    PRIMARY KEY("productId" AUTOINCREMENT)
       );
       ''';
 
@@ -60,7 +64,7 @@ class DbHelper {
 	    "supplierCity"	TEXT NOT NULL,
 	    "supplierSubdistrict"	TEXT NOT NULL,
 	    "supplierPostCode"	TEXT NOT NULL,
-	    PRIMARY KEY("supplierId")
+	    PRIMARY KEY("supplierId" AUTOINCREMENT)
       );
       ''';
 
@@ -68,9 +72,9 @@ class DbHelper {
       CREATE TABLE "transaction" (
 	    "transactionId"	INTEGER NOT NULL UNIQUE,
 	    "vehiclePlate"	TEXT NOT NULL,
-	    "driverName"	TEXT NOT NULL,
-	    "supplierName"	TEXT NOT NULL,
-	    "customerName"	TEXT NOT NULL,
+	    "driverName"	INT NOT NULL,
+	    "supplierName"	INT NOT NULL,
+	    "customerName"	INT NOT NULL,
 	    "productName"	TEXT NOT NULL,
 	    "cut"	INTEGER NOT NULL,
 	    "kubikasi"	INTEGER,
@@ -91,10 +95,10 @@ class DbHelper {
 	    "operatorLabel"	INTEGER NOT NULL,
 	    "managerLabel"	INTEGER NOT NULL,
 	    "headWarehouseLabel"	INTEGER NOT NULL,
-	    PRIMARY KEY("transactionId"),
-	    FOREIGN KEY("customerName") REFERENCES "customer"("customerId"),
-	    FOREIGN KEY("productName") REFERENCES "product"("productId"),
-	    FOREIGN KEY("supplierName") REFERENCES "supplier"("supplierId")
+	    PRIMARY KEY("transactionId" AUTOINCREMENT),
+	    FOREIGN KEY("customerId") REFERENCES "customer"("customerId"),
+	    FOREIGN KEY("productId") REFERENCES "product"("productId"),
+	    FOREIGN KEY("supplierId") REFERENCES "supplier"("supplierId")
       );
       ''';
 
@@ -115,11 +119,41 @@ class DbHelper {
     }
   }
 
+  /* customer */
+  /// Add Customer
+  Future<int> addCustomer(ListCustomerJson customer) async {
+    final Database db = await database;
+    return db.insert('customer', customer.toJson());
+  }
+
+  /// Get Customers
+  Future<List<ListCustomerJson>> getListCustomers() async {
+    final Database db = await database;
+    List<Map<String, Object?>> result = await db.query('customer', limit: 20);
+    return result.map((e) => ListCustomerJson.fromJson(e)).toList();
+  }
+
+  /// Update Customer
+  Future<int> updateCustomer(ListCustomerJson customer) async {
+    final Database db = await database;
+    return db.update(
+      'customer',
+      customer.toJson(),
+      where: customer.customerId.toString(),
+    );
+  }
+
+  /// Delete Customer
+  Future<int> deleteCustomer(ListCustomerJson customer) async {
+    final Database db = await database;
+    return db.delete('customer', where: customer.customerId.toString());
+  }
+
   /* product */
   /// Get Products
   Future<List<ListProductJson>> getListProducts() async {
     final Database db = await database;
-    List<Map<String, Object?>> result = await db.query('product');
+    List<Map<String, Object?>> result = await db.query('product', limit: 10);
     return result.map((e) => ListProductJson.fromJson(e)).toList();
   }
 
@@ -129,15 +163,94 @@ class DbHelper {
     return db.insert('product', product.toJson());
   }
 
-  /// Get latest transactions (most recent first)
-  Future<List<Map<String, Object?>>> getLatestTransactions(int limit) async {
+  /// Update Product
+  Future<int> updateProduct(ListProductJson product) async {
     final Database db = await database;
-    List<Map<String, Object?>> result = await db.query(
-      'transaction',
-      orderBy: 'transactionId DESC',
-      limit: limit,
+    return db.update(
+      'product',
+      product.toJson(),
+      where: product.productId.toString(),
     );
-    return result;
+  }
+
+  /// Delete Product
+  Future<int> deleteProduct(ListProductJson product) async {
+    final Database db = await database;
+    return db.delete('product', where: product.productId.toString());
+  }
+
+  /* Supplier */
+  /// Get Supplier
+  Future<List<ListSupplierJson>> getListSupplier() async {
+    final Database db = await database;
+    List<Map<String, Object?>> result = await db.query('supplier', limit: 30);
+    return result.map((e) => ListSupplierJson.fromJson(e)).toList();
+  }
+
+  /// Add Supplier
+  Future<int> addSupplier(ListSupplierJson supplier) async {
+    final Database db = await database;
+    return db.insert('supplier', supplier.toJson());
+  }
+
+  /// Update Supplier
+  Future<int> updateSupplier(ListSupplierJson supplier) async {
+    final Database db = await database;
+    return db.update(
+      'supplier',
+      supplier.toJson(),
+      where: supplier.supplierId.toString(),
+    );
+  }
+
+  /// Delete Supplier
+  Future<int> deleteSupplier(ListSupplierJson supplier) async {
+    final Database db = await database;
+    return db.delete('product', where: supplier.supplierId.toString());
+  }
+
+  /* Transaction */
+  /// Add Transaction
+  Future<int> addTransaction(ListTransactionJson transaction) async {
+    final Database db = await database;
+    return db.insert('transaction', transaction.toJson());
+  }
+
+  /// Get Transactions
+  Future<List<ListTransactionJson>> getListTransaction() async {
+    final Database db = await database;
+    List<Map<String, Object?>> result = await db.query('transaction');
+    return result.map((e) => ListTransactionJson.fromJson(e)).toList();
+  }
+
+  /* User */
+  /// Get Users
+  Future<List<ListAccountJson>> getAllUser() async {
+    final Database db = await database;
+    List<Map<String, Object?>> result = await db.query('account');
+    return result.map((e) => ListAccountJson.fromJson(e)).toList();
+  }
+
+  /// Add User
+  Future<int> addUser(ListAccountJson user) async {
+    final Database db = await database;
+    return db.insert('account', user.toJson());
+  }
+
+  /// Delete User
+  Future<int> deleteUser(ListAccountJson user) async {
+    final Database db = await database;
+    return db.delete('account', where: user.accountID.toString());
+  }
+
+  /// Update User
+  Future<int> updateUser(ListAccountJson user) async {
+    final Database db = await database;
+    return db.update(
+      'account',
+      user.toJson(),
+      where: user.accountID.toString(),
+    );
   }
 }
 
