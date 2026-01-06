@@ -69,7 +69,7 @@ class DbHelper {
       ''';
 
       const createTransactionTable = '''
-      CREATE TABLE "transaction" (
+      CREATE TABLE IF NOT EXISTS "transaction" (
 	    "transactionId"	INTEGER NOT NULL UNIQUE,
 	    "vehiclePlate"	TEXT NOT NULL,
 	    "driverName"	INT NOT NULL,
@@ -96,9 +96,9 @@ class DbHelper {
 	    "managerLabel"	INTEGER NOT NULL,
 	    "headWarehouseLabel"	INTEGER NOT NULL,
 	    PRIMARY KEY("transactionId" AUTOINCREMENT),
-	    FOREIGN KEY("customerId") REFERENCES "customer"("customerId"),
-	    FOREIGN KEY("productId") REFERENCES "product"("productId"),
-	    FOREIGN KEY("supplierId") REFERENCES "supplier"("supplierId")
+	    FOREIGN KEY("customerName") REFERENCES "customer"("customerId"),
+	    FOREIGN KEY("productName") REFERENCES "product"("productId"),
+	    FOREIGN KEY("supplierName") REFERENCES "supplier"("supplierId")
       );
       ''';
 
@@ -139,7 +139,8 @@ class DbHelper {
     return db.update(
       'customer',
       customer.toJson(),
-      where: customer.customerId.toString(),
+      where: 'customerId = ?',
+      whereArgs: [customer.customerId],
     );
   }
 
@@ -169,7 +170,8 @@ class DbHelper {
     return db.update(
       'product',
       product.toJson(),
-      where: product.productId.toString(),
+      where: 'productId = ?',
+      whereArgs: [product.productId],
     );
   }
 
@@ -199,7 +201,8 @@ class DbHelper {
     return db.update(
       'supplier',
       supplier.toJson(),
-      where: supplier.supplierId.toString(),
+      where: 'supplierId = ?',
+      whereArgs: [supplier.supplierId],
     );
   }
 
@@ -249,7 +252,8 @@ class DbHelper {
     return db.update(
       'account',
       user.toJson(),
-      where: user.accountID.toString(),
+      where: 'userId = ?',
+      whereArgs: [user.accountID],
     );
   }
 }
