@@ -1,6 +1,7 @@
 import 'package:dakara_weighbridge/Json/listproduct_json.dart';
-import 'package:dakara_weighbridge/SQLite/database_helper.dart';
+import 'package:dakara_weighbridge/SQLite/db_helper.dart';
 import 'package:flutter/material.dart';
+import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 
 class DataCustomerBarang extends StatefulWidget {
   const DataCustomerBarang({super.key});
@@ -10,25 +11,22 @@ class DataCustomerBarang extends StatefulWidget {
 }
 
 class _DataCustomerBarangState extends State<DataCustomerBarang> {
-  late DatabaseHelper dbHandler;
-  final db = DatabaseHelper();
+  // final db = DbHelper();
   late Future<List<ListProductJson>> listProduct;
 
   final searchController = TextEditingController();
 
   @override
   void initState() {
-    // dbHandler = db;
-    // listProduct = dbHandler.getListProducts();
-
     // dbHandler.init().whenComplete(() => listProduct = getAllListProduct());
 
     super.initState();
+    listProduct = DbHelper.instance.getListProducts();
   }
 
-  Future<List<ListProductJson>> getAllListProduct() async {
-    return await dbHandler.getListProducts();
-  }
+  // Future<List<ListProductJson>> getAllListProduct() async {
+  //   return await dbHandler.getListProducts();
+  // }
 
   @override
   Widget build(BuildContext context) {
@@ -36,6 +34,46 @@ class _DataCustomerBarangState extends State<DataCustomerBarang> {
       padding: EdgeInsets.symmetric(vertical: 90, horizontal: 50),
       child: Row(
         children: [
+          FutureBuilder(
+            future: listProduct,
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return CircularProgressIndicator();
+              }
+
+              if (snapshot.hasError) {
+                return Text("Error: ${snapshot.error}");
+              }
+
+              if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                return Text("Tidak ada data");
+              }
+
+              final products = snapshot.data!;
+
+              return Container(
+                width: 500,
+                padding: EdgeInsets.all(20),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      products[0].productId
+                          .toString(), // atau tampilkan produk pertama
+                      style: TextStyle(
+                        fontWeight: FontWeight.w600,
+                        fontSize: 15,
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            },
+          ),
           // List Customer
           Column(
             spacing: 5,

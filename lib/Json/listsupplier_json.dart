@@ -1,5 +1,8 @@
 import 'dart:convert';
 
+/// 6 January 2026
+/// This is Supplier Data Model
+
 ListSupplierJson ListSupplierJsonFromJsonString(String str) =>
     ListSupplierJson.fromJson(json.decode(str));
 

@@ -1,6 +1,9 @@
 // get from https://app.quicktype.io/
 import 'dart:convert';
 
+/// 6 January 2026
+/// This is Product Data Model
+
 ListProductJson ListProductJsonFromJson(String str) =>
     ListProductJson.fromJson(json.decode(str));
 
@@ -8,25 +11,26 @@ String ListProductJsonToJson(ListProductJson data) =>
     json.encode(data.toJson());
 
 class ListProductJson {
-  final int idProduk;
-  final String namaProduk;
-  final String kodeProduk;
+  final int productId;
+  final String productName;
+  final String productCode;
 
   ListProductJson({
-    this.idProduk = 0,
-    required this.namaProduk,
-    required this.kodeProduk,
+    this.productId = 0,
+    required this.productName,
+    required this.productCode,
   });
 
   factory ListProductJson.fromJson(Map<String, dynamic> json) =>
       ListProductJson(
-        idProduk: json['idProduk'],
-        namaProduk: json['namaProduk'],
-        kodeProduk: json['kodeProduk'],
+        productId: json['productId'],
+        productName: json['productName'],
+        productCode: json['productCode'],
       );
 
   Map<String, dynamic> toJson() => {
-    "namaProduk": namaProduk,
-    "kodeProduk": kodeProduk,
+    "productId": productId,
+    "productName": productName,
+    "productCode": productCode,
   };
 }
