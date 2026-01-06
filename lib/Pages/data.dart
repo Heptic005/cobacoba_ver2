@@ -1,7 +1,6 @@
 import 'package:dakara_weighbridge/Json/listproduct_json.dart';
 import 'package:dakara_weighbridge/SQLite/db_helper.dart';
 import 'package:flutter/material.dart';
-import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 
 class DataCustomerBarang extends StatefulWidget {
   const DataCustomerBarang({super.key});

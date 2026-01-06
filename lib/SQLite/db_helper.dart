@@ -128,6 +128,17 @@ class DbHelper {
     final Database db = await database;
     return db.insert('product', product.toJson());
   }
+
+  /// Get latest transactions (most recent first)
+  Future<List<Map<String, Object?>>> getLatestTransactions(int limit) async {
+    final Database db = await database;
+    List<Map<String, Object?>> result = await db.query(
+      'transaction',
+      orderBy: 'transactionId DESC',
+      limit: limit,
+    );
+    return result;
+  }
 }
 
 class UnableToGetDocumentsDirectory {}
