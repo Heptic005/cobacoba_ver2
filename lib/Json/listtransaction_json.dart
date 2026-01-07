@@ -1,22 +1,21 @@
 // get from https://app.quicktype.io/
 import 'dart:convert';
 
-/// 6 January 2026
-/// This is Transaction Data Model
+/// Modified to match DB Schema and include Foreign Keys
 
-ListTransactionJson ListTransactionJsonFromJson(String str) =>
+ListTransactionJson listTransactionJsonFromJson(String str) =>
     ListTransactionJson.fromJson(json.decode(str));
 
-String ListTransactionJsonToJson(ListTransactionJson data) =>
+String listTransactionJsonToJson(ListTransactionJson data) =>
     json.encode(data.toJson());
 
 class ListTransactionJson {
   final int transactionId;
   final String vehiclePlate;
   final String driverName;
-  final String supplierName;
-  final String customerName;
-  final String ProductName;
+  final int supplierId;
+  final int customerId;
+  final int productId;
   final int cut;
   final int? kubikasi;
   final String? noDO;
@@ -32,17 +31,17 @@ class ListTransactionJson {
   final double tare;
   final double netto;
   final double nettoAfterCut;
-  final bool driverLabel;
-  final bool operatorLabel;
-  final bool managerLabel;
-  final bool headWarehouseLabel;
+  final int driverLabel;
+  final int operatorLabel;
+  final int managerLabel;
+  final int headWarehouseLabel;
 
   ListTransactionJson({
     required this.vehiclePlate,
     required this.driverName,
-    required this.supplierName,
-    required this.customerName,
-    required this.ProductName,
+    required this.supplierId,
+    required this.customerId,
+    required this.productId,
     required this.cut,
     this.kubikasi,
     this.noDO,
@@ -65,39 +64,46 @@ class ListTransactionJson {
     required this.headWarehouseLabel,
   });
 
-  factory ListTransactionJson.fromJson(Map<String, dynamic> json) =>
-      ListTransactionJson(
-        vehiclePlate: json['vehiclePlate'],
-        driverName: json['driverName'],
-        supplierName: json['supplierName'],
-        customerName: json['customerName'],
-        ProductName: json['ProductName'],
-        cut: json['cut'],
-        noTicket: json['noTicket'],
-        inTime: json['inTime'],
-        outTime: json['outTime'],
-        totalPrice: json['totalPrice'],
-        bruto: json['bruto'],
-        tare: json['tare'],
-        netto: json['netto'],
-        nettoAfterCut: json['nettoAfterCut'],
-        driverLabel: json['driverLabel'],
-        transactionId: json['transactionId'],
-        operatorLabel: json['operatorLabel'],
-        managerLabel: json['managerLabel'],
-        headWarehouseLabel: json['headWearhouseLabel'],
-      );
+  factory ListTransactionJson.fromJson(
+    Map<String, dynamic> json,
+  ) => ListTransactionJson(
+    vehiclePlate: json['vehiclePlate'],
+    driverName: json['driverName'],
+    supplierId: json['supplierId'], // Mapping from DB column which will be IDs
+    customerId: json['customerId'], // Mapping from DB column which will be IDs
+    productId: json['productId'], // Mapping from DB column which will be IDs
+    cut: json['cut'],
+    noTicket: json['noTicket'],
+    inTime: DateTime.parse(json['inTime']),
+    outTime: DateTime.parse(json['outTime']),
+    totalPrice: (json['totalPrice'] as num).toDouble(),
+    bruto: (json['bruto'] as num).toDouble(),
+    tare: (json['tare'] as num).toDouble(),
+    netto: (json['netto'] as num).toDouble(),
+    nettoAfterCut: (json['nettoAfterCut'] as num).toDouble(),
+    driverLabel: json['driverLabel'],
+    transactionId: json['transactionId'],
+    operatorLabel: json['operatorLabel'],
+    managerLabel: json['managerLabel'],
+    headWarehouseLabel: json['headWarehouseLabel'],
+  );
 
   Map<String, dynamic> toJson() => {
     "vehiclePlate": vehiclePlate,
     "driverName": driverName,
-    "supplierName": supplierName,
-    "customerName": customerName,
-    "ProductName": ProductName,
+    "supplierId": supplierId,
+    "customerId": customerId,
+    "productId": productId,
     "cut": cut,
+    "kubikasi": kubikasi,
+    "noDO": noDO,
+    "noContainer": noContainer,
+    "temperature": temperature,
+    "price": price,
+    "additionalInformation": additionalInformation,
     "noTicket": noTicket,
-    "inTime": inTime,
-    "outTime": outTime,
+    "inTime": inTime.toIso8601String(),
+    "outTime": outTime.toIso8601String(),
     "totalPrice": totalPrice,
     "bruto": bruto,
     "tare": tare,
@@ -107,6 +113,5 @@ class ListTransactionJson {
     "operatorLabel": operatorLabel,
     "managerLabel": managerLabel,
     "headWarehouseLabel": headWarehouseLabel,
-    // "transactionId": transactionId,
   };
 }

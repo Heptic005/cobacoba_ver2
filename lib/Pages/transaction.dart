@@ -1,7 +1,10 @@
 import 'dart:async';
+import 'package:dakara_weighbridge/Json/listcustomer_json.dart';
+import 'package:dakara_weighbridge/Json/listproduct_json.dart';
+import 'package:dakara_weighbridge/Json/listsupplier_json.dart';
+import 'package:dakara_weighbridge/Pages/widget_builder/dropdown.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-// import 'package:dakara_weighbridge/SQLite/db_helper.dart'; // Commented out for now if not used directly for dropdowns yet, but needed for recent transactions?
 import 'package:dakara_weighbridge/SQLite/db_helper.dart';
 import 'package:dakara_weighbridge/Json/listtransaction_json.dart';
 import 'package:flutter/services.dart';
@@ -67,22 +70,22 @@ class _TransactionState extends State<Transaction> {
   final focusKeterangan = FocusNode();
 
   // Mock Data Lists
-  final List<String> _suppliers = [
-    'PT. Supplier A',
-    'PT. Supplier B',
-    'CV. Maju Jaya',
-  ];
-  final List<String> _customers = [
-    'PT. Customer X',
-    'PT. Customer Y',
-    'Toko Bangunan Z',
-  ];
-  final List<String> _products = ['Batu Split', 'Pasir', 'Sirtu', 'Tanah Urug'];
+  List<ListSupplierJson> _suppliers = [];
+  List<ListCustomerJson> _customers = [];
+  List<ListProductJson> _products = [];
+  List<ListTransactionJson> _transactions = [];
 
   // Selected Values for Dropdowns
-  String? _selectedSupplier;
-  String? _selectedCustomer;
-  String? _selectedProduct;
+  int? _selectedSupplier;
+  int? _selectedCustomer;
+  int? _selectedProduct;
+
+  Future<void> loadData() async {
+    _suppliers = await DbHelper.instance.getListSupplier();
+    _customers = await DbHelper.instance.getListCustomers();
+    _products = await DbHelper.instance.getListProducts();
+    _transactions = await DbHelper.instance.getListTransaction();
+  }
 
   @override
   void initState() {
@@ -1484,7 +1487,10 @@ class _TransactionState extends State<Transaction> {
       decoration: BoxDecoration(
         color: _cardBg,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: _textGrey.withValues(alpha: 0.12), width: 0.5),
+        border: Border.all(
+          color: _textGrey.withValues(alpha: 0.12),
+          width: 0.5,
+        ),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
