@@ -27,4 +27,9 @@ abstract class AbstractOperator {
     required double tare,
     required double nettoAfterCut,
   });
+  // Future<void> requestTokenForManualWeight();
+  // Future<void> exportReportPdf();
+  // Future<void> exportReportExcel();
+  // Future<void> exportTransactionPdf();
+  // Future<void> printTransaction();
 }

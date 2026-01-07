@@ -6,4 +6,5 @@ abstract class AbstractSupervisor {
     required String password,
   });
   // Future<void> addEmergencyTransaction();
+  // Future<void> exportReport();
 }
