@@ -4,6 +4,7 @@ import 'package:dakara_weighbridge/Json/listtransaction_json.dart';
 import 'package:dakara_weighbridge/SQLite/db_helper.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+/// TODO : Need to add export to pdf, excel and print feature
 class Operator implements AbstractOperator {
   @override
   Future<void> login({
@@ -13,7 +14,7 @@ class Operator implements AbstractOperator {
     final user = await DbHelper.instance.getUserByUsername(username: username);
 
     if (user.isEmpty || user[0].accountPassword != password) {
-      throw InvalidCredential();
+      throw InvalidCredentialException();
     }
 
     // Save session
@@ -117,7 +118,7 @@ class Operator implements AbstractOperator {
             bruto: transaction[0].bruto,
             tare: tare,
             netto: transaction[0].bruto - tare,
-            nettoAfterCut: nettoAfterCut,
+            nettoAfterCut: nettoAfterCut / 100 * transaction[0].bruto,
             driverLabel: 0,
             operatorLabel: 0,
             managerLabel: 0,
