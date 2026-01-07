@@ -1,7 +1,10 @@
 import 'dart:async';
+import 'package:dakara_weighbridge/Json/listcustomer_json.dart';
+import 'package:dakara_weighbridge/Json/listproduct_json.dart';
+import 'package:dakara_weighbridge/Json/listsupplier_json.dart';
+import 'package:dakara_weighbridge/Pages/widget_builder/dropdown.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-// import 'package:dakara_weighbridge/SQLite/db_helper.dart'; // Commented out for now if not used directly for dropdowns yet, but needed for recent transactions?
 import 'package:dakara_weighbridge/SQLite/db_helper.dart';
 import 'package:dakara_weighbridge/Json/listtransaction_json.dart';
 
@@ -36,26 +39,27 @@ class _TransactionState extends State<Transaction> {
   final focusSupir = FocusNode();
 
   // Mock Data Lists
-  final List<String> _suppliers = [
-    'PT. Supplier A',
-    'PT. Supplier B',
-    'CV. Maju Jaya',
-  ];
-  final List<String> _customers = [
-    'PT. Customer X',
-    'PT. Customer Y',
-    'Toko Bangunan Z',
-  ];
-  final List<String> _products = ['Batu Split', 'Pasir', 'Sirtu', 'Tanah Urug'];
+  List<ListSupplierJson> _suppliers = [];
+  List<ListCustomerJson> _customers = [];
+  List<ListProductJson> _products = [];
+  List<ListTransactionJson> _transactions = [];
 
   // Selected Values for Dropdowns
-  String? _selectedSupplier;
-  String? _selectedCustomer;
-  String? _selectedProduct;
+  int? _selectedSupplier;
+  int? _selectedCustomer;
+  int? _selectedProduct;
+
+  Future<void> loadData() async {
+    _suppliers = await DbHelper.instance.getListSupplier();
+    _customers = await DbHelper.instance.getListCustomers();
+    _products = await DbHelper.instance.getListProducts();
+    _transactions = await DbHelper.instance.getListTransaction();
+  }
 
   @override
   void initState() {
     super.initState();
+    loadData();
     _timeString = _formatDateTime(DateTime.now());
     _timer = Timer.periodic(
       const Duration(seconds: 1),
@@ -195,7 +199,10 @@ class _TransactionState extends State<Transaction> {
                   color: limeGreen,
                   shape: BoxShape.circle,
                   boxShadow: [
-                    BoxShadow(color: limeGreen.withValues(alpha: 0.6), blurRadius: 6),
+                    BoxShadow(
+                      color: limeGreen.withValues(alpha: 0.6),
+                      blurRadius: 6,
+                    ),
                   ],
                 ),
               ),
@@ -378,32 +385,35 @@ class _TransactionState extends State<Transaction> {
           const SizedBox(height: 16),
 
           // SUPPLIER DROPDOWN
-          _buildDropdown(
+          buildDropdownSupplier(
             label: "Supplier",
             value: _selectedSupplier,
             items: _suppliers,
             prefixIcon: Icons.store_mall_directory_outlined,
             onChanged: (val) => setState(() => _selectedSupplier = val),
+            colors: [_inputBg, _textGrey, _primaryCyan],
           ),
           const SizedBox(height: 16),
 
           // CUSTOMER DROPDOWN
-          _buildDropdown(
+          buildDropdownCustomer(
             label: "Customer",
             value: _selectedCustomer,
             items: _customers,
             prefixIcon: Icons.business_outlined,
             onChanged: (val) => setState(() => _selectedCustomer = val),
+            colors: [_inputBg, _textGrey, _primaryCyan],
           ),
           const SizedBox(height: 16),
 
           // BARANG DROPDOWN
-          _buildDropdown(
+          buildDropdownProduct(
             label: "Barang",
             value: _selectedProduct,
             items: _products,
             prefixIcon: Icons.category_outlined,
             onChanged: (val) => setState(() => _selectedProduct = val),
+            colors: [_inputBg, _textGrey, _primaryCyan],
           ),
 
           const SizedBox(height: 16),
@@ -547,70 +557,6 @@ class _TransactionState extends State<Transaction> {
     );
   }
 
-  Widget _buildDropdown({
-    required String label,
-    required List<String> items,
-    required Function(String?) onChanged,
-    String? value,
-    String? hint,
-    IconData? prefixIcon,
-  }) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        DropdownButtonFormField<String>(
-          initialValue: value,
-          items:
-              items.map((String item) {
-                return DropdownMenuItem<String>(
-                  value: item,
-                  child: Text(
-                    item,
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                );
-              }).toList(),
-          onChanged: onChanged,
-          dropdownColor: _inputBg, // Ensure dropdown popup matches input bg
-          style: const TextStyle(
-            color: Colors.white,
-            fontWeight: FontWeight.w500,
-          ), // Selected text color
-          decoration: InputDecoration(
-            labelText: label,
-            labelStyle: TextStyle(color: _textGrey),
-            hintText: hint,
-            hintStyle: TextStyle(color: Colors.white.withValues(alpha: 0.4)),
-            filled: true,
-            fillColor: _inputBg,
-            contentPadding: const EdgeInsets.symmetric(
-              horizontal: 20,
-              vertical: 18,
-            ),
-            prefixIcon:
-                prefixIcon != null ? Icon(prefixIcon, color: _textGrey) : null,
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide.none,
-            ),
-            enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide(color: _textGrey.withValues(alpha: 0.12)),
-            ),
-            focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide(color: _primaryCyan, width: 1.5),
-            ),
-          ),
-          icon: Icon(Icons.arrow_drop_down, color: _textGrey),
-        ),
-      ],
-    );
-  }
-
   Widget _buildRecentTransactions() {
     return Container(
       width: double.infinity,
@@ -618,7 +564,10 @@ class _TransactionState extends State<Transaction> {
       decoration: BoxDecoration(
         color: _cardBg,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: _textGrey.withValues(alpha: 0.12), width: 0.5),
+        border: Border.all(
+          color: _textGrey.withValues(alpha: 0.12),
+          width: 0.5,
+        ),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -628,117 +577,110 @@ class _TransactionState extends State<Transaction> {
             style: TextStyle(fontSize: 16, color: Colors.white),
           ),
           const SizedBox(height: 16),
-          FutureBuilder<List<ListTransactionJson>>(
-            future: DbHelper.instance.getListTransaction(),
-            builder: (context, snapshot) {
-              if (snapshot.connectionState != ConnectionState.done) {
-                return const SizedBox(
-                  height: 50,
-                  child: Center(child: CircularProgressIndicator()),
-                );
-              }
-              if (!snapshot.hasData || snapshot.data!.isEmpty) {
+          // cek apakah data sudah ada
+          if (_transactions == null)
+            const SizedBox(
+              height: 50,
+              child: Center(child: CircularProgressIndicator()),
+            )
+          else if (_transactions!.isEmpty)
+            Padding(
+              padding: const EdgeInsets.all(20.0),
+              child: Center(
+                child: Text(
+                  'No recent transactions',
+                  style: TextStyle(color: _textGrey.withValues(alpha: 0.9)),
+                ),
+              ),
+            )
+          else
+            ListView.separated(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              itemCount: _transactions!.length,
+              separatorBuilder:
+                  (_, __) => Divider(color: _textGrey.withValues(alpha: 0.12)),
+              itemBuilder: (ctx, i) {
+                final it = _transactions![i];
+                final plate = it.vehiclePlate?.toString() ?? '-';
+                final bruto = it.bruto?.toString() ?? '0';
+                final netto = it.netto?.toString() ?? '0';
+                final intimeRaw = it.inTime?.toString();
+                final intime = _formatShortDate(intimeRaw);
+
                 return Padding(
-                  padding: const EdgeInsets.all(20.0),
-                  child: Center(
-                    child: Text(
-                      'No recent transactions',
-                      style: TextStyle(color: _textGrey.withValues(alpha: 0.9)),
-                    ),
+                  padding: const EdgeInsets.symmetric(vertical: 8),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            plate,
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 16,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            intime,
+                            style: TextStyle(color: _textGrey, fontSize: 12),
+                          ),
+                        ],
+                      ),
+                      Row(
+                        children: [
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.end,
+                            children: [
+                              Text(
+                                '$bruto kg',
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              const SizedBox(height: 2),
+                              Text(
+                                'Bruto',
+                                style: TextStyle(
+                                  color: _textGrey.withValues(alpha: 0.7),
+                                  fontSize: 10,
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(width: 15),
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.end,
+                            children: [
+                              Text(
+                                '$netto kg',
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              const SizedBox(height: 2),
+                              Text(
+                                'Netto',
+                                style: TextStyle(
+                                  color: _textGrey.withValues(alpha: 0.7),
+                                  fontSize: 10,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ],
                   ),
                 );
-              }
-
-              final items = snapshot.data!;
-              return ListView.separated(
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
-                itemCount: items.length,
-                separatorBuilder:
-                    (_, __) => Divider(color: _textGrey.withValues(alpha: 0.12)),
-                itemBuilder: (ctx, i) {
-                  final it = items[i];
-                  final plate = it.vehiclePlate?.toString() ?? '-';
-                  final bruto = it.bruto?.toString() ?? '0';
-                  final netto = it.netto?.toString() ?? '0';
-                  final intimeRaw = it.inTime?.toString();
-                  final intime = _formatShortDate(intimeRaw);
-
-                  return Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 8),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              plate,
-                              style: const TextStyle(
-                                color: Colors.white,
-                                fontWeight: FontWeight.bold,
-                                fontSize: 16,
-                              ),
-                            ),
-                            const SizedBox(height: 4),
-                            Text(
-                              intime,
-                              style: TextStyle(color: _textGrey, fontSize: 12),
-                            ),
-                          ],
-                        ),
-                        Row(
-                          children: [
-                            Column(
-                              crossAxisAlignment: CrossAxisAlignment.end,
-                              children: [
-                                Text(
-                                  '$bruto kg',
-                                  style: const TextStyle(
-                                    color: Colors.white,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                                const SizedBox(height: 2),
-                                Text(
-                                  'Bruto',
-                                  style: TextStyle(
-                                    color: _textGrey.withValues(alpha: 0.7),
-                                    fontSize: 10,
-                                  ),
-                                ),
-                              ],
-                            ),
-                            const SizedBox(width: 15),
-                            Column(
-                              crossAxisAlignment: CrossAxisAlignment.end,
-                              children: [
-                                Text(
-                                  '$netto kg',
-                                  style: const TextStyle(
-                                    color: Colors.white,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                                const SizedBox(height: 2),
-                                Text(
-                                  'Netto',
-                                  style: TextStyle(
-                                    color: _textGrey.withValues(alpha: 0.7),
-                                    fontSize: 10,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                  );
-                },
-              );
-            },
-          ),
+              },
+            ),
         ],
       ),
     );

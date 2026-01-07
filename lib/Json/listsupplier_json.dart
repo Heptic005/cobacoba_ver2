@@ -33,7 +33,7 @@ class ListSupplierJson {
         supplierAddress: json['supplierAddress'],
         supplierCity: json['supplierCity'],
         supplierSubdistrict: json['supplierSubdistrict'],
-        supplierPostCode: json['postCode'],
+        supplierPostCode: json['supplierPostCode'],
       );
 
   Map<String, dynamic> toJson() => {
