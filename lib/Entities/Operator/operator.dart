@@ -4,7 +4,7 @@ import 'package:dakara_weighbridge/Json/listtransaction_json.dart';
 import 'package:dakara_weighbridge/SQLite/db_helper.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-/// Need to add export to pdf, excel and print feature
+/// TODO : Need to add export to pdf, excel and print feature
 class Operator implements AbstractOperator {
   @override
   Future<void> login({

@@ -4,6 +4,7 @@ import 'package:dakara_weighbridge/Json/listaccount_json.dart';
 import 'package:dakara_weighbridge/SQLite/db_helper.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+/// TODO : Need to add export report, emergency transaction
 class Supervisor implements AbstractSupervisor {
   @override
   Future<void> createOperator({
