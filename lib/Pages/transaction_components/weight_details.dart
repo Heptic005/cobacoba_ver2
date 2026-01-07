@@ -28,7 +28,7 @@ class WeightDetails extends StatelessWidget {
         decoration: BoxDecoration(
           color: cardBg,
           borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: textGrey.withOpacity(0.12)),
+          border: Border.all(color: textGrey.withAlpha((0.12 * 255).round())),
         ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,

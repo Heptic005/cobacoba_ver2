@@ -110,7 +110,7 @@ class RecentTransactions extends StatelessWidget {
       decoration: BoxDecoration(
         color: cardBg,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: textGrey.withOpacity(0.12), width: 0.5),
+        border: Border.all(color: textGrey.withAlpha((0.12 * 255).round()), width: 0.5),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -125,7 +125,7 @@ class RecentTransactions extends StatelessWidget {
                   style: const TextStyle(color: Colors.white),
                   decoration: InputDecoration(
                     hintText: 'Search ticket or plate',
-                    hintStyle: TextStyle(color: textGrey.withOpacity(0.6)),
+                    hintStyle: TextStyle(color: textGrey.withAlpha((0.6 * 255).round())),
                     filled: true,
                     fillColor: inputBg,
                     prefixIcon: Icon(Icons.search, color: textGrey),
@@ -177,31 +177,31 @@ class RecentTransactions extends StatelessWidget {
                   shrinkWrap: true,
                   physics: const NeverScrollableScrollPhysics(),
                   itemCount: items.length,
-                  separatorBuilder: (_, __) => Divider(color: textGrey.withOpacity(0.12)),
+                  separatorBuilder: (_, __) => Divider(color: textGrey.withAlpha((0.12 * 255).round())),
                   itemBuilder: (ctx, i) {
                     final it = items[i];
-                    final plate = it.vehiclePlate?.toString() ?? '-';
-                    final brutoNum = (it.bruto ?? 0);
-                    final nettoNum = (it.netto ?? 0);
-                    final afterCutNum = (it.nettoAfterCut ?? it.netto ?? 0);
-                    final bruto = brutoNum is num ? brutoNum.toDouble() : double.tryParse(brutoNum.toString()) ?? 0.0;
-                    final netto = nettoNum is num ? nettoNum.toDouble() : double.tryParse(nettoNum.toString()) ?? 0.0;
-                    final afterCut = afterCutNum is num ? afterCutNum.toDouble() : double.tryParse(afterCutNum.toString()) ?? 0.0;
-                    final intimeRaw = it.inTime?.toString();
-                    final outtimeRaw = it.outTime?.toString();
+                    final plate = it.vehiclePlate;
+                    final brutoNum = it.bruto;
+                    final nettoNum = it.netto;
+                    final afterCutNum = it.nettoAfterCut;
+                    final bruto = brutoNum.toDouble();
+                    final netto = nettoNum.toDouble();
+                    final afterCut = afterCutNum.toDouble();
+                    final intimeRaw = it.inTime.toString();
+                    final outtimeRaw = it.outTime.toString();
                     final intime = _formatShortDate(intimeRaw);
-                    final outtime = (outtimeRaw != null && outtimeRaw.trim().isNotEmpty) ? _formatShortDate(outtimeRaw) : null;
-                    final noTicket = it.noTicket?.toString() ?? '';
-                    final driver = it.driverName?.toString() ?? '';
+                    final outtime = outtimeRaw.trim().isNotEmpty ? _formatShortDate(outtimeRaw) : null;
+                    final noTicket = it.noTicket;
+                    final driver = it.driverName;
                     final productName = _productNameFromId(it.productId);
                     final supplierName = _supplierNameFromId(it.supplierId);
                     final customerName = _customerNameFromId(it.customerId);
-                    final cut = it.cut?.toString();
-                    final doNo = it.noDO?.toString();
+                    final cut = it.cut.toString();
+                    final doNo = it.noDO;
                     final container = it.noContainer?.toString();
                     final temp = it.temperature?.toString();
-                    final price = it.price != null ? it.price.toString() : null;
-                    final notes = it.additionalInformation?.toString();
+                    final price = it.price?.toString();
+                    final notes = it.additionalInformation;
 
                     return ExpansionTile(
                       tilePadding: const EdgeInsets.symmetric(vertical: 4),
@@ -222,7 +222,7 @@ class RecentTransactions extends StatelessWidget {
                                 const SizedBox(height: 4),
                                 Text('$driver • ${productName.isNotEmpty ? productName : '-'}', style: TextStyle(color: textGrey, fontSize: 12)),
                                 const SizedBox(height: 4),
-                                Text(outtime != null ? '$intime → $outtime' : '$intime • In progress', style: TextStyle(color: textGrey.withOpacity(0.9), fontSize: 11)),
+                                Text(outtime != null ? '$intime → $outtime' : '$intime • In progress', style: TextStyle(color: textGrey.withAlpha((0.9 * 255).round()), fontSize: 11)),
                               ],
                             ),
                           ),
@@ -249,23 +249,23 @@ class RecentTransactions extends StatelessWidget {
                             ],
                           ),
                           const SizedBox(width: 12),
-                          Column(crossAxisAlignment: CrossAxisAlignment.end, children: [Text('${bruto.toStringAsFixed(0)} kg', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)), const SizedBox(height: 2), Text('Bruto', style: TextStyle(color: textGrey.withOpacity(0.7), fontSize: 10))]),
+                          Column(crossAxisAlignment: CrossAxisAlignment.end, children: [Text('${bruto.toStringAsFixed(0)} kg', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)), const SizedBox(height: 2), Text('Bruto', style: TextStyle(color: textGrey.withAlpha((0.7 * 255).round()), fontSize: 10))]),
                           const SizedBox(width: 12),
-                          Column(crossAxisAlignment: CrossAxisAlignment.end, children: [Text('${netto.toStringAsFixed(0)} kg', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)), const SizedBox(height: 2), Text('Netto', style: TextStyle(color: textGrey.withOpacity(0.7), fontSize: 10))]),
+                          Column(crossAxisAlignment: CrossAxisAlignment.end, children: [Text('${netto.toStringAsFixed(0)} kg', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)), const SizedBox(height: 2), Text('Netto', style: TextStyle(color: textGrey.withAlpha((0.7 * 255).round()), fontSize: 10))]),
                           const SizedBox(width: 12),
-                          Column(crossAxisAlignment: CrossAxisAlignment.end, children: [Text('${afterCut.toStringAsFixed(0)} kg', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)), const SizedBox(height: 2), Text('After cut', style: TextStyle(color: textGrey.withOpacity(0.7), fontSize: 10))]),
+                          Column(crossAxisAlignment: CrossAxisAlignment.end, children: [Text('${afterCut.toStringAsFixed(0)} kg', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)), const SizedBox(height: 2), Text('After cut', style: TextStyle(color: textGrey.withAlpha((0.7 * 255).round()), fontSize: 10))]),
                         ],
                       ),
                       children: [
                         Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                           if (supplierName.isNotEmpty) Text('Supplier: $supplierName', style: TextStyle(color: textGrey)) else if (it.supplierId != 0) Text('Supplier: ${it.supplierId}', style: TextStyle(color: textGrey)),
                           if (customerName.isNotEmpty) Text('Customer: $customerName', style: TextStyle(color: textGrey)) else if (it.customerId != 0) Text('Customer: ${it.customerId}', style: TextStyle(color: textGrey)),
-                          if (doNo != null) Text('No DO: $doNo', style: TextStyle(color: textGrey)),
+                          if (doNo != null && doNo.isNotEmpty) Text('No DO: $doNo', style: TextStyle(color: textGrey)),
                           if (container != null) Text('No Container: $container', style: TextStyle(color: textGrey)),
-                          if (cut != null) Text('Potongan: $cut %', style: TextStyle(color: textGrey)),
+                          Text('Potongan: $cut %', style: TextStyle(color: textGrey)),
                           if (price != null) Text('Harga/kg: $price', style: TextStyle(color: textGrey)),
                           if (temp != null) Text('Suhu: $temp', style: TextStyle(color: textGrey)),
-                          if (notes != null) Text('Keterangan: ${notes.length > 100 ? notes.substring(0, 100) + "..." : notes}', style: TextStyle(color: textGrey)),
+                          if (notes != null && notes.isNotEmpty) Text('Keterangan: ${notes.length > 100 ? "${notes.substring(0, 100)}..." : notes}', style: TextStyle(color: textGrey)),
                           const SizedBox(height: 8),
                           Row(children: [
                             (() {
@@ -299,14 +299,14 @@ class RecentTransactions extends StatelessWidget {
               filtered.sort((a, b) => sortDesc ? b.inTime.compareTo(a.inTime) : a.inTime.compareTo(b.inTime));
 
               if (filtered.isEmpty) {
-                return Padding(padding: const EdgeInsets.all(20.0), child: Center(child: Text('No matching transactions', style: TextStyle(color: textGrey.withOpacity(0.9)))));
+                return Padding(padding: const EdgeInsets.all(20.0), child: Center(child: Text('No matching transactions', style: TextStyle(color: textGrey.withAlpha((0.9 * 255).round())))));
               }
 
               return ListView.separated(
                 shrinkWrap: true,
                 physics: const NeverScrollableScrollPhysics(),
                 itemCount: filtered.length,
-                separatorBuilder: (_, __) => Divider(color: textGrey.withOpacity(0.12)),
+                separatorBuilder: (_, __) => Divider(color: textGrey.withAlpha((0.12 * 255).round())),
                 itemBuilder: (ctx, i) {
                   final tx = filtered[i];
                   final intime = DateFormat('dd MMM HH:mm').format(tx.inTime);
@@ -322,14 +322,14 @@ class RecentTransactions extends StatelessWidget {
                         const SizedBox(height: 4),
                         Text('${tx.driverName} • ${_productNameFromId(tx.productId)}', style: TextStyle(color: textGrey, fontSize: 12)),
                         const SizedBox(height: 4),
-                        Text(outtime != null ? '$intime → $outtime' : '$intime • In progress', style: TextStyle(color: textGrey.withOpacity(0.9), fontSize: 11)),
+                        Text(outtime != null ? '$intime → $outtime' : '$intime • In progress', style: TextStyle(color: textGrey.withAlpha((0.9 * 255).round()), fontSize: 11)),
                       ])),
                       const SizedBox(width: 12),
-                      Column(crossAxisAlignment: CrossAxisAlignment.end, children: [Text('${tx.bruto.toStringAsFixed(0)} kg', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)), const SizedBox(height: 2), Text('Bruto', style: TextStyle(color: textGrey.withOpacity(0.7), fontSize: 10))]),
+                      Column(crossAxisAlignment: CrossAxisAlignment.end, children: [Text('${tx.bruto.toStringAsFixed(0)} kg', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)), const SizedBox(height: 2), Text('Bruto', style: TextStyle(color: textGrey.withAlpha((0.7 * 255).round()), fontSize: 10))]),
                       const SizedBox(width: 12),
-                      Column(crossAxisAlignment: CrossAxisAlignment.end, children: [Text('${tx.netto.toStringAsFixed(0)} kg', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)), const SizedBox(height: 2), Text('Netto', style: TextStyle(color: textGrey.withOpacity(0.7), fontSize: 10))]),
+                      Column(crossAxisAlignment: CrossAxisAlignment.end, children: [Text('${tx.netto.toStringAsFixed(0)} kg', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)), const SizedBox(height: 2), Text('Netto', style: TextStyle(color: textGrey.withAlpha((0.7 * 255).round()), fontSize: 10))]),
                       const SizedBox(width: 12),
-                      Column(crossAxisAlignment: CrossAxisAlignment.end, children: [Text('${tx.nettoAfterCut.toStringAsFixed(0)} kg', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)), const SizedBox(height: 2), Text('After cut', style: TextStyle(color: textGrey.withOpacity(0.7), fontSize: 10))]),
+                      Column(crossAxisAlignment: CrossAxisAlignment.end, children: [Text('${tx.nettoAfterCut.toStringAsFixed(0)} kg', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)), const SizedBox(height: 2), Text('After cut', style: TextStyle(color: textGrey.withAlpha((0.7 * 255).round()), fontSize: 10))]),
                       PopupMenuButton<String>(
                         color: cardBg,
                         icon: Icon(Icons.more_vert, color: textGrey),

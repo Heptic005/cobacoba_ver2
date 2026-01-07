@@ -108,13 +108,13 @@ class TransactionFormCard extends StatelessWidget {
         labelText: label,
         labelStyle: TextStyle(color: textGrey),
         hintText: hint,
-        hintStyle: TextStyle(color: Colors.white.withOpacity(0.5)),
+        hintStyle: TextStyle(color: Colors.white.withAlpha((0.5 * 255).round())),
         filled: true,
         fillColor: inputBg,
         contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
         prefixIcon: prefixIcon != null ? Icon(prefixIcon, color: textGrey) : null,
         border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
-        enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: textGrey.withOpacity(0.12))),
+        enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: textGrey.withAlpha((0.12 * 255).round()))),
         focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: primaryCyan, width: 1.5)),
       ),
       onFieldSubmitted: (v) {
@@ -127,12 +127,12 @@ class TransactionFormCard extends StatelessWidget {
     required String label,
     required List<T> items,
     required void Function(int?) onChanged,
-    int? value,
+    int? initialValue,
     IconData? prefixIcon,
     bool enabled = true,
   }) {
     return DropdownButtonFormField<int>(
-      value: value,
+      initialValue: initialValue,
       items: items.map((item) {
         int id = 0;
         String labelText = item.toString();
@@ -159,7 +159,7 @@ class TransactionFormCard extends StatelessWidget {
         contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
         prefixIcon: prefixIcon != null ? Icon(prefixIcon, color: textGrey) : null,
         border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
-        enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: textGrey.withOpacity(0.12))),
+        enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: textGrey.withAlpha((0.12 * 255).round()))),
         focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: primaryCyan, width: 1.5)),
       ),
       icon: Icon(Icons.arrow_drop_down, color: textGrey),
@@ -173,7 +173,7 @@ class TransactionFormCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: cardBg,
         borderRadius: BorderRadius.circular(24),
-        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.2), blurRadius: 8)],
+        boxShadow: [BoxShadow(color: Colors.black.withAlpha((0.2 * 255).round()), blurRadius: 8)],
       ),
       child: Column(
         children: [
@@ -184,7 +184,7 @@ class TransactionFormCard extends StatelessWidget {
                 children: [
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                    decoration: BoxDecoration(color: cardBg, borderRadius: BorderRadius.circular(20), border: Border.all(color: textGrey.withOpacity(0.12))),
+                    decoration: BoxDecoration(color: cardBg, borderRadius: BorderRadius.circular(20), border: Border.all(color: textGrey.withAlpha((0.12 * 255).round()))),
                     child: Row(children: [Text('Ticket: ', style: TextStyle(color: textGrey, fontSize: 12)), const SizedBox(width: 6), Text(currentTicketPreview!, style: TextStyle(color: primaryCyan, fontWeight: FontWeight.w700))]),
                   ),
                   const SizedBox(width: 12),
@@ -194,9 +194,9 @@ class TransactionFormCard extends StatelessWidget {
             ),
           Row(children: [Expanded(child: _buildTextInput(controller: platnomorController, label: 'Plat Nomor', hint: 'B 1234 ABC', focus: focusPlatnomor, nextFocus: focusSupir, textCapital: TextCapitalization.characters, prefixIcon: Icons.local_shipping_outlined, enabled: !isWeighing)), const SizedBox(width: 16), Expanded(child: _buildTextInput(controller: namasupirController, label: 'Nama Supir', focus: focusSupir, nextFocus: focusPotongan, prefixIcon: Icons.person_outline, enabled: !isWeighing))]),
           const SizedBox(height: 16),
-          Row(children: [Expanded(child: _buildDropdown<ListSupplierJson>(label: 'Supplier', items: suppliers, onChanged: onSelectSupplier, value: selectedSupplier, prefixIcon: Icons.store_mall_directory_outlined, enabled: !isWeighing)), const SizedBox(width: 16), Expanded(child: _buildDropdown<ListCustomerJson>(label: 'Customer', items: customers, onChanged: onSelectCustomer, value: selectedCustomer, prefixIcon: Icons.business_outlined, enabled: !isWeighing))]),
+          Row(children: [Expanded(child: _buildDropdown<ListSupplierJson>(label: 'Supplier', items: suppliers, onChanged: onSelectSupplier, initialValue: selectedSupplier, prefixIcon: Icons.store_mall_directory_outlined, enabled: !isWeighing)), const SizedBox(width: 16), Expanded(child: _buildDropdown<ListCustomerJson>(label: 'Customer', items: customers, onChanged: onSelectCustomer, initialValue: selectedCustomer, prefixIcon: Icons.business_outlined, enabled: !isWeighing))]),
           const SizedBox(height: 16),
-          Row(children: [Expanded(child: _buildDropdown<ListProductJson>(label: 'Barang', items: products, onChanged: onSelectProduct, value: selectedProduct, prefixIcon: Icons.category_outlined, enabled: !isWeighing)), const SizedBox(width: 16), Expanded(child: _buildTextInput(controller: poController, label: 'Nomor DO / PO', focus: focusPO, nextFocus: focusNoContainer, prefixIcon: Icons.description_outlined, enabled: !isWeighing))]),
+          Row(children: [Expanded(child: _buildDropdown<ListProductJson>(label: 'Barang', items: products, onChanged: onSelectProduct, initialValue: selectedProduct, prefixIcon: Icons.category_outlined, enabled: !isWeighing)), const SizedBox(width: 16), Expanded(child: _buildTextInput(controller: poController, label: 'Nomor DO / PO', focus: focusPO, nextFocus: focusNoContainer, prefixIcon: Icons.description_outlined, enabled: !isWeighing))]),
           const SizedBox(height: 16),
           Row(children: [Expanded(child: _buildTextInput(controller: potonganController, label: 'Potongan (%)', hint: '0', focus: focusPotongan, nextFocus: focusKubikasi, keyboardType: TextInputType.number, prefixIcon: Icons.percent, enabled: !isWeighing)), const SizedBox(width: 16), Expanded(child: _buildTextInput(controller: kubikasiController, label: 'Kubikasi (opt)', hint: '0', focus: focusKubikasi, nextFocus: focusPO, keyboardType: TextInputType.number, prefixIcon: Icons.numbers, enabled: !isWeighing))]),
           const SizedBox(height: 16),

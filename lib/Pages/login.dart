@@ -6,7 +6,7 @@ import '../SQLite/db_helper.dart';
 import '../Json/listaccount_json.dart';
 
 class LoginPage extends StatefulWidget {
-  const LoginPage({Key? key}) : super(key: key);
+  const LoginPage({super.key});
 
   @override
   State<LoginPage> createState() => _LoginPageState();
@@ -42,15 +42,17 @@ class _LoginPageState extends State<LoginPage> {
         accountPosition: 'operator',
       );
       await DbHelper.instance.addUser(newAccount);
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Operator berhasil didaftarkan')),
       );
     } catch (e) {
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Gagal mendaftar: $e')),
       );
     } finally {
-      setState(() => _loading = false);
+      if (mounted) setState(() => _loading = false);
     }
   }
 
@@ -68,7 +70,7 @@ class _LoginPageState extends State<LoginPage> {
     try {
       final op = Operator();
       await op.login(username: username, password: password);
-
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Login berhasil')),
       );
@@ -76,15 +78,17 @@ class _LoginPageState extends State<LoginPage> {
         MaterialPageRoute(builder: (_) => const Dashboard()),
       );
     } on InvalidCredential {
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Username atau password salah')),
       );
     } catch (e) {
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Gagal login: $e')),
       );
     } finally {
-      setState(() => _loading = false);
+      if (mounted) setState(() => _loading = false);
     }
   }
 
@@ -110,16 +114,16 @@ class _LoginPageState extends State<LoginPage> {
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
                     colors: [
-                      cardBg.withOpacity(0.95),
-                      cardBg.withOpacity(0.6),
-                      Colors.black.withOpacity(0.25),
+                      cardBg.withAlpha((0.95 * 255).round()),
+                      cardBg.withAlpha((0.6 * 255).round()),
+                      Colors.black.withAlpha((0.25 * 255).round()),
                     ],
                   ),
                   borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: textGrey.withOpacity(0.06)),
+                  border: Border.all(color: textGrey.withAlpha((0.06 * 255).round())),
                   boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.65),
+                      BoxShadow(
+                      color: Colors.black.withAlpha((0.65 * 255).round()),
                       blurRadius: 30,
                       spreadRadius: 2,
                       offset: const Offset(0, 10),
@@ -156,8 +160,8 @@ class _LoginPageState extends State<LoginPage> {
                           const SizedBox(height: 24),
                           // instructions block
                           Container(
-                            padding: const EdgeInsets.all(12),
-                            decoration: BoxDecoration(color: Colors.black.withOpacity(0.06), borderRadius: BorderRadius.circular(8)),
+                                    padding: const EdgeInsets.all(12),
+                                    decoration: BoxDecoration(color: Colors.black.withAlpha((0.06 * 255).round()), borderRadius: BorderRadius.circular(8)),
                             child: const Text(
                               'Testing: please register first using "Register as Operator" to create an operator account, then sign in. This build is for testing only.',
                               style: TextStyle(color: Colors.white70),
@@ -242,7 +246,7 @@ class _LoginPageState extends State<LoginPage> {
                         width: 260,
                         height: 260,
                         decoration: BoxDecoration(
-                          color: Colors.grey.shade700.withOpacity(0.18),
+                          color: Colors.grey.shade700.withAlpha((0.18 * 255).round()),
                           borderRadius: BorderRadius.circular(20),
                           border: Border.all(color: Colors.black12),
                         ),

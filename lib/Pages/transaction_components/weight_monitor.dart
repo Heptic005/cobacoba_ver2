@@ -40,7 +40,7 @@ class WeightMonitorCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(24),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.3),
+            color: Colors.black.withAlpha((0.3 * 255).round()),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -61,7 +61,7 @@ class WeightMonitorCard extends StatelessWidget {
                       color: isConnected ? indicatorGreen : Colors.redAccent,
                       shape: BoxShape.circle,
                       boxShadow: [
-                        BoxShadow(color: (isConnected ? indicatorGreen.withOpacity(0.6) : Colors.redAccent.withOpacity(0.6)), blurRadius: 6),
+                        BoxShadow(color: (isConnected ? indicatorGreen.withAlpha((0.6 * 255).round()) : Colors.redAccent.withAlpha((0.6 * 255).round())), blurRadius: 6),
                       ],
                     ),
                   ),
@@ -69,9 +69,9 @@ class WeightMonitorCard extends StatelessWidget {
               ),
               const SizedBox(width: 10),
               Text(
-                "Weighing Indicator",
+                isWeighIn ? "Timbang Masuk" : "Timbang Keluar",
                 style: TextStyle(
-                  color: textGrey.withOpacity(0.85),
+                  color: textGrey.withAlpha((0.85 * 255).round()),
                   fontSize: 16,
                   fontWeight: FontWeight.w600,
                   shadows: const [
