@@ -95,62 +95,6 @@ class _TransactionState extends State<Transaction> {
       _timeNotifier.value = _formatDateTime(DateTime.now());
     });
     // sample data for Recent Transactions UI
-    _sampleTransactions = [
-      ListTransactionJson(
-        vehiclePlate: 'B 1234 ABC',
-        driverName: 'Ujang',
-        supplierId: 1,
-        customerId: 1,
-        productId: 1,
-        cut: 5,
-        kubikasi: 2,
-        noDO: 'DO-001',
-        noContainer: null,
-        temperature: 28.5,
-        price: 15000.0,
-        additionalInformation: 'Contoh',
-        noTicket: '20260107-0001',
-        inTime: DateTime.now().subtract(const Duration(hours: 1)),
-        outTime: DateTime.now(),
-        totalPrice: 15000.0 * 100,
-        bruto: 120.0,
-        tare: 20.0,
-        netto: 100.0,
-        nettoAfterCut: 95.0,
-        driverLabel: 1,
-        transactionId: 1,
-        operatorLabel: 0,
-        managerLabel: 0,
-        headWarehouseLabel: 0,
-      ),
-      ListTransactionJson(
-        vehiclePlate: 'D 5678 XYZ',
-        driverName: 'Siti',
-        supplierId: 2,
-        customerId: 2,
-        productId: 2,
-        cut: 0,
-        kubikasi: null,
-        noDO: 'DO-002',
-        noContainer: 12345,
-        temperature: null,
-        price: 12000.0,
-        additionalInformation: null,
-        noTicket: '20260107-0002',
-        inTime: DateTime.now().subtract(const Duration(hours: 3)),
-        outTime: DateTime.now().subtract(const Duration(hours: 1)),
-        totalPrice: 12000.0 * 80,
-        bruto: 90.0,
-        tare: 10.0,
-        netto: 80.0,
-        nettoAfterCut: 80.0,
-        driverLabel: 1,
-        transactionId: 2,
-        operatorLabel: 1,
-        managerLabel: 0,
-        headWarehouseLabel: 0,
-      ),
-    ];
     // init ticket counter after sample
     _ticketCounter = _sampleTransactions.length + 1;
   }
@@ -208,7 +152,8 @@ class _TransactionState extends State<Transaction> {
     if (raw == null) return null;
     try {
       if (raw is int) return DateTime.fromMillisecondsSinceEpoch(raw);
-      if (raw is double) return DateTime.fromMillisecondsSinceEpoch(raw.toInt());
+      if (raw is double)
+        return DateTime.fromMillisecondsSinceEpoch(raw.toInt());
       if (raw is String) {
         final s = raw.trim();
         if (s.isEmpty) return null;
@@ -223,7 +168,17 @@ class _TransactionState extends State<Transaction> {
   String _supplierNameFromId(int? id) {
     if (id == null || id == 0) return '';
     try {
-      final s = _suppliers.firstWhere((e) => e.supplierId == id, orElse: () => ListSupplierJson(supplierName: '', supplierAddress: '', supplierCity: '', supplierSubdistrict: '', supplierPostCode: ''));
+      final s = _suppliers.firstWhere(
+        (e) => e.supplierId == id,
+        orElse:
+            () => ListSupplierJson(
+              supplierName: '',
+              supplierAddress: '',
+              supplierCity: '',
+              supplierSubdistrict: '',
+              supplierPostCode: '',
+            ),
+      );
       return s.supplierName;
     } catch (_) {
       return '';
@@ -233,7 +188,15 @@ class _TransactionState extends State<Transaction> {
   String _customerNameFromId(int? id) {
     if (id == null || id == 0) return '';
     try {
-      final c = _customers.firstWhere((e) => e.customerId == id, orElse: () => ListCustomerJson(customerName: '', customerAddress: '', customerPhone: ''));
+      final c = _customers.firstWhere(
+        (e) => e.customerId == id,
+        orElse:
+            () => ListCustomerJson(
+              customerName: '',
+              customerAddress: '',
+              customerPhone: '',
+            ),
+      );
       return c.customerName;
     } catch (_) {
       return '';
@@ -243,7 +206,12 @@ class _TransactionState extends State<Transaction> {
   String _productNameFromId(int? id) {
     if (id == null || id == 0) return '';
     try {
-      final p = _products.firstWhere((e) => e.productId == id, orElse: () => ListProductJson(productId: 0, productName: '', productCode: ''));
+      final p = _products.firstWhere(
+        (e) => e.productId == id,
+        orElse:
+            () =>
+                ListProductJson(productId: 0, productName: '', productCode: ''),
+      );
       return p.productName;
     } catch (_) {
       return '';
@@ -347,25 +315,40 @@ class _TransactionState extends State<Transaction> {
         suhuController.clear();
         hargaController.clear();
         keteranganController.clear();
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Netto finalized')));
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('Netto finalized')));
       });
     } on Exception catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed finalizing: $e')));
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Failed finalizing: $e')));
     }
   }
 
   Future<void> _continueNettoAndMaybeAuto(ListTransactionJson tx) async {
     // Basic required fields check
-    final hasRequired = tx.vehiclePlate.isNotEmpty && tx.driverName.isNotEmpty && _productNameFromId(tx.productId).isNotEmpty && _supplierNameFromId(tx.supplierId).isNotEmpty && _customerNameFromId(tx.customerId).isNotEmpty;
+    final hasRequired =
+        tx.vehiclePlate.isNotEmpty &&
+        tx.driverName.isNotEmpty &&
+        _productNameFromId(tx.productId).isNotEmpty &&
+        _supplierNameFromId(tx.supplierId).isNotEmpty &&
+        _customerNameFromId(tx.customerId).isNotEmpty;
     if (!hasRequired) {
       // load into form for user to complete
       _loadDraftIntoForm(tx);
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Please complete required fields before finalizing')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Please complete required fields before finalizing'),
+        ),
+      );
       return;
     }
 
     if (!_isConnected) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Indicator not connected')));
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Indicator not connected')));
       // still load into form
       _loadDraftIntoForm(tx);
       return;
@@ -382,12 +365,20 @@ class _TransactionState extends State<Transaction> {
     // validate price and cut before allowing finalize; if invalid, open form for edit
     if (tx.price == null || tx.price == 0.0) {
       _loadDraftIntoForm(tx);
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Price missing or zero — complete price before finalizing')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            'Price missing or zero — complete price before finalizing',
+          ),
+        ),
+      );
       return;
     }
     if (tx.cut < 0 || tx.cut > 100) {
       _loadDraftIntoForm(tx);
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Potongan must be between 0 and 100')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Potongan must be between 0 and 100')),
+      );
       return;
     }
 
@@ -395,7 +386,11 @@ class _TransactionState extends State<Transaction> {
     _loadDraftIntoForm(tx);
     _editingDraftTicket = tx.noTicket;
     _currentTicketPreview = tx.noTicket;
-    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Tare captured — press SIMPAN KELUAR to finalize')));
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Tare captured — press SIMPAN KELUAR to finalize'),
+      ),
+    );
     // Keep captured tare visible and stay in weigh-out edit mode so user can review and press SIMPAN KELUAR
     setState(() {
       _isWeighIn = false;
@@ -411,7 +406,14 @@ class _TransactionState extends State<Transaction> {
         children: [
           Text(label, style: TextStyle(color: _textGrey, fontSize: 12)),
           const SizedBox(height: 4),
-          Text(value, style: const TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.w600)),
+          Text(
+            value,
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 14,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
         ],
       ),
     );
@@ -423,75 +425,118 @@ class _TransactionState extends State<Transaction> {
       builder: (ctx) {
         final intime = _formatShortDate(item['inTime']?.toString());
         final outtimeRaw = item['outTime']?.toString();
-        final outtime = (outtimeRaw != null && outtimeRaw.isNotEmpty) ? _formatShortDate(outtimeRaw) : null;
+        final outtime =
+            (outtimeRaw != null && outtimeRaw.isNotEmpty)
+                ? _formatShortDate(outtimeRaw)
+                : null;
         return Dialog(
           backgroundColor: Colors.transparent,
           child: Center(
             child: ConstrainedBox(
               constraints: const BoxConstraints(maxWidth: 560),
-              child: LayoutBuilder(builder: (context, constraints) {
-                final maxHeight = MediaQuery.of(ctx).size.height * 0.8;
-                return Container(
-                  padding: const EdgeInsets.all(20),
-                  constraints: BoxConstraints(maxHeight: maxHeight),
-                  decoration: BoxDecoration(
-                    color: _cardBg,
-                    borderRadius: BorderRadius.circular(20),
-                    border: Border.all(color: _textGrey.withValues(alpha: 0.08)),
-                  ),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.max,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(item['noTicket']?.toString() ?? 'Detail', style: TextStyle(color: _primaryCyan, fontSize: 20, fontWeight: FontWeight.w700)),
-                      const SizedBox(height: 12),
-                      Divider(color: _textGrey.withValues(alpha: 0.12)),
-                      const SizedBox(height: 12),
-                      Expanded(
-                        child: SingleChildScrollView(
-                          child: Wrap(
-                            runSpacing: 10,
-                            spacing: 20,
-                            children: [
-                              _detailRow('Plate', item['vehiclePlate']?.toString() ?? '-'),
-                              _detailRow('Driver', item['driverName']?.toString() ?? '-'),
-                              _detailRow('Product', item['ProductName']?.toString() ?? '-'),
-                              _detailRow('Supplier', item['supplierName']?.toString() ?? '-'),
-                              _detailRow('Customer', item['customerName']?.toString() ?? '-'),
-                              _detailRow('In', intime),
-                              _detailRow('Out', outtime ?? '-'),
-                              _detailRow('Bruto', '${item['bruto'] ?? 0} kg'),
-                              _detailRow('Tare', '${item['tare'] ?? 0} kg'),
-                              _detailRow('Netto', '${item['netto'] ?? 0} kg'),
-                              _detailRow('After cut', '${item['nettoAfterCut'] ?? item['netto'] ?? 0} kg'),
-                              if (item['additionalInformation'] != null) _detailRow('Notes', item['additionalInformation']?.toString() ?? ''),
-                            ],
+              child: LayoutBuilder(
+                builder: (context, constraints) {
+                  final maxHeight = MediaQuery.of(ctx).size.height * 0.8;
+                  return Container(
+                    padding: const EdgeInsets.all(20),
+                    constraints: BoxConstraints(maxHeight: maxHeight),
+                    decoration: BoxDecoration(
+                      color: _cardBg,
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(
+                        color: _textGrey.withValues(alpha: 0.08),
+                      ),
+                    ),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.max,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          item['noTicket']?.toString() ?? 'Detail',
+                          style: TextStyle(
+                            color: _primaryCyan,
+                            fontSize: 20,
+                            fontWeight: FontWeight.w700,
                           ),
                         ),
-                      ),
-                      const SizedBox(height: 12),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.end,
-                        children: [
-                          TextButton(
-                            onPressed: () => Navigator.of(ctx).pop(),
-                            child: Text('Close', style: TextStyle(color: _textGrey)),
+                        const SizedBox(height: 12),
+                        Divider(color: _textGrey.withValues(alpha: 0.12)),
+                        const SizedBox(height: 12),
+                        Expanded(
+                          child: SingleChildScrollView(
+                            child: Wrap(
+                              runSpacing: 10,
+                              spacing: 20,
+                              children: [
+                                _detailRow(
+                                  'Plate',
+                                  item['vehiclePlate']?.toString() ?? '-',
+                                ),
+                                _detailRow(
+                                  'Driver',
+                                  item['driverName']?.toString() ?? '-',
+                                ),
+                                _detailRow(
+                                  'Product',
+                                  item['ProductName']?.toString() ?? '-',
+                                ),
+                                _detailRow(
+                                  'Supplier',
+                                  item['supplierName']?.toString() ?? '-',
+                                ),
+                                _detailRow(
+                                  'Customer',
+                                  item['customerName']?.toString() ?? '-',
+                                ),
+                                _detailRow('In', intime),
+                                _detailRow('Out', outtime ?? '-'),
+                                _detailRow('Bruto', '${item['bruto'] ?? 0} kg'),
+                                _detailRow('Tare', '${item['tare'] ?? 0} kg'),
+                                _detailRow('Netto', '${item['netto'] ?? 0} kg'),
+                                _detailRow(
+                                  'After cut',
+                                  '${item['nettoAfterCut'] ?? item['netto'] ?? 0} kg',
+                                ),
+                                if (item['additionalInformation'] != null)
+                                  _detailRow(
+                                    'Notes',
+                                    item['additionalInformation']?.toString() ??
+                                        '',
+                                  ),
+                              ],
+                            ),
                           ),
-                          const SizedBox(width: 12),
-                          ElevatedButton(
-                            onPressed: () {
-                              Navigator.of(ctx).pop();
-                              _printTransactionMap(item);
-                            },
-                            style: ElevatedButton.styleFrom(backgroundColor: _primaryCyan, foregroundColor: Colors.black),
-                            child: const Text('Print'),
-                          ),
-                        ],
-                      )
-                    ],
-                  ),
-                );
-              }),
+                        ),
+                        const SizedBox(height: 12),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.end,
+                          children: [
+                            TextButton(
+                              onPressed: () => Navigator.of(ctx).pop(),
+                              child: Text(
+                                'Close',
+                                style: TextStyle(color: _textGrey),
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            ElevatedButton(
+                              onPressed: () {
+                                Navigator.of(ctx).pop();
+                                _printTransactionMap(item);
+                              },
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: _primaryCyan,
+                                foregroundColor: Colors.black,
+                              ),
+                              child: const Text('Print'),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  );
+                },
+              ),
             ),
           ),
         );
@@ -507,7 +552,20 @@ class _TransactionState extends State<Transaction> {
     sb.writeln('Product: ${item['ProductName'] ?? ''}');
     sb.writeln('Bruto: ${item['bruto'] ?? ''} kg');
     // placeholder for real print integration
-    showDialog<void>(context: context, builder: (c) => AlertDialog(title: const Text('Print'), content: Text(sb.toString()), actions: [TextButton(onPressed: () => Navigator.of(c).pop(), child: const Text('Close'))]));
+    showDialog<void>(
+      context: context,
+      builder:
+          (c) => AlertDialog(
+            title: const Text('Print'),
+            content: Text(sb.toString()),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(c).pop(),
+                child: const Text('Close'),
+              ),
+            ],
+          ),
+    );
   }
 
   void _printTransactionList(ListTransactionJson tx) {
@@ -517,7 +575,20 @@ class _TransactionState extends State<Transaction> {
     sb.writeln('Driver: ${tx.driverName}');
     sb.writeln('Product: ${_productNameFromId(tx.productId)}');
     sb.writeln('Bruto: ${tx.bruto} kg');
-    showDialog<void>(context: context, builder: (c) => AlertDialog(title: const Text('Print'), content: Text(sb.toString()), actions: [TextButton(onPressed: () => Navigator.of(c).pop(), child: const Text('Close'))]));
+    showDialog<void>(
+      context: context,
+      builder:
+          (c) => AlertDialog(
+            title: const Text('Print'),
+            content: Text(sb.toString()),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(c).pop(),
+                child: const Text('Close'),
+              ),
+            ],
+          ),
+    );
   }
 
   void _showDetailDialogList(ListTransactionJson tx) {
@@ -525,75 +596,111 @@ class _TransactionState extends State<Transaction> {
       context: context,
       builder: (ctx) {
         final intime = DateFormat('dd MMM yyyy HH:mm').format(tx.inTime);
-        final outtime = tx.outTime.isAfter(tx.inTime) ? DateFormat('dd MMM yyyy HH:mm').format(tx.outTime) : null;
+        final outtime =
+            tx.outTime.isAfter(tx.inTime)
+                ? DateFormat('dd MMM yyyy HH:mm').format(tx.outTime)
+                : null;
         return Dialog(
           backgroundColor: Colors.transparent,
           child: Center(
             child: ConstrainedBox(
               constraints: const BoxConstraints(maxWidth: 560),
-              child: LayoutBuilder(builder: (context, constraints) {
-                final maxHeight = MediaQuery.of(ctx).size.height * 0.8;
-                return Container(
-                  padding: const EdgeInsets.all(20),
-                  constraints: BoxConstraints(maxHeight: maxHeight),
-                  decoration: BoxDecoration(
-                    color: _cardBg,
-                    borderRadius: BorderRadius.circular(20),
-                    border: Border.all(color: _textGrey.withValues(alpha: 0.08)),
-                  ),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.max,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(tx.noTicket, style: TextStyle(color: _primaryCyan, fontSize: 20, fontWeight: FontWeight.w700)),
-                      const SizedBox(height: 12),
-                      Divider(color: _textGrey.withValues(alpha: 0.12)),
-                      const SizedBox(height: 12),
-                      Expanded(
-                        child: SingleChildScrollView(
-                          child: Wrap(
-                            runSpacing: 10,
-                            spacing: 20,
-                            children: [
-                              _detailRow('Plate', tx.vehiclePlate),
-                              _detailRow('Driver', tx.driverName),
-                              _detailRow('Product', _productNameFromId(tx.productId)),
-                              _detailRow('Supplier', _supplierNameFromId(tx.supplierId)),
-                              _detailRow('Customer', _customerNameFromId(tx.customerId)),
-                              _detailRow('In', intime),
-                              _detailRow('Out', outtime ?? '-'),
-                              _detailRow('Bruto', '${tx.bruto} kg'),
-                              _detailRow('Tare', '${tx.tare} kg'),
-                              _detailRow('Netto', '${tx.netto} kg'),
-                              _detailRow('After cut', '${tx.nettoAfterCut} kg'),
-                              if (tx.additionalInformation != null) _detailRow('Notes', tx.additionalInformation ?? ''),
-                            ],
+              child: LayoutBuilder(
+                builder: (context, constraints) {
+                  final maxHeight = MediaQuery.of(ctx).size.height * 0.8;
+                  return Container(
+                    padding: const EdgeInsets.all(20),
+                    constraints: BoxConstraints(maxHeight: maxHeight),
+                    decoration: BoxDecoration(
+                      color: _cardBg,
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(
+                        color: _textGrey.withValues(alpha: 0.08),
+                      ),
+                    ),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.max,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          tx.noTicket,
+                          style: TextStyle(
+                            color: _primaryCyan,
+                            fontSize: 20,
+                            fontWeight: FontWeight.w700,
                           ),
                         ),
-                      ),
-                      const SizedBox(height: 12),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.end,
-                        children: [
-                          TextButton(
-                            onPressed: () => Navigator.of(ctx).pop(),
-                            child: Text('Close', style: TextStyle(color: _textGrey)),
+                        const SizedBox(height: 12),
+                        Divider(color: _textGrey.withValues(alpha: 0.12)),
+                        const SizedBox(height: 12),
+                        Expanded(
+                          child: SingleChildScrollView(
+                            child: Wrap(
+                              runSpacing: 10,
+                              spacing: 20,
+                              children: [
+                                _detailRow('Plate', tx.vehiclePlate),
+                                _detailRow('Driver', tx.driverName),
+                                _detailRow(
+                                  'Product',
+                                  _productNameFromId(tx.productId),
+                                ),
+                                _detailRow(
+                                  'Supplier',
+                                  _supplierNameFromId(tx.supplierId),
+                                ),
+                                _detailRow(
+                                  'Customer',
+                                  _customerNameFromId(tx.customerId),
+                                ),
+                                _detailRow('In', intime),
+                                _detailRow('Out', outtime ?? '-'),
+                                _detailRow('Bruto', '${tx.bruto} kg'),
+                                _detailRow('Tare', '${tx.tare} kg'),
+                                _detailRow('Netto', '${tx.netto} kg'),
+                                _detailRow(
+                                  'After cut',
+                                  '${tx.nettoAfterCut} kg',
+                                ),
+                                if (tx.additionalInformation != null)
+                                  _detailRow(
+                                    'Notes',
+                                    tx.additionalInformation ?? '',
+                                  ),
+                              ],
+                            ),
                           ),
-                          const SizedBox(width: 12),
-                          ElevatedButton(
-                            onPressed: () {
-                              Navigator.of(ctx).pop();
-                              _printTransactionList(tx);
-                            },
-                            style: ElevatedButton.styleFrom(backgroundColor: _primaryCyan, foregroundColor: Colors.black),
-                            child: const Text('Print'),
-                          ),
-                        ],
-                      )
-                    ],
-                  ),
-                );
-              }),
+                        ),
+                        const SizedBox(height: 12),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.end,
+                          children: [
+                            TextButton(
+                              onPressed: () => Navigator.of(ctx).pop(),
+                              child: Text(
+                                'Close',
+                                style: TextStyle(color: _textGrey),
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            ElevatedButton(
+                              onPressed: () {
+                                Navigator.of(ctx).pop();
+                                _printTransactionList(tx);
+                              },
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: _primaryCyan,
+                                foregroundColor: Colors.black,
+                              ),
+                              child: const Text('Print'),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  );
+                },
+              ),
             ),
           ),
         );
@@ -665,7 +772,10 @@ class _TransactionState extends State<Transaction> {
               GestureDetector(
                 onTap: () => setState(() => _isWeighIn = !_isWeighIn),
                 child: Tooltip(
-                  message: _isWeighIn ? 'Mode: Timbang Masuk (tap to switch)' : 'Mode: Timbang Keluar (tap to switch)',
+                  message:
+                      _isWeighIn
+                          ? 'Mode: Timbang Masuk (tap to switch)'
+                          : 'Mode: Timbang Keluar (tap to switch)',
                   child: Container(
                     width: 12,
                     height: 12,
@@ -673,7 +783,13 @@ class _TransactionState extends State<Transaction> {
                       color: _isConnected ? limeGreen : Colors.redAccent,
                       shape: BoxShape.circle,
                       boxShadow: [
-                        BoxShadow(color: (_isConnected ? limeGreen.withValues(alpha: 0.6) : Colors.redAccent.withOpacity(0.6)), blurRadius: 6),
+                        BoxShadow(
+                          color:
+                              (_isConnected
+                                  ? limeGreen.withValues(alpha: 0.6)
+                                  : Colors.redAccent.withOpacity(0.6)),
+                          blurRadius: 6,
+                        ),
                       ],
                     ),
                   ),
@@ -719,93 +835,155 @@ class _TransactionState extends State<Transaction> {
             children: [
               Expanded(
                 child: ElevatedButton(
-                  onPressed: _isWeighing
-                      ? null
-                      : () async {
-                          if (!_isConnected) {
-                            ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Indicator not connected')));
-                            return;
-                          }
-                          setState(() {
-                            _isWeighing = true;
-                          });
-                          // simulate capture
-                          await Future.delayed(const Duration(milliseconds: 700));
-                          // simple mock weight
-                          _lastCapturedWeight = 100 + DateTime.now().second % 50;
-                          // If we are editing a draft, treat this capture as the tare (exit) measurement
-                          // but do NOT finalize automatically. User must press SIMPAN KELUAR.
-                          if (_isDraftEditing && _editingDraftTicket != null) {
-                            final capturedTare = _lastCapturedWeight.toDouble();
-                            // update the in-memory draft entry so UI shows updated tare/netto
-                            final idx = _sampleTransactions.indexWhere((e) => e.noTicket == _editingDraftTicket);
-                            if (idx != -1) {
-                              final old = _sampleTransactions[idx];
-                              final bruto = old.bruto;
-                              final tare = capturedTare;
-                              final netto = (bruto - tare) < 0 ? 0.0 : (bruto - tare);
-                              final nettoAfterCut = netto - ((old.cut / 100) * netto);
-                              final price = old.price ?? double.tryParse(hargaController.text) ?? 0.0;
-                              final totalPrice = price * nettoAfterCut;
-
-                              final updated = ListTransactionJson(
-                                vehiclePlate: old.vehiclePlate,
-                                driverName: old.driverName,
-                                supplierId: (old as dynamic).supplierId ?? 0,
-                                customerId: (old as dynamic).customerId ?? 0,
-                                productId: (old as dynamic).productId ?? 0,
-                                cut: old.cut,
-                                kubikasi: old.kubikasi,
-                                noDO: old.noDO,
-                                noContainer: old.noContainer,
-                                temperature: old.temperature,
-                                price: old.price,
-                                additionalInformation: old.additionalInformation,
-                                noTicket: old.noTicket,
-                                inTime: old.inTime,
-                                outTime: old.outTime,
-                                totalPrice: totalPrice,
-                                bruto: bruto,
-                                tare: tare,
-                                netto: netto,
-                                nettoAfterCut: nettoAfterCut,
-                                driverLabel: (old.driverLabel is int) ? old.driverLabel : ((old.driverLabel == true) ? 1 : 0),
-                                transactionId: old.transactionId,
-                                operatorLabel: (old.operatorLabel is int) ? old.operatorLabel : ((old.operatorLabel == true) ? 1 : 0),
-                                managerLabel: (old.managerLabel is int) ? old.managerLabel : ((old.managerLabel == true) ? 1 : 0),
-                                headWarehouseLabel: (old.headWarehouseLabel is int) ? old.headWarehouseLabel : ((old.headWarehouseLabel == true) ? 1 : 0),
+                  onPressed:
+                      _isWeighing
+                          ? null
+                          : () async {
+                            if (!_isConnected) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text('Indicator not connected'),
+                                ),
                               );
-
-                              setState(() {
-                                _sampleTransactions[idx] = updated;
-                                _displayWeight = _lastCapturedWeight.toStringAsFixed(0);
-                                _isWeighing = false;
-                              });
-                              ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Tare captured — press SIMPAN KELUAR to finalize')));
-                            } else {
-                              setState(() {
-                                _displayWeight = _lastCapturedWeight.toStringAsFixed(0);
-                                _isWeighing = false;
-                              });
-                              ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Tare captured — press SIMPAN KELUAR to finalize')));
+                              return;
                             }
-                            return;
-                          }
-                          setState(() {
-                            _displayWeight = _lastCapturedWeight.toStringAsFixed(0);
-                            _isWeighing = false;
-                          });
-                        },
+                            setState(() {
+                              _isWeighing = true;
+                            });
+                            // simulate capture
+                            await Future.delayed(
+                              const Duration(milliseconds: 700),
+                            );
+                            // simple mock weight
+                            _lastCapturedWeight =
+                                100 + DateTime.now().second % 50;
+                            // If we are editing a draft, treat this capture as the tare (exit) measurement
+                            // but do NOT finalize automatically. User must press SIMPAN KELUAR.
+                            if (_isDraftEditing &&
+                                _editingDraftTicket != null) {
+                              final capturedTare =
+                                  _lastCapturedWeight.toDouble();
+                              // update the in-memory draft entry so UI shows updated tare/netto
+                              final idx = _sampleTransactions.indexWhere(
+                                (e) => e.noTicket == _editingDraftTicket,
+                              );
+                              if (idx != -1) {
+                                final old = _sampleTransactions[idx];
+                                final bruto = old.bruto;
+                                final tare = capturedTare;
+                                final netto =
+                                    (bruto - tare) < 0 ? 0.0 : (bruto - tare);
+                                final nettoAfterCut =
+                                    netto - ((old.cut / 100) * netto);
+                                final price =
+                                    old.price ??
+                                    double.tryParse(hargaController.text) ??
+                                    0.0;
+                                final totalPrice = price * nettoAfterCut;
+
+                                final updated = ListTransactionJson(
+                                  vehiclePlate: old.vehiclePlate,
+                                  driverName: old.driverName,
+                                  supplierId: (old as dynamic).supplierId ?? 0,
+                                  customerId: (old as dynamic).customerId ?? 0,
+                                  productId: (old as dynamic).productId ?? 0,
+                                  cut: old.cut,
+                                  kubikasi: old.kubikasi,
+                                  noDO: old.noDO,
+                                  noContainer: old.noContainer,
+                                  temperature: old.temperature,
+                                  price: old.price,
+                                  additionalInformation:
+                                      old.additionalInformation,
+                                  noTicket: old.noTicket,
+                                  inTime: old.inTime,
+                                  outTime: old.outTime,
+                                  totalPrice: totalPrice,
+                                  bruto: bruto,
+                                  tare: tare,
+                                  netto: netto,
+                                  nettoAfterCut: nettoAfterCut,
+                                  driverLabel:
+                                      (old.driverLabel is int)
+                                          ? old.driverLabel
+                                          : ((old.driverLabel == true) ? 1 : 0),
+                                  transactionId: old.transactionId,
+                                  operatorLabel:
+                                      (old.operatorLabel is int)
+                                          ? old.operatorLabel
+                                          : ((old.operatorLabel == true)
+                                              ? 1
+                                              : 0),
+                                  managerLabel:
+                                      (old.managerLabel is int)
+                                          ? old.managerLabel
+                                          : ((old.managerLabel == true)
+                                              ? 1
+                                              : 0),
+                                  headWarehouseLabel:
+                                      (old.headWarehouseLabel is int)
+                                          ? old.headWarehouseLabel
+                                          : ((old.headWarehouseLabel == true)
+                                              ? 1
+                                              : 0),
+                                );
+
+                                setState(() {
+                                  _sampleTransactions[idx] = updated;
+                                  _displayWeight = _lastCapturedWeight
+                                      .toStringAsFixed(0);
+                                  _isWeighing = false;
+                                });
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    content: Text(
+                                      'Tare captured — press SIMPAN KELUAR to finalize',
+                                    ),
+                                  ),
+                                );
+                              } else {
+                                setState(() {
+                                  _displayWeight = _lastCapturedWeight
+                                      .toStringAsFixed(0);
+                                  _isWeighing = false;
+                                });
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    content: Text(
+                                      'Tare captured — press SIMPAN KELUAR to finalize',
+                                    ),
+                                  ),
+                                );
+                              }
+                              return;
+                            }
+                            setState(() {
+                              _displayWeight = _lastCapturedWeight
+                                  .toStringAsFixed(0);
+                              _isWeighing = false;
+                            });
+                          },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: _primaryCyan,
                     foregroundColor: Colors.black,
                     elevation: 4,
-                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 20,
+                      vertical: 18,
+                    ),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
                   ),
                   child: Padding(
                     padding: const EdgeInsets.symmetric(vertical: 6.0),
-                    child: Text(_isWeighing ? 'Weighing...' : 'Capture Weight', style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                    child: Text(
+                      _isWeighing ? 'Weighing...' : 'Capture Weight',
+                      style: const TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
                   ),
                 ),
               ),
@@ -818,7 +996,9 @@ class _TransactionState extends State<Transaction> {
                       setState(() => _isConnected = false);
                       await Future.delayed(const Duration(milliseconds: 500));
                       setState(() => _isConnected = true);
-                      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Connection retried')));
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('Connection retried')),
+                      );
                     },
                     icon: Icon(Icons.refresh, color: _textGrey),
                     tooltip: 'Retry connection',
@@ -864,13 +1044,19 @@ class _TransactionState extends State<Transaction> {
           absorbing: true,
           child: ElevatedButton.icon(
             onPressed: () => setState(() => _isWeighIn = true),
-            icon: _isWeighIn ? const Icon(Icons.check, size: 20) : const SizedBox.shrink(),
+            icon:
+                _isWeighIn
+                    ? const Icon(Icons.check, size: 20)
+                    : const SizedBox.shrink(),
             label: const Text("Timbang Masuk"),
             style: ElevatedButton.styleFrom(
               backgroundColor: _isWeighIn ? _primaryCyan : Colors.transparent,
               foregroundColor: _isWeighIn ? Colors.black : Colors.white,
               elevation: 0,
-              side: _isWeighIn ? BorderSide.none : BorderSide(color: _textGrey.withValues(alpha: 0.6)),
+              side:
+                  _isWeighIn
+                      ? BorderSide.none
+                      : BorderSide(color: _textGrey.withValues(alpha: 0.6)),
               padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
               textStyle: const TextStyle(
                 fontSize: 16,
@@ -887,13 +1073,19 @@ class _TransactionState extends State<Transaction> {
           absorbing: true,
           child: ElevatedButton.icon(
             onPressed: () => setState(() => _isWeighIn = false),
-            icon: !_isWeighIn ? const Icon(Icons.check, size: 20) : const SizedBox.shrink(),
+            icon:
+                !_isWeighIn
+                    ? const Icon(Icons.check, size: 20)
+                    : const SizedBox.shrink(),
             label: const Text("Timbang Keluar"),
             style: ElevatedButton.styleFrom(
               backgroundColor: !_isWeighIn ? Colors.white : Colors.transparent,
               foregroundColor: !_isWeighIn ? Colors.black : Colors.white,
               elevation: 0,
-              side: !_isWeighIn ? BorderSide.none : BorderSide(color: _textGrey.withValues(alpha: 0.6)),
+              side:
+                  !_isWeighIn
+                      ? BorderSide.none
+                      : BorderSide(color: _textGrey.withValues(alpha: 0.6)),
               padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
               textStyle: const TextStyle(
                 fontSize: 16,
@@ -918,14 +1110,15 @@ class _TransactionState extends State<Transaction> {
             children: [
               ValueListenableBuilder<String>(
                 valueListenable: _timeNotifier,
-                builder: (ctx, val, _) => Text(
-                  val,
-                  style: TextStyle(
-                    color: _textWhite,
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
+                builder:
+                    (ctx, val, _) => Text(
+                      val,
+                      style: TextStyle(
+                        color: _textWhite,
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
               ),
               const SizedBox(height: 6),
               Text(
@@ -962,29 +1155,52 @@ class _TransactionState extends State<Transaction> {
               child: Row(
                 children: [
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 6,
+                    ),
                     decoration: BoxDecoration(
                       color: _cardBg,
                       borderRadius: BorderRadius.circular(20),
-                      border: Border.all(color: _textGrey.withValues(alpha: 0.12)),
+                      border: Border.all(
+                        color: _textGrey.withValues(alpha: 0.12),
+                      ),
                     ),
                     child: Row(
                       children: [
-                        Text('Ticket: ', style: TextStyle(color: _textGrey, fontSize: 12)),
+                        Text(
+                          'Ticket: ',
+                          style: TextStyle(color: _textGrey, fontSize: 12),
+                        ),
                         const SizedBox(width: 6),
-                        Text(_currentTicketPreview!, style: TextStyle(color: _primaryCyan, fontWeight: FontWeight.w700)),
+                        Text(
+                          _currentTicketPreview!,
+                          style: TextStyle(
+                            color: _primaryCyan,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
                       ],
                     ),
                   ),
                   const SizedBox(width: 12),
                   if (_isDraftEditing)
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 10,
+                        vertical: 6,
+                      ),
                       decoration: BoxDecoration(
                         color: _primaryCyan,
                         borderRadius: BorderRadius.circular(20),
                       ),
-                      child: Text('DRAFT', style: const TextStyle(color: Colors.black, fontWeight: FontWeight.bold)),
+                      child: Text(
+                        'DRAFT',
+                        style: const TextStyle(
+                          color: Colors.black,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
                     ),
                 ],
               ),
@@ -1162,7 +1378,7 @@ class _TransactionState extends State<Transaction> {
           ),
           const SizedBox(height: 16),
 
-            _buildTextInput(
+          _buildTextInput(
             controller: keteranganController,
             label: "Keterangan (Manual) (opt)",
             hint: "Catatan...",
@@ -1183,7 +1399,11 @@ class _TransactionState extends State<Transaction> {
                   if (_editingDraftTicket != null && _lastCapturedWeight > 0) {
                     _finalizeDraft(_editingDraftTicket!, _lastCapturedWeight);
                   } else {
-                    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Please capture tare to finalize Netto')));
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('Please capture tare to finalize Netto'),
+                      ),
+                    );
                   }
                   return;
                 }
@@ -1191,29 +1411,50 @@ class _TransactionState extends State<Transaction> {
                 // If in weigh-in mode, treat Save as creating a draft (Bruto)
                 if (_isWeighIn) {
                   final ticket = _generateTicket();
-                  final brutoVal = _lastCapturedWeight > 0 ? _lastCapturedWeight : double.tryParse(_displayWeight) ?? 0.0;
+                  final brutoVal =
+                      _lastCapturedWeight > 0
+                          ? _lastCapturedWeight
+                          : double.tryParse(_displayWeight) ?? 0.0;
                   // Build transaction object using IDs for FK columns
                   final draft = ListTransactionJson(
-                    vehiclePlate: platnomorController.text.isEmpty ? 'Unknown' : platnomorController.text,
-                    driverName: namasupirController.text.isEmpty ? 'Unknown' : namasupirController.text,
+                    vehiclePlate:
+                        platnomorController.text.isEmpty
+                            ? 'Unknown'
+                            : platnomorController.text,
+                    driverName:
+                        namasupirController.text.isEmpty
+                            ? 'Unknown'
+                            : namasupirController.text,
                     supplierId: _selectedSupplier ?? 0,
                     customerId: _selectedCustomer ?? 0,
                     productId: _selectedProduct ?? 0,
                     cut: int.tryParse(potonganController.text) ?? 0,
                     kubikasi: int.tryParse(kubikasiController.text),
                     noDO: poController.text.isEmpty ? null : poController.text,
-                    noContainer: nocontainerController.text.isEmpty ? null : int.tryParse(nocontainerController.text),
+                    noContainer:
+                        nocontainerController.text.isEmpty
+                            ? null
+                            : int.tryParse(nocontainerController.text),
                     temperature: double.tryParse(suhuController.text),
                     price: double.tryParse(hargaController.text),
-                    additionalInformation: keteranganController.text.isEmpty ? null : keteranganController.text,
+                    additionalInformation:
+                        keteranganController.text.isEmpty
+                            ? null
+                            : keteranganController.text,
                     noTicket: ticket,
                     inTime: DateTime.now(),
                     outTime: DateTime.fromMillisecondsSinceEpoch(0),
-                    totalPrice: (double.tryParse(hargaController.text) ?? 0.0) * brutoVal,
+                    totalPrice:
+                        (double.tryParse(hargaController.text) ?? 0.0) *
+                        brutoVal,
                     bruto: brutoVal,
                     tare: 0.0,
                     netto: brutoVal,
-                    nettoAfterCut: brutoVal - ((int.tryParse(potonganController.text) ?? 0) / 100 * brutoVal),
+                    nettoAfterCut:
+                        brutoVal -
+                        ((int.tryParse(potonganController.text) ?? 0) /
+                            100 *
+                            brutoVal),
                     driverLabel: 1,
                     operatorLabel: 0,
                     managerLabel: 0,
@@ -1221,7 +1462,9 @@ class _TransactionState extends State<Transaction> {
                   );
 
                   try {
-                    final insertedId = await DbHelper.instance.addTransaction(draft);
+                    final insertedId = await DbHelper.instance.addTransaction(
+                      draft,
+                    );
                     final persisted = ListTransactionJson(
                       vehiclePlate: draft.vehiclePlate,
                       driverName: draft.driverName,
@@ -1255,10 +1498,14 @@ class _TransactionState extends State<Transaction> {
                       _draftTickets.add(ticket);
                       _currentTicketPreview = ticket;
                       _ticketCounter++;
-                      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Draft saved (Bruto)')));
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('Draft saved (Bruto)')),
+                      );
                     });
                   } on Exception catch (e) {
-                    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed saving draft: $e')));
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text('Failed saving draft: $e')),
+                    );
                   }
                   return;
                 }
@@ -1311,26 +1558,33 @@ class _TransactionState extends State<Transaction> {
 
   double _computeBrutoDisplay() {
     if (_isDraftEditing && _editingDraftTicket != null) {
-      final d = _sampleTransactions.firstWhere((e) => e.noTicket == _editingDraftTicket, orElse: () => _sampleTransactions.isNotEmpty ? _sampleTransactions.first : ListTransactionJson(
-            vehiclePlate: '',
-            driverName: '',
-            supplierId: 0,
-            customerId: 0,
-            productId: 0,
-            cut: 0,
-            noTicket: '',
-            inTime: DateTime.now(),
-            outTime: DateTime.fromMillisecondsSinceEpoch(0),
-            totalPrice: 0.0,
-            bruto: 0.0,
-            tare: 0.0,
-            netto: 0.0,
-            nettoAfterCut: 0.0,
-            driverLabel: 0,
-            operatorLabel: 0,
-            managerLabel: 0,
-            headWarehouseLabel: 0,
-          ));
+      final d = _sampleTransactions.firstWhere(
+        (e) => e.noTicket == _editingDraftTicket,
+        orElse:
+            () =>
+                _sampleTransactions.isNotEmpty
+                    ? _sampleTransactions.first
+                    : ListTransactionJson(
+                      vehiclePlate: '',
+                      driverName: '',
+                      supplierId: 0,
+                      customerId: 0,
+                      productId: 0,
+                      cut: 0,
+                      noTicket: '',
+                      inTime: DateTime.now(),
+                      outTime: DateTime.fromMillisecondsSinceEpoch(0),
+                      totalPrice: 0.0,
+                      bruto: 0.0,
+                      tare: 0.0,
+                      netto: 0.0,
+                      nettoAfterCut: 0.0,
+                      driverLabel: 0,
+                      operatorLabel: 0,
+                      managerLabel: 0,
+                      headWarehouseLabel: 0,
+                    ),
+      );
       return d.bruto;
     }
     // if last captured exists and currently in weigh-in, treat as bruto
@@ -1342,9 +1596,11 @@ class _TransactionState extends State<Transaction> {
     if (_isDraftEditing && _editingDraftTicket != null) {
       final d = _sampleTransactions.firstWhere(
         (e) => e.noTicket == _editingDraftTicket,
-        orElse: () => _sampleTransactions.isNotEmpty
-          ? _sampleTransactions.first
-          : ListTransactionJson(
+        orElse:
+            () =>
+                _sampleTransactions.isNotEmpty
+                    ? _sampleTransactions.first
+                    : ListTransactionJson(
                       vehiclePlate: '',
                       driverName: '',
                       supplierId: 0,
@@ -1479,9 +1735,6 @@ class _TransactionState extends State<Transaction> {
     );
   }
 
-  
-
-
   Widget _buildDropdown({
     required String label,
     required List items,
@@ -1497,32 +1750,33 @@ class _TransactionState extends State<Transaction> {
         DropdownButtonFormField<int>(
           value: value,
           onTap: () {},
-          items: items.map((item) {
-            int id = 0;
-            String labelText = item.toString();
-            if (item is ListSupplierJson) {
-              id = item.supplierId;
-              labelText = item.supplierName;
-            } else if (item is ListCustomerJson) {
-              id = item.customerId;
-              labelText = item.customerName;
-            } else if (item is ListProductJson) {
-              id = item.productId;
-              labelText = item.productName;
-            } else if (item is String) {
-              labelText = item;
-            }
-            return DropdownMenuItem<int>(
-              value: id,
-              child: Text(
-                labelText,
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-            );
-          }).toList(),
+          items:
+              items.map((item) {
+                int id = 0;
+                String labelText = item.toString();
+                if (item is ListSupplierJson) {
+                  id = item.supplierId;
+                  labelText = item.supplierName;
+                } else if (item is ListCustomerJson) {
+                  id = item.customerId;
+                  labelText = item.customerName;
+                } else if (item is ListProductJson) {
+                  id = item.productId;
+                  labelText = item.productName;
+                } else if (item is String) {
+                  labelText = item;
+                }
+                return DropdownMenuItem<int>(
+                  value: id,
+                  child: Text(
+                    labelText,
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                );
+              }).toList(),
           onChanged: enabled ? onChanged : null,
           dropdownColor: _inputBg, // Ensure dropdown popup matches input bg
           style: const TextStyle(
@@ -1590,11 +1844,16 @@ class _TransactionState extends State<Transaction> {
                   style: const TextStyle(color: Colors.white),
                   decoration: InputDecoration(
                     hintText: 'Search ticket or plate',
-                    hintStyle: TextStyle(color: _textGrey.withValues(alpha: 0.6)),
+                    hintStyle: TextStyle(
+                      color: _textGrey.withValues(alpha: 0.6),
+                    ),
                     filled: true,
                     fillColor: _inputBg,
                     prefixIcon: Icon(Icons.search, color: _textGrey),
-                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide.none,
+                    ),
                   ),
                   onChanged: (_) => setState(() {}),
                 ),
@@ -1604,7 +1863,10 @@ class _TransactionState extends State<Transaction> {
                 message: 'Sort by time',
                 child: IconButton(
                   onPressed: () => setState(() => _sortDesc = !_sortDesc),
-                  icon: Icon(_sortDesc ? Icons.arrow_downward : Icons.arrow_upward, color: _textGrey),
+                  icon: Icon(
+                    _sortDesc ? Icons.arrow_downward : Icons.arrow_upward,
+                    color: _textGrey,
+                  ),
                 ),
               ),
             ],
@@ -1614,7 +1876,10 @@ class _TransactionState extends State<Transaction> {
             future: DbHelper.instance.getListTransaction(),
             builder: (context, snapshot) {
               if (snapshot.connectionState != ConnectionState.done) {
-                return const SizedBox(height: 50, child: Center(child: CircularProgressIndicator()));
+                return const SizedBox(
+                  height: 50,
+                  child: Center(child: CircularProgressIndicator()),
+                );
               }
 
               // If DB returned data, render it
@@ -1622,12 +1887,13 @@ class _TransactionState extends State<Transaction> {
                 final rawItems = snapshot.data!;
                 // Filter by search
                 final query = _searchController.text.trim().toLowerCase();
-                final items = rawItems.where((it) {
-                  if (query.isEmpty) return true;
-                  final ticket = (it.noTicket.toString().toLowerCase());
-                  final plate = (it.vehiclePlate).toString().toLowerCase();
-                  return ticket.contains(query) || plate.contains(query);
-                }).toList();
+                final items =
+                    rawItems.where((it) {
+                      if (query.isEmpty) return true;
+                      final ticket = (it.noTicket.toString().toLowerCase());
+                      final plate = (it.vehiclePlate).toString().toLowerCase();
+                      return ticket.contains(query) || plate.contains(query);
+                    }).toList();
                 // Sort by inTime
                 items.sort((a, b) {
                   DateTime? da = _parseDateMaybe(a.inTime);
@@ -1642,20 +1908,34 @@ class _TransactionState extends State<Transaction> {
                   shrinkWrap: true,
                   physics: const NeverScrollableScrollPhysics(),
                   itemCount: items.length,
-                  separatorBuilder: (_, __) => Divider(color: _textGrey.withValues(alpha: 0.12)),
+                  separatorBuilder:
+                      (_, __) =>
+                          Divider(color: _textGrey.withValues(alpha: 0.12)),
                   itemBuilder: (ctx, i) {
                     final it = items[i];
                     final plate = it.vehiclePlate?.toString() ?? '-';
                     final brutoNum = (it.bruto ?? 0);
                     final nettoNum = (it.netto ?? 0);
                     final afterCutNum = (it.nettoAfterCut ?? it.netto ?? 0);
-                    final bruto = brutoNum is num ? brutoNum.toDouble() : double.tryParse(brutoNum.toString()) ?? 0.0;
-                    final netto = nettoNum is num ? nettoNum.toDouble() : double.tryParse(nettoNum.toString()) ?? 0.0;
-                    final afterCut = afterCutNum is num ? afterCutNum.toDouble() : double.tryParse(afterCutNum.toString()) ?? 0.0;
+                    final bruto =
+                        brutoNum is num
+                            ? brutoNum.toDouble()
+                            : double.tryParse(brutoNum.toString()) ?? 0.0;
+                    final netto =
+                        nettoNum is num
+                            ? nettoNum.toDouble()
+                            : double.tryParse(nettoNum.toString()) ?? 0.0;
+                    final afterCut =
+                        afterCutNum is num
+                            ? afterCutNum.toDouble()
+                            : double.tryParse(afterCutNum.toString()) ?? 0.0;
                     final intimeRaw = it.inTime?.toString();
                     final outtimeRaw = it.outTime?.toString();
                     final intime = _formatShortDate(intimeRaw);
-                    final outtime = (outtimeRaw != null && outtimeRaw.trim().isNotEmpty) ? _formatShortDate(outtimeRaw) : null;
+                    final outtime =
+                        (outtimeRaw != null && outtimeRaw.trim().isNotEmpty)
+                            ? _formatShortDate(outtimeRaw)
+                            : null;
                     final noTicket = it.noTicket?.toString() ?? '';
                     final driver = it.driverName?.toString() ?? '';
                     final product = it.productId?.toString() ?? '';
@@ -1670,34 +1950,79 @@ class _TransactionState extends State<Transaction> {
 
                     return ExpansionTile(
                       tilePadding: const EdgeInsets.symmetric(vertical: 4),
-                      childrenPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                      childrenPadding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 8,
+                      ),
                       title: Row(
                         children: [
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Row(
-                                    children: [
-                                      Text(noTicket, style: TextStyle(color: _primaryCyan, fontWeight: FontWeight.w700)),
-                                      const SizedBox(width: 8),
-                                      if (_draftTickets.contains(noTicket))
-                                        Container(
-                                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                                          decoration: BoxDecoration(color: _primaryCyan, borderRadius: BorderRadius.circular(12)),
-                                          child: const Text('DRAFT', style: TextStyle(color: Colors.black, fontWeight: FontWeight.w700, fontSize: 11)),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Row(
+                                  children: [
+                                    Text(
+                                      noTicket,
+                                      style: TextStyle(
+                                        color: _primaryCyan,
+                                        fontWeight: FontWeight.w700,
+                                      ),
+                                    ),
+                                    const SizedBox(width: 8),
+                                    if (_draftTickets.contains(noTicket))
+                                      Container(
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 8,
+                                          vertical: 4,
                                         ),
-                                    ],
+                                        decoration: BoxDecoration(
+                                          color: _primaryCyan,
+                                          borderRadius: BorderRadius.circular(
+                                            12,
+                                          ),
+                                        ),
+                                        child: const Text(
+                                          'DRAFT',
+                                          style: TextStyle(
+                                            color: Colors.black,
+                                            fontWeight: FontWeight.w700,
+                                            fontSize: 11,
+                                          ),
+                                        ),
+                                      ),
+                                  ],
+                                ),
+                                const SizedBox(height: 6),
+                                Text(
+                                  plate,
+                                  style: const TextStyle(
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 16,
                                   ),
-                                  const SizedBox(height: 6),
-                                  Text(plate, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16)),
-                                  const SizedBox(height: 4),
-                                  Text('$driver • $product', style: TextStyle(color: _textGrey, fontSize: 12)),
-                                  const SizedBox(height: 4),
-                                  Text(outtime != null ? '$intime → $outtime' : '$intime • In progress', style: TextStyle(color: _textGrey.withValues(alpha: 0.9), fontSize: 11)),
-                                ],
-                              ),
+                                ),
+                                const SizedBox(height: 4),
+                                Text(
+                                  '$driver • $product',
+                                  style: TextStyle(
+                                    color: _textGrey,
+                                    fontSize: 12,
+                                  ),
+                                ),
+                                const SizedBox(height: 4),
+                                Text(
+                                  outtime != null
+                                      ? '$intime → $outtime'
+                                      : '$intime • In progress',
+                                  style: TextStyle(
+                                    color: _textGrey.withValues(alpha: 0.9),
+                                    fontSize: 11,
+                                  ),
+                                ),
+                              ],
                             ),
+                          ),
                           // per-row actions
                           PopupMenuButton<String>(
                             color: _cardBg,
@@ -1705,25 +2030,67 @@ class _TransactionState extends State<Transaction> {
                             onSelected: (v) async {
                               if (v == 'copy') {
                                 _copyToClipboard(noTicket);
-                                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Ticket copied')));
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    content: Text('Ticket copied'),
+                                  ),
+                                );
                               } else if (v == 'detail') {
                                 // _showDetailDialogMap(it);
                               } else if (v == 'print') {
                                 // _printTransactionMap(it);
                               } else if (v == 'continue') {
                                 // convert map to model and attempt auto finalize
-                                final inTimeParsed = _parseDateMaybe(it.inTime) ?? DateTime.now();
-                                final outTimeParsed = _parseDateMaybe(it.outTime) ?? DateTime.fromMillisecondsSinceEpoch(0);
-                                final temp = it.temperature != null ? double.tryParse(it.temperature.toString()) : null;
-                                final priceVal = it.price != null ? double.tryParse(it.price.toString()) : null;
-                                final kub = it.kubikasi != null ? int.tryParse(it.kubikasi.toString()) : null;
-                                final noContainerVal = it.noContainer != null ? int.tryParse(it.noContainer.toString()) : null;
+                                final inTimeParsed =
+                                    _parseDateMaybe(it.inTime) ??
+                                    DateTime.now();
+                                final outTimeParsed =
+                                    _parseDateMaybe(it.outTime) ??
+                                    DateTime.fromMillisecondsSinceEpoch(0);
+                                final temp =
+                                    it.temperature != null
+                                        ? double.tryParse(
+                                          it.temperature.toString(),
+                                        )
+                                        : null;
+                                final priceVal =
+                                    it.price != null
+                                        ? double.tryParse(it.price.toString())
+                                        : null;
+                                final kub =
+                                    it.kubikasi != null
+                                        ? int.tryParse(it.kubikasi.toString())
+                                        : null;
+                                final noContainerVal =
+                                    it.noContainer != null
+                                        ? int.tryParse(
+                                          it.noContainer.toString(),
+                                        )
+                                        : null;
                                 final brutoVal = bruto;
                                 final nettoVal = netto;
                                 final afterVal = afterCut;
-                                final supplierIdVal = it.supplierId != null ? int.tryParse(it.supplierId.toString()) ?? 0 : 0;
-                                final customerIdVal = it.customerId != null ? int.tryParse(it.customerId.toString()) ?? 0 : 0;
-                                final productIdVal = it.productId != null ? int.tryParse(it.productId.toString()) ?? 0 : 0;
+                                final supplierIdVal =
+                                    it.supplierId != null
+                                        ? int.tryParse(
+                                              it.supplierId.toString(),
+                                            ) ??
+                                            0
+                                        : 0;
+                                final customerIdVal =
+                                    it.customerId != null
+                                        ? int.tryParse(
+                                              it.customerId.toString(),
+                                            ) ??
+                                            0
+                                        : 0;
+                                final productIdVal =
+                                    it.productId != null
+                                        ? int.tryParse(
+                                              it.productId.toString(),
+                                            ) ??
+                                            0
+                                        : 0;
                                 int mapBoolToInt(dynamic v) {
                                   if (v == null) return 0;
                                   if (v is int) return v;
@@ -1732,13 +2099,16 @@ class _TransactionState extends State<Transaction> {
                                   if (s == '1' || s == 'true') return 1;
                                   return 0;
                                 }
+
                                 final model = ListTransactionJson(
                                   vehiclePlate: plate,
                                   driverName: driver,
                                   supplierId: supplierIdVal,
                                   customerId: customerIdVal,
                                   productId: productIdVal,
-                                  cut: int.tryParse(it.cut?.toString() ?? '0') ?? 0,
+                                  cut:
+                                      int.tryParse(it.cut?.toString() ?? '0') ??
+                                      0,
                                   kubikasi: kub,
                                   noDO: doNo,
                                   noContainer: noContainerVal,
@@ -1748,52 +2118,128 @@ class _TransactionState extends State<Transaction> {
                                   noTicket: noTicket,
                                   inTime: inTimeParsed,
                                   outTime: outTimeParsed,
-                                  totalPrice: double.tryParse(it.totalPrice?.toString() ?? '0') ?? 0.0,
+                                  totalPrice:
+                                      double.tryParse(
+                                        it.totalPrice?.toString() ?? '0',
+                                      ) ??
+                                      0.0,
                                   bruto: brutoVal,
-                                  tare: double.tryParse(it.tare?.toString() ?? '0') ?? 0.0,
+                                  tare:
+                                      double.tryParse(
+                                        it.tare?.toString() ?? '0',
+                                      ) ??
+                                      0.0,
                                   netto: nettoVal,
                                   nettoAfterCut: afterVal,
                                   driverLabel: mapBoolToInt(it.driverLabel),
-                                  transactionId: int.tryParse(it.transactionId?.toString() ?? '0') ?? 0,
+                                  transactionId:
+                                      int.tryParse(
+                                        it.transactionId?.toString() ?? '0',
+                                      ) ??
+                                      0,
                                   operatorLabel: mapBoolToInt(it.operatorLabel),
                                   managerLabel: mapBoolToInt(it.managerLabel),
-                                  headWarehouseLabel: mapBoolToInt(it.headWarehouseLabel),
+                                  headWarehouseLabel: mapBoolToInt(
+                                    it.headWarehouseLabel,
+                                  ),
                                 );
                                 await _continueNettoAndMaybeAuto(model);
                               }
                             },
-                            itemBuilder: (_) => [
-                              PopupMenuItem(value: 'copy', child: Text('Copy ticket', style: TextStyle(color: Colors.white))),
-                              PopupMenuItem(value: 'detail', child: Text('Detail', style: TextStyle(color: Colors.white))),
-                              PopupMenuItem(value: 'print', child: Text('Print', style: TextStyle(color: Colors.white))),
-                              if (_draftTickets.contains(noTicket)) PopupMenuItem(value: 'continue', child: Text('Continue Netto', style: TextStyle(color: Colors.white))),
+                            itemBuilder:
+                                (_) => [
+                                  PopupMenuItem(
+                                    value: 'copy',
+                                    child: Text(
+                                      'Copy ticket',
+                                      style: TextStyle(color: Colors.white),
+                                    ),
+                                  ),
+                                  PopupMenuItem(
+                                    value: 'detail',
+                                    child: Text(
+                                      'Detail',
+                                      style: TextStyle(color: Colors.white),
+                                    ),
+                                  ),
+                                  PopupMenuItem(
+                                    value: 'print',
+                                    child: Text(
+                                      'Print',
+                                      style: TextStyle(color: Colors.white),
+                                    ),
+                                  ),
+                                  if (_draftTickets.contains(noTicket))
+                                    PopupMenuItem(
+                                      value: 'continue',
+                                      child: Text(
+                                        'Continue Netto',
+                                        style: TextStyle(color: Colors.white),
+                                      ),
+                                    ),
+                                ],
+                          ),
+                          const SizedBox(width: 12),
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.end,
+                            children: [
+                              Text(
+                                '${bruto.toStringAsFixed(0)} kg',
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              const SizedBox(height: 2),
+                              Text(
+                                'Bruto',
+                                style: TextStyle(
+                                  color: _textGrey.withValues(alpha: 0.7),
+                                  fontSize: 10,
+                                ),
+                              ),
                             ],
                           ),
                           const SizedBox(width: 12),
                           Column(
                             crossAxisAlignment: CrossAxisAlignment.end,
                             children: [
-                              Text('${bruto.toStringAsFixed(0)} kg', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                              Text(
+                                '${netto.toStringAsFixed(0)} kg',
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
                               const SizedBox(height: 2),
-                              Text('Bruto', style: TextStyle(color: _textGrey.withValues(alpha: 0.7), fontSize: 10)),
+                              Text(
+                                'Netto',
+                                style: TextStyle(
+                                  color: _textGrey.withValues(alpha: 0.7),
+                                  fontSize: 10,
+                                ),
+                              ),
                             ],
                           ),
                           const SizedBox(width: 12),
                           Column(
                             crossAxisAlignment: CrossAxisAlignment.end,
                             children: [
-                              Text('${netto.toStringAsFixed(0)} kg', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                              Text(
+                                '${afterCut.toStringAsFixed(0)} kg',
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
                               const SizedBox(height: 2),
-                              Text('Netto', style: TextStyle(color: _textGrey.withValues(alpha: 0.7), fontSize: 10)),
-                            ],
-                          ),
-                          const SizedBox(width: 12),
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.end,
-                            children: [
-                              Text('${afterCut.toStringAsFixed(0)} kg', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-                              const SizedBox(height: 2),
-                              Text('After cut', style: TextStyle(color: _textGrey.withValues(alpha: 0.7), fontSize: 10)),
+                              Text(
+                                'After cut',
+                                style: TextStyle(
+                                  color: _textGrey.withValues(alpha: 0.7),
+                                  fontSize: 10,
+                                ),
+                              ),
                             ],
                           ),
                         ],
@@ -1802,14 +2248,46 @@ class _TransactionState extends State<Transaction> {
                         Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            if (supplier != null) Text('Supplier: $supplier', style: TextStyle(color: _textGrey)),
-                            if (customer != null) Text('Customer: $customer', style: TextStyle(color: _textGrey)),
-                            if (doNo != null) Text('No DO: $doNo', style: TextStyle(color: _textGrey)),
-                            if (container != null) Text('No Container: $container', style: TextStyle(color: _textGrey)),
-                            if (cut != null) Text('Potongan: $cut %', style: TextStyle(color: _textGrey)),
-                            if (price != null) Text('Harga/kg: $price', style: TextStyle(color: _textGrey)),
-                            if (temp != null) Text('Suhu: $temp', style: TextStyle(color: _textGrey)),
-                            if (notes != null) Text('Keterangan: ${notes.length > 100 ? notes.substring(0, 100) + "..." : notes}', style: TextStyle(color: _textGrey)),
+                            if (supplier != null)
+                              Text(
+                                'Supplier: $supplier',
+                                style: TextStyle(color: _textGrey),
+                              ),
+                            if (customer != null)
+                              Text(
+                                'Customer: $customer',
+                                style: TextStyle(color: _textGrey),
+                              ),
+                            if (doNo != null)
+                              Text(
+                                'No DO: $doNo',
+                                style: TextStyle(color: _textGrey),
+                              ),
+                            if (container != null)
+                              Text(
+                                'No Container: $container',
+                                style: TextStyle(color: _textGrey),
+                              ),
+                            if (cut != null)
+                              Text(
+                                'Potongan: $cut %',
+                                style: TextStyle(color: _textGrey),
+                              ),
+                            if (price != null)
+                              Text(
+                                'Harga/kg: $price',
+                                style: TextStyle(color: _textGrey),
+                              ),
+                            if (temp != null)
+                              Text(
+                                'Suhu: $temp',
+                                style: TextStyle(color: _textGrey),
+                              ),
+                            if (notes != null)
+                              Text(
+                                'Keterangan: ${notes.length > 100 ? notes.substring(0, 100) + "..." : notes}',
+                                style: TextStyle(color: _textGrey),
+                              ),
                             const SizedBox(height: 8),
                             Row(
                               children: [
@@ -1817,14 +2295,51 @@ class _TransactionState extends State<Transaction> {
                                   final dl = it.driverLabel;
                                   final ol = it.operatorLabel;
                                   final ml = it.managerLabel;
-                                  final hl = it.headWarehouseLabel  ;
-                                  bool has(dynamic v) => v == 1 || v == true || v?.toString() == '1';
+                                  final hl = it.headWarehouseLabel;
+                                  bool has(dynamic v) =>
+                                      v == 1 ||
+                                      v == true ||
+                                      v?.toString() == '1';
                                   final icons = <Widget>[];
-                                  if (has(dl)) icons.add(Icon(Icons.person, color: _primaryCyan, size: 16));
-                                  if (has(ol)) icons.addAll([const SizedBox(width: 6), Icon(Icons.admin_panel_settings, color: _primaryCyan, size: 16)]);
-                                  if (has(ml)) icons.addAll([const SizedBox(width: 6), Icon(Icons.verified_user, color: _primaryCyan, size: 16)]);
-                                  if (has(hl)) icons.addAll([const SizedBox(width: 6), Icon(Icons.home_work, color: _primaryCyan, size: 16)]);
-                                  return Row(mainAxisSize: MainAxisSize.min, children: icons);
+                                  if (has(dl))
+                                    icons.add(
+                                      Icon(
+                                        Icons.person,
+                                        color: _primaryCyan,
+                                        size: 16,
+                                      ),
+                                    );
+                                  if (has(ol))
+                                    icons.addAll([
+                                      const SizedBox(width: 6),
+                                      Icon(
+                                        Icons.admin_panel_settings,
+                                        color: _primaryCyan,
+                                        size: 16,
+                                      ),
+                                    ]);
+                                  if (has(ml))
+                                    icons.addAll([
+                                      const SizedBox(width: 6),
+                                      Icon(
+                                        Icons.verified_user,
+                                        color: _primaryCyan,
+                                        size: 16,
+                                      ),
+                                    ]);
+                                  if (has(hl))
+                                    icons.addAll([
+                                      const SizedBox(width: 6),
+                                      Icon(
+                                        Icons.home_work,
+                                        color: _primaryCyan,
+                                        size: 16,
+                                      ),
+                                    ]);
+                                  return Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: icons,
+                                  );
                                 })(),
                               ],
                             ),
@@ -1838,18 +2353,29 @@ class _TransactionState extends State<Transaction> {
 
               // Fallback to sample static data (apply same search + sort logic)
               final query = _searchController.text.trim().toLowerCase();
-              final List<ListTransactionJson> filtered = _sampleTransactions.where((tx) {
-                if (query.isEmpty) return true;
-                final ticket = tx.noTicket.toLowerCase();
-                final plate = tx.vehiclePlate.toLowerCase();
-                return ticket.contains(query) || plate.contains(query);
-              }).toList();
-              filtered.sort((a, b) => _sortDesc ? b.inTime.compareTo(a.inTime) : a.inTime.compareTo(b.inTime));
+              final List<ListTransactionJson> filtered =
+                  _sampleTransactions.where((tx) {
+                    if (query.isEmpty) return true;
+                    final ticket = tx.noTicket.toLowerCase();
+                    final plate = tx.vehiclePlate.toLowerCase();
+                    return ticket.contains(query) || plate.contains(query);
+                  }).toList();
+              filtered.sort(
+                (a, b) =>
+                    _sortDesc
+                        ? b.inTime.compareTo(a.inTime)
+                        : a.inTime.compareTo(b.inTime),
+              );
 
               if (filtered.isEmpty) {
                 return Padding(
                   padding: const EdgeInsets.all(20.0),
-                  child: Center(child: Text('No matching transactions', style: TextStyle(color: _textGrey.withValues(alpha: 0.9)))),
+                  child: Center(
+                    child: Text(
+                      'No matching transactions',
+                      style: TextStyle(color: _textGrey.withValues(alpha: 0.9)),
+                    ),
+                  ),
                 );
               }
 
@@ -1857,14 +2383,22 @@ class _TransactionState extends State<Transaction> {
                 shrinkWrap: true,
                 physics: const NeverScrollableScrollPhysics(),
                 itemCount: filtered.length,
-                separatorBuilder: (_, __) => Divider(color: _textGrey.withValues(alpha: 0.12)),
+                separatorBuilder:
+                    (_, __) =>
+                        Divider(color: _textGrey.withValues(alpha: 0.12)),
                 itemBuilder: (ctx, i) {
                   final tx = filtered[i];
                   final intime = DateFormat('dd MMM HH:mm').format(tx.inTime);
-                  final outtime = tx.outTime.isAfter(tx.inTime) ? DateFormat('dd MMM HH:mm').format(tx.outTime) : null;
+                  final outtime =
+                      tx.outTime.isAfter(tx.inTime)
+                          ? DateFormat('dd MMM HH:mm').format(tx.outTime)
+                          : null;
                   return ExpansionTile(
                     tilePadding: const EdgeInsets.symmetric(vertical: 4),
-                    childrenPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                    childrenPadding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 8,
+                    ),
                     title: Row(
                       children: [
                         Expanded(
@@ -1873,22 +2407,62 @@ class _TransactionState extends State<Transaction> {
                             children: [
                               Row(
                                 children: [
-                                  Text(tx.noTicket, style: TextStyle(color: _primaryCyan, fontWeight: FontWeight.w700)),
+                                  Text(
+                                    tx.noTicket,
+                                    style: TextStyle(
+                                      color: _primaryCyan,
+                                      fontWeight: FontWeight.w700,
+                                    ),
+                                  ),
                                   const SizedBox(width: 8),
                                   if (_draftTickets.contains(tx.noTicket))
                                     Container(
-                                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                                      decoration: BoxDecoration(color: _primaryCyan, borderRadius: BorderRadius.circular(12)),
-                                      child: const Text('DRAFT', style: TextStyle(color: Colors.black, fontWeight: FontWeight.w700, fontSize: 11)),
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 8,
+                                        vertical: 4,
+                                      ),
+                                      decoration: BoxDecoration(
+                                        color: _primaryCyan,
+                                        borderRadius: BorderRadius.circular(12),
+                                      ),
+                                      child: const Text(
+                                        'DRAFT',
+                                        style: TextStyle(
+                                          color: Colors.black,
+                                          fontWeight: FontWeight.w700,
+                                          fontSize: 11,
+                                        ),
+                                      ),
                                     ),
                                 ],
                               ),
                               const SizedBox(height: 6),
-                              Text(tx.vehiclePlate, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16)),
+                              Text(
+                                tx.vehiclePlate,
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 16,
+                                ),
+                              ),
                               const SizedBox(height: 4),
-                              Text('${tx.driverName} • ${_productNameFromId(tx.productId)}', style: TextStyle(color: _textGrey, fontSize: 12)),
+                              Text(
+                                '${tx.driverName} • ${_productNameFromId(tx.productId)}',
+                                style: TextStyle(
+                                  color: _textGrey,
+                                  fontSize: 12,
+                                ),
+                              ),
                               const SizedBox(height: 4),
-                              Text(outtime != null ? '$intime → $outtime' : '$intime • In progress', style: TextStyle(color: _textGrey.withValues(alpha: 0.9), fontSize: 11)),
+                              Text(
+                                outtime != null
+                                    ? '$intime → $outtime'
+                                    : '$intime • In progress',
+                                style: TextStyle(
+                                  color: _textGrey.withValues(alpha: 0.9),
+                                  fontSize: 11,
+                                ),
+                              ),
                             ],
                           ),
                         ),
@@ -1896,27 +2470,63 @@ class _TransactionState extends State<Transaction> {
                         Column(
                           crossAxisAlignment: CrossAxisAlignment.end,
                           children: [
-                            Text('${tx.bruto.toStringAsFixed(0)} kg', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                            Text(
+                              '${tx.bruto.toStringAsFixed(0)} kg',
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
                             const SizedBox(height: 2),
-                            Text('Bruto', style: TextStyle(color: _textGrey.withValues(alpha: 0.7), fontSize: 10)),
+                            Text(
+                              'Bruto',
+                              style: TextStyle(
+                                color: _textGrey.withValues(alpha: 0.7),
+                                fontSize: 10,
+                              ),
+                            ),
                           ],
                         ),
                         const SizedBox(width: 12),
                         Column(
                           crossAxisAlignment: CrossAxisAlignment.end,
                           children: [
-                            Text('${tx.netto.toStringAsFixed(0)} kg', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                            Text(
+                              '${tx.netto.toStringAsFixed(0)} kg',
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
                             const SizedBox(height: 2),
-                            Text('Netto', style: TextStyle(color: _textGrey.withValues(alpha: 0.7), fontSize: 10)),
+                            Text(
+                              'Netto',
+                              style: TextStyle(
+                                color: _textGrey.withValues(alpha: 0.7),
+                                fontSize: 10,
+                              ),
+                            ),
                           ],
                         ),
                         const SizedBox(width: 12),
                         Column(
                           crossAxisAlignment: CrossAxisAlignment.end,
                           children: [
-                            Text('${tx.nettoAfterCut.toStringAsFixed(0)} kg', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                            Text(
+                              '${tx.nettoAfterCut.toStringAsFixed(0)} kg',
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
                             const SizedBox(height: 2),
-                            Text('After cut', style: TextStyle(color: _textGrey.withValues(alpha: 0.7), fontSize: 10)),
+                            Text(
+                              'After cut',
+                              style: TextStyle(
+                                color: _textGrey.withValues(alpha: 0.7),
+                                fontSize: 10,
+                              ),
+                            ),
                           ],
                         ),
                         PopupMenuButton<String>(
@@ -1925,22 +2535,56 @@ class _TransactionState extends State<Transaction> {
                           onSelected: (v) {
                             if (v == 'copy') {
                               _copyToClipboard(tx.noTicket);
-                              ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Ticket copied')));
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(content: Text('Ticket copied')),
+                              );
                             } else if (v == 'detail') {
                               _showDetailDialogList(tx);
                             } else if (v == 'print') {
                               _printTransactionList(tx);
                             } else if (v == 'continue') {
                               _loadDraftIntoForm(tx);
-                              ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Loaded draft for Continue Netto')));
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text(
+                                    'Loaded draft for Continue Netto',
+                                  ),
+                                ),
+                              );
                             }
                           },
-                          itemBuilder: (_) => [
-                            PopupMenuItem(value: 'copy', child: Text('Copy ticket', style: TextStyle(color: Colors.white))),
-                            PopupMenuItem(value: 'detail', child: Text('Detail', style: TextStyle(color: Colors.white))),
-                            PopupMenuItem(value: 'print', child: Text('Print', style: TextStyle(color: Colors.white))),
-                            if (_draftTickets.contains(tx.noTicket)) PopupMenuItem(value: 'continue', child: Text('Continue Netto', style: TextStyle(color: Colors.white))),
-                          ],
+                          itemBuilder:
+                              (_) => [
+                                PopupMenuItem(
+                                  value: 'copy',
+                                  child: Text(
+                                    'Copy ticket',
+                                    style: TextStyle(color: Colors.white),
+                                  ),
+                                ),
+                                PopupMenuItem(
+                                  value: 'detail',
+                                  child: Text(
+                                    'Detail',
+                                    style: TextStyle(color: Colors.white),
+                                  ),
+                                ),
+                                PopupMenuItem(
+                                  value: 'print',
+                                  child: Text(
+                                    'Print',
+                                    style: TextStyle(color: Colors.white),
+                                  ),
+                                ),
+                                if (_draftTickets.contains(tx.noTicket))
+                                  PopupMenuItem(
+                                    value: 'continue',
+                                    child: Text(
+                                      'Continue Netto',
+                                      style: TextStyle(color: Colors.white),
+                                    ),
+                                  ),
+                              ],
                         ),
                       ],
                     ),
@@ -1948,14 +2592,43 @@ class _TransactionState extends State<Transaction> {
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text('Supplier: ${_supplierNameFromId(tx.supplierId)}', style: TextStyle(color: _textGrey)),
-                          Text('Customer: ${_customerNameFromId(tx.customerId)}', style: TextStyle(color: _textGrey)),
-                          if (tx.noDO != null) Text('No DO: ${tx.noDO}', style: TextStyle(color: _textGrey)),
-                          if (tx.noContainer != null) Text('No Container: ${tx.noContainer}', style: TextStyle(color: _textGrey)),
-                          Text('Potongan: ${tx.cut} %', style: TextStyle(color: _textGrey)),
-                          if (tx.price != null) Text('Harga/kg: ${tx.price}', style: TextStyle(color: _textGrey)),
-                          if (tx.temperature != null) Text('Suhu: ${tx.temperature}', style: TextStyle(color: _textGrey)),
-                          if (tx.additionalInformation != null) Text('Keterangan: ${tx.additionalInformation}', style: TextStyle(color: _textGrey)),
+                          Text(
+                            'Supplier: ${_supplierNameFromId(tx.supplierId)}',
+                            style: TextStyle(color: _textGrey),
+                          ),
+                          Text(
+                            'Customer: ${_customerNameFromId(tx.customerId)}',
+                            style: TextStyle(color: _textGrey),
+                          ),
+                          if (tx.noDO != null)
+                            Text(
+                              'No DO: ${tx.noDO}',
+                              style: TextStyle(color: _textGrey),
+                            ),
+                          if (tx.noContainer != null)
+                            Text(
+                              'No Container: ${tx.noContainer}',
+                              style: TextStyle(color: _textGrey),
+                            ),
+                          Text(
+                            'Potongan: ${tx.cut} %',
+                            style: TextStyle(color: _textGrey),
+                          ),
+                          if (tx.price != null)
+                            Text(
+                              'Harga/kg: ${tx.price}',
+                              style: TextStyle(color: _textGrey),
+                            ),
+                          if (tx.temperature != null)
+                            Text(
+                              'Suhu: ${tx.temperature}',
+                              style: TextStyle(color: _textGrey),
+                            ),
+                          if (tx.additionalInformation != null)
+                            Text(
+                              'Keterangan: ${tx.additionalInformation}',
+                              style: TextStyle(color: _textGrey),
+                            ),
                         ],
                       ),
                     ],
