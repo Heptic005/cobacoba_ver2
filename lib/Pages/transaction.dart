@@ -2,7 +2,6 @@ import 'dart:async';
 import 'package:dakara_weighbridge/Json/listcustomer_json.dart';
 import 'package:dakara_weighbridge/Json/listproduct_json.dart';
 import 'package:dakara_weighbridge/Json/listsupplier_json.dart';
-import 'package:dakara_weighbridge/Pages/widget_builder/dropdown.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:dakara_weighbridge/SQLite/db_helper.dart';
@@ -91,6 +90,7 @@ class _TransactionState extends State<Transaction> {
   void initState() {
     super.initState();
     _timeNotifier.value = _formatDateTime(DateTime.now());
+    loadData();
     _timer = Timer.periodic(const Duration(seconds: 1), (Timer t) {
       _timeNotifier.value = _formatDateTime(DateTime.now());
     });
@@ -99,9 +99,9 @@ class _TransactionState extends State<Transaction> {
       ListTransactionJson(
         vehiclePlate: 'B 1234 ABC',
         driverName: 'Ujang',
-        supplierName: 'PT. Supplier A',
-        customerName: 'PT. Customer X',
-        ProductName: 'Batu Split',
+        supplierId: 1,
+        customerId: 1,
+        productId: 1,
         cut: 5,
         kubikasi: 2,
         noDO: 'DO-001',
@@ -117,18 +117,18 @@ class _TransactionState extends State<Transaction> {
         tare: 20.0,
         netto: 100.0,
         nettoAfterCut: 95.0,
-        driverLabel: true,
+        driverLabel: 1,
         transactionId: 1,
-        operatorLabel: false,
-        managerLabel: false,
-        headWarehouseLabel: false,
+        operatorLabel: 0,
+        managerLabel: 0,
+        headWarehouseLabel: 0,
       ),
       ListTransactionJson(
         vehiclePlate: 'D 5678 XYZ',
         driverName: 'Siti',
-        supplierName: 'CV. Maju Jaya',
-        customerName: 'Toko Bangunan Z',
-        ProductName: 'Pasir',
+        supplierId: 2,
+        customerId: 2,
+        productId: 2,
         cut: 0,
         kubikasi: null,
         noDO: 'DO-002',
@@ -144,11 +144,11 @@ class _TransactionState extends State<Transaction> {
         tare: 10.0,
         netto: 80.0,
         nettoAfterCut: 80.0,
-        driverLabel: true,
+        driverLabel: 1,
         transactionId: 2,
-        operatorLabel: true,
-        managerLabel: false,
-        headWarehouseLabel: false,
+        operatorLabel: 1,
+        managerLabel: 0,
+        headWarehouseLabel: 0,
       ),
     ];
     // init ticket counter after sample
@@ -220,6 +220,36 @@ class _TransactionState extends State<Transaction> {
     }
   }
 
+  String _supplierNameFromId(int? id) {
+    if (id == null || id == 0) return '';
+    try {
+      final s = _suppliers.firstWhere((e) => e.supplierId == id, orElse: () => ListSupplierJson(supplierName: '', supplierAddress: '', supplierCity: '', supplierSubdistrict: '', supplierPostCode: ''));
+      return s.supplierName;
+    } catch (_) {
+      return '';
+    }
+  }
+
+  String _customerNameFromId(int? id) {
+    if (id == null || id == 0) return '';
+    try {
+      final c = _customers.firstWhere((e) => e.customerId == id, orElse: () => ListCustomerJson(customerName: '', customerAddress: '', customerPhone: ''));
+      return c.customerName;
+    } catch (_) {
+      return '';
+    }
+  }
+
+  String _productNameFromId(int? id) {
+    if (id == null || id == 0) return '';
+    try {
+      final p = _products.firstWhere((e) => e.productId == id, orElse: () => ListProductJson(productId: 0, productName: '', productCode: ''));
+      return p.productName;
+    } catch (_) {
+      return '';
+    }
+  }
+
   void _copyToClipboard(String text) async {
     await Clipboard.setData(ClipboardData(text: text));
   }
@@ -234,9 +264,9 @@ class _TransactionState extends State<Transaction> {
   void _loadDraftIntoForm(ListTransactionJson tx) {
     platnomorController.text = tx.vehiclePlate;
     namasupirController.text = tx.driverName;
-    _selectedSupplier = tx.supplierName.isEmpty ? null : tx.supplierName;
-    _selectedCustomer = tx.customerName.isEmpty ? null : tx.customerName;
-    _selectedProduct = tx.ProductName.isEmpty ? null : tx.ProductName;
+    _selectedSupplier = (tx.supplierId > 0) ? tx.supplierId : null;
+    _selectedCustomer = (tx.customerId > 0) ? tx.customerId : null;
+    _selectedProduct = (tx.productId > 0) ? tx.productId : null;
     potonganController.text = tx.cut.toString();
     kubikasiController.text = tx.kubikasi?.toString() ?? '';
     poController.text = tx.noDO ?? '';
@@ -252,7 +282,7 @@ class _TransactionState extends State<Transaction> {
     setState(() {});
   }
 
-  void _finalizeDraft(String ticket, double capturedValue) {
+  Future<void> _finalizeDraft(String ticket, double capturedValue) async {
     final idx = _sampleTransactions.indexWhere((e) => e.noTicket == ticket);
     if (idx == -1) return;
     final old = _sampleTransactions[idx];
@@ -266,9 +296,9 @@ class _TransactionState extends State<Transaction> {
     final updated = ListTransactionJson(
       vehiclePlate: old.vehiclePlate,
       driverName: old.driverName,
-      supplierName: old.supplierName,
-      customerName: old.customerName,
-      ProductName: old.ProductName,
+      supplierId: (old as dynamic).supplierId ?? 0,
+      customerId: (old as dynamic).customerId ?? 0,
+      productId: (old as dynamic).productId ?? 0,
       cut: old.cut,
       kubikasi: old.kubikasi,
       noDO: old.noDO,
@@ -290,39 +320,43 @@ class _TransactionState extends State<Transaction> {
       managerLabel: old.managerLabel,
       headWarehouseLabel: old.headWarehouseLabel,
     );
-
-    setState(() {
-      _sampleTransactions[idx] = updated;
-      _draftTickets.remove(ticket);
-      _editingDraftTicket = null;
-      _isDraftEditing = false;
-      _currentTicketPreview = null;
-      _ticketCounter = (_ticketCounter <= 0) ? 1 : _ticketCounter + 1;
-      // after finalizing, reset UI to weigh-in and clear captured weights
-      _isWeighIn = true;
-      _isWeighing = false;
-      _lastCapturedWeight = 0.0;
-      _displayWeight = '0';
-      // clear form
-      platnomorController.clear();
-      namasupirController.clear();
-      _selectedSupplier = null;
-      _selectedCustomer = null;
-      _selectedProduct = null;
-      potonganController.clear();
-      kubikasiController.clear();
-      poController.clear();
-      nocontainerController.clear();
-      suhuController.clear();
-      hargaController.clear();
-      keteranganController.clear();
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Netto finalized')));
-    });
+    try {
+      await DbHelper.instance.updateTransaction(updated);
+      setState(() {
+        _sampleTransactions[idx] = updated;
+        _draftTickets.remove(ticket);
+        _editingDraftTicket = null;
+        _isDraftEditing = false;
+        _currentTicketPreview = null;
+        _ticketCounter = (_ticketCounter <= 0) ? 1 : _ticketCounter + 1;
+        // after finalizing, reset UI to weigh-in and clear captured weights
+        _isWeighIn = true;
+        _isWeighing = false;
+        _lastCapturedWeight = 0.0;
+        _displayWeight = '0';
+        // clear form
+        platnomorController.clear();
+        namasupirController.clear();
+        _selectedSupplier = null;
+        _selectedCustomer = null;
+        _selectedProduct = null;
+        potonganController.clear();
+        kubikasiController.clear();
+        poController.clear();
+        nocontainerController.clear();
+        suhuController.clear();
+        hargaController.clear();
+        keteranganController.clear();
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Netto finalized')));
+      });
+    } on Exception catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed finalizing: $e')));
+    }
   }
 
   Future<void> _continueNettoAndMaybeAuto(ListTransactionJson tx) async {
     // Basic required fields check
-    final hasRequired = tx.vehiclePlate.isNotEmpty && tx.driverName.isNotEmpty && tx.ProductName.isNotEmpty && tx.supplierName.isNotEmpty && tx.customerName.isNotEmpty;
+    final hasRequired = tx.vehiclePlate.isNotEmpty && tx.driverName.isNotEmpty && _productNameFromId(tx.productId).isNotEmpty && _supplierNameFromId(tx.supplierId).isNotEmpty && _customerNameFromId(tx.customerId).isNotEmpty;
     if (!hasRequired) {
       // load into form for user to complete
       _loadDraftIntoForm(tx);
@@ -481,7 +515,7 @@ class _TransactionState extends State<Transaction> {
     sb.writeln('Ticket: ${tx.noTicket}');
     sb.writeln('Plate: ${tx.vehiclePlate}');
     sb.writeln('Driver: ${tx.driverName}');
-    sb.writeln('Product: ${tx.ProductName}');
+    sb.writeln('Product: ${_productNameFromId(tx.productId)}');
     sb.writeln('Bruto: ${tx.bruto} kg');
     showDialog<void>(context: context, builder: (c) => AlertDialog(title: const Text('Print'), content: Text(sb.toString()), actions: [TextButton(onPressed: () => Navigator.of(c).pop(), child: const Text('Close'))]));
   }
@@ -523,9 +557,9 @@ class _TransactionState extends State<Transaction> {
                             children: [
                               _detailRow('Plate', tx.vehiclePlate),
                               _detailRow('Driver', tx.driverName),
-                              _detailRow('Product', tx.ProductName),
-                              _detailRow('Supplier', tx.supplierName),
-                              _detailRow('Customer', tx.customerName),
+                              _detailRow('Product', _productNameFromId(tx.productId)),
+                              _detailRow('Supplier', _supplierNameFromId(tx.supplierId)),
+                              _detailRow('Customer', _customerNameFromId(tx.customerId)),
                               _detailRow('In', intime),
                               _detailRow('Out', outtime ?? '-'),
                               _detailRow('Bruto', '${tx.bruto} kg'),
@@ -717,9 +751,9 @@ class _TransactionState extends State<Transaction> {
                               final updated = ListTransactionJson(
                                 vehiclePlate: old.vehiclePlate,
                                 driverName: old.driverName,
-                                supplierName: old.supplierName,
-                                customerName: old.customerName,
-                                ProductName: old.ProductName,
+                                supplierId: (old as dynamic).supplierId ?? 0,
+                                customerId: (old as dynamic).customerId ?? 0,
+                                productId: (old as dynamic).productId ?? 0,
                                 cut: old.cut,
                                 kubikasi: old.kubikasi,
                                 noDO: old.noDO,
@@ -735,11 +769,11 @@ class _TransactionState extends State<Transaction> {
                                 tare: tare,
                                 netto: netto,
                                 nettoAfterCut: nettoAfterCut,
-                                driverLabel: old.driverLabel,
+                                driverLabel: (old.driverLabel is int) ? old.driverLabel : ((old.driverLabel == true) ? 1 : 0),
                                 transactionId: old.transactionId,
-                                operatorLabel: old.operatorLabel,
-                                managerLabel: old.managerLabel,
-                                headWarehouseLabel: old.headWarehouseLabel,
+                                operatorLabel: (old.operatorLabel is int) ? old.operatorLabel : ((old.operatorLabel == true) ? 1 : 0),
+                                managerLabel: (old.managerLabel is int) ? old.managerLabel : ((old.managerLabel == true) ? 1 : 0),
+                                headWarehouseLabel: (old.headWarehouseLabel is int) ? old.headWarehouseLabel : ((old.headWarehouseLabel == true) ? 1 : 0),
                               );
 
                               setState(() {
@@ -1144,7 +1178,7 @@ class _TransactionState extends State<Transaction> {
           SizedBox(
             width: double.infinity,
             child: ElevatedButton(
-              onPressed: () {
+              onPressed: () async {
                 if (_isDraftEditing) {
                   if (_editingDraftTicket != null && _lastCapturedWeight > 0) {
                     _finalizeDraft(_editingDraftTicket!, _lastCapturedWeight);
@@ -1158,12 +1192,13 @@ class _TransactionState extends State<Transaction> {
                 if (_isWeighIn) {
                   final ticket = _generateTicket();
                   final brutoVal = _lastCapturedWeight > 0 ? _lastCapturedWeight : double.tryParse(_displayWeight) ?? 0.0;
+                  // Build transaction object using IDs for FK columns
                   final draft = ListTransactionJson(
                     vehiclePlate: platnomorController.text.isEmpty ? 'Unknown' : platnomorController.text,
                     driverName: namasupirController.text.isEmpty ? 'Unknown' : namasupirController.text,
-                    supplierName: _selectedSupplier ?? '',
-                    customerName: _selectedCustomer ?? '',
-                    ProductName: _selectedProduct ?? '',
+                    supplierId: _selectedSupplier ?? 0,
+                    customerId: _selectedCustomer ?? 0,
+                    productId: _selectedProduct ?? 0,
                     cut: int.tryParse(potonganController.text) ?? 0,
                     kubikasi: int.tryParse(kubikasiController.text),
                     noDO: poController.text.isEmpty ? null : poController.text,
@@ -1179,19 +1214,52 @@ class _TransactionState extends State<Transaction> {
                     tare: 0.0,
                     netto: brutoVal,
                     nettoAfterCut: brutoVal - ((int.tryParse(potonganController.text) ?? 0) / 100 * brutoVal),
-                    driverLabel: true,
-                    transactionId: -_ticketCounter,
-                    operatorLabel: false,
-                    managerLabel: false,
-                    headWarehouseLabel: false,
+                    driverLabel: 1,
+                    operatorLabel: 0,
+                    managerLabel: 0,
+                    headWarehouseLabel: 0,
                   );
-                  setState(() {
-                    _sampleTransactions.insert(0, draft);
-                    _draftTickets.add(ticket);
-                    _currentTicketPreview = ticket;
-                    _ticketCounter++;
-                    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Draft saved (Bruto)')));
-                  });
+
+                  try {
+                    final insertedId = await DbHelper.instance.addTransaction(draft);
+                    final persisted = ListTransactionJson(
+                      vehiclePlate: draft.vehiclePlate,
+                      driverName: draft.driverName,
+                      supplierId: draft.supplierId,
+                      customerId: draft.customerId,
+                      productId: draft.productId,
+                      cut: draft.cut,
+                      kubikasi: draft.kubikasi,
+                      noDO: draft.noDO,
+                      noContainer: draft.noContainer,
+                      temperature: draft.temperature,
+                      price: draft.price,
+                      additionalInformation: draft.additionalInformation,
+                      noTicket: draft.noTicket,
+                      inTime: draft.inTime,
+                      outTime: draft.outTime,
+                      totalPrice: draft.totalPrice,
+                      bruto: draft.bruto,
+                      tare: draft.tare,
+                      netto: draft.netto,
+                      nettoAfterCut: draft.nettoAfterCut,
+                      driverLabel: draft.driverLabel,
+                      transactionId: insertedId,
+                      operatorLabel: draft.operatorLabel,
+                      managerLabel: draft.managerLabel,
+                      headWarehouseLabel: draft.headWarehouseLabel,
+                    );
+
+                    setState(() {
+                      _sampleTransactions.insert(0, persisted);
+                      _draftTickets.add(ticket);
+                      _currentTicketPreview = ticket;
+                      _ticketCounter++;
+                      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Draft saved (Bruto)')));
+                    });
+                  } on Exception catch (e) {
+                    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed saving draft: $e')));
+                  }
                   return;
                 }
 
@@ -1246,9 +1314,9 @@ class _TransactionState extends State<Transaction> {
       final d = _sampleTransactions.firstWhere((e) => e.noTicket == _editingDraftTicket, orElse: () => _sampleTransactions.isNotEmpty ? _sampleTransactions.first : ListTransactionJson(
             vehiclePlate: '',
             driverName: '',
-            supplierName: '',
-            customerName: '',
-            ProductName: '',
+            supplierId: 0,
+            customerId: 0,
+            productId: 0,
             cut: 0,
             noTicket: '',
             inTime: DateTime.now(),
@@ -1258,10 +1326,10 @@ class _TransactionState extends State<Transaction> {
             tare: 0.0,
             netto: 0.0,
             nettoAfterCut: 0.0,
-            driverLabel: false,
-            operatorLabel: false,
-            managerLabel: false,
-            headWarehouseLabel: false,
+            driverLabel: 0,
+            operatorLabel: 0,
+            managerLabel: 0,
+            headWarehouseLabel: 0,
           ));
       return d.bruto;
     }
@@ -1275,27 +1343,27 @@ class _TransactionState extends State<Transaction> {
       final d = _sampleTransactions.firstWhere(
         (e) => e.noTicket == _editingDraftTicket,
         orElse: () => _sampleTransactions.isNotEmpty
-            ? _sampleTransactions.first
-            : ListTransactionJson(
-                vehiclePlate: '',
-                driverName: '',
-                supplierName: '',
-                customerName: '',
-                ProductName: '',
-                cut: 0,
-                noTicket: '',
-                inTime: DateTime.now(),
-                outTime: DateTime.fromMillisecondsSinceEpoch(0),
-                totalPrice: 0.0,
-                bruto: 0.0,
-                tare: 0.0,
-                netto: 0.0,
-                nettoAfterCut: 0.0,
-                driverLabel: false,
-                operatorLabel: false,
-                managerLabel: false,
-                headWarehouseLabel: false,
-              ),
+          ? _sampleTransactions.first
+          : ListTransactionJson(
+                      vehiclePlate: '',
+                      driverName: '',
+                      supplierId: 0,
+                      customerId: 0,
+                      productId: 0,
+                      cut: 0,
+                      noTicket: '',
+                      inTime: DateTime.now(),
+                      outTime: DateTime.fromMillisecondsSinceEpoch(0),
+                      totalPrice: 0.0,
+                      bruto: 0.0,
+                      tare: 0.0,
+                      netto: 0.0,
+                      nettoAfterCut: 0.0,
+                      driverLabel: 0,
+                      operatorLabel: 0,
+                      managerLabel: 0,
+                      headWarehouseLabel: 0,
+                    ),
       );
       return d.tare;
     }
@@ -1416,9 +1484,9 @@ class _TransactionState extends State<Transaction> {
 
   Widget _buildDropdown({
     required String label,
-    required List<String> items,
-    required Function(String?) onChanged,
-    String? value,
+    required List items,
+    required Function(int?) onChanged,
+    int? value,
     String? hint,
     IconData? prefixIcon,
     bool enabled = true,
@@ -1426,22 +1494,35 @@ class _TransactionState extends State<Transaction> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        DropdownButtonFormField<String>(
+        DropdownButtonFormField<int>(
           value: value,
           onTap: () {},
-          items:
-              items.map((String item) {
-                return DropdownMenuItem<String>(
-                  value: item,
-                  child: Text(
-                    item,
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                );
-              }).toList(),
+          items: items.map((item) {
+            int id = 0;
+            String labelText = item.toString();
+            if (item is ListSupplierJson) {
+              id = item.supplierId;
+              labelText = item.supplierName;
+            } else if (item is ListCustomerJson) {
+              id = item.customerId;
+              labelText = item.customerName;
+            } else if (item is ListProductJson) {
+              id = item.productId;
+              labelText = item.productName;
+            } else if (item is String) {
+              labelText = item;
+            }
+            return DropdownMenuItem<int>(
+              value: id,
+              child: Text(
+                labelText,
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            );
+          }).toList(),
           onChanged: enabled ? onChanged : null,
           dropdownColor: _inputBg, // Ensure dropdown popup matches input bg
           style: const TextStyle(
@@ -1529,8 +1610,8 @@ class _TransactionState extends State<Transaction> {
             ],
           ),
           const SizedBox(height: 12),
-          FutureBuilder<List<Map<String, Object?>>>(
-            future: DbHelper.instance.getLatestTransactions(5),
+          FutureBuilder<List<ListTransactionJson>>(
+            future: DbHelper.instance.getListTransaction(),
             builder: (context, snapshot) {
               if (snapshot.connectionState != ConnectionState.done) {
                 return const SizedBox(height: 50, child: Center(child: CircularProgressIndicator()));
@@ -1543,14 +1624,14 @@ class _TransactionState extends State<Transaction> {
                 final query = _searchController.text.trim().toLowerCase();
                 final items = rawItems.where((it) {
                   if (query.isEmpty) return true;
-                  final ticket = (it['noTicket'] ?? it['ticket'] ?? '').toString().toLowerCase();
-                  final plate = (it['vehiclePlate'] ?? '').toString().toLowerCase();
+                  final ticket = (it.noTicket.toString().toLowerCase());
+                  final plate = (it.vehiclePlate).toString().toLowerCase();
                   return ticket.contains(query) || plate.contains(query);
                 }).toList();
                 // Sort by inTime
                 items.sort((a, b) {
-                  DateTime? da = _parseDateMaybe(a['inTime']);
-                  DateTime? dbt = _parseDateMaybe(b['inTime']);
+                  DateTime? da = _parseDateMaybe(a.inTime);
+                  DateTime? dbt = _parseDateMaybe(b.inTime);
                   if (da == null && dbt == null) return 0;
                   if (da == null) return _sortDesc ? 1 : -1;
                   if (dbt == null) return _sortDesc ? -1 : 1;
@@ -1564,28 +1645,28 @@ class _TransactionState extends State<Transaction> {
                   separatorBuilder: (_, __) => Divider(color: _textGrey.withValues(alpha: 0.12)),
                   itemBuilder: (ctx, i) {
                     final it = items[i];
-                    final plate = it['vehiclePlate']?.toString() ?? '-';
-                    final brutoNum = (it['bruto'] ?? 0);
-                    final nettoNum = (it['netto'] ?? 0);
-                    final afterCutNum = (it['nettoAfterCut'] ?? it['netto'] ?? 0);
+                    final plate = it.vehiclePlate?.toString() ?? '-';
+                    final brutoNum = (it.bruto ?? 0);
+                    final nettoNum = (it.netto ?? 0);
+                    final afterCutNum = (it.nettoAfterCut ?? it.netto ?? 0);
                     final bruto = brutoNum is num ? brutoNum.toDouble() : double.tryParse(brutoNum.toString()) ?? 0.0;
                     final netto = nettoNum is num ? nettoNum.toDouble() : double.tryParse(nettoNum.toString()) ?? 0.0;
                     final afterCut = afterCutNum is num ? afterCutNum.toDouble() : double.tryParse(afterCutNum.toString()) ?? 0.0;
-                    final intimeRaw = it['inTime']?.toString();
-                    final outtimeRaw = it['outTime']?.toString();
+                    final intimeRaw = it.inTime?.toString();
+                    final outtimeRaw = it.outTime?.toString();
                     final intime = _formatShortDate(intimeRaw);
                     final outtime = (outtimeRaw != null && outtimeRaw.trim().isNotEmpty) ? _formatShortDate(outtimeRaw) : null;
-                    final noTicket = it['noTicket']?.toString() ?? '';
-                    final driver = it['driverName']?.toString() ?? '';
-                    final product = it['ProductName']?.toString() ?? '';
-                    final supplier = it['supplierName']?.toString();
-                    final customer = it['customerName']?.toString();
-                    final cut = it['cut']?.toString();
-                    final doNo = it['noDO']?.toString();
-                    final container = it['noContainer']?.toString();
-                    final temp = it['temperature']?.toString();
-                    final price = it['price'] != null ? it['price'].toString() : null;
-                    final notes = it['additionalInformation']?.toString();
+                    final noTicket = it.noTicket?.toString() ?? '';
+                    final driver = it.driverName?.toString() ?? '';
+                    final product = it.productId?.toString() ?? '';
+                    final supplier = it.supplierId?.toString();
+                    final customer = it.customerId?.toString();
+                    final cut = it.cut?.toString();
+                    final doNo = it.noDO?.toString();
+                    final container = it.noContainer?.toString();
+                    final temp = it.temperature?.toString();
+                    final price = it.price != null ? it.price.toString() : null;
+                    final notes = it.additionalInformation?.toString();
 
                     return ExpansionTile(
                       tilePadding: const EdgeInsets.symmetric(vertical: 4),
@@ -1626,27 +1707,38 @@ class _TransactionState extends State<Transaction> {
                                 _copyToClipboard(noTicket);
                                 ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Ticket copied')));
                               } else if (v == 'detail') {
-                                _showDetailDialogMap(it);
+                                // _showDetailDialogMap(it);
                               } else if (v == 'print') {
-                                _printTransactionMap(it);
+                                // _printTransactionMap(it);
                               } else if (v == 'continue') {
                                 // convert map to model and attempt auto finalize
-                                final inTimeParsed = _parseDateMaybe(it['inTime']) ?? DateTime.now();
-                                final outTimeParsed = _parseDateMaybe(it['outTime']) ?? DateTime.fromMillisecondsSinceEpoch(0);
-                                final temp = it['temperature'] != null ? double.tryParse(it['temperature'].toString()) : null;
-                                final priceVal = it['price'] != null ? double.tryParse(it['price'].toString()) : null;
-                                final kub = it['kubikasi'] != null ? int.tryParse(it['kubikasi'].toString()) : null;
-                                final noContainerVal = it['noContainer'] != null ? int.tryParse(it['noContainer'].toString()) : null;
+                                final inTimeParsed = _parseDateMaybe(it.inTime) ?? DateTime.now();
+                                final outTimeParsed = _parseDateMaybe(it.outTime) ?? DateTime.fromMillisecondsSinceEpoch(0);
+                                final temp = it.temperature != null ? double.tryParse(it.temperature.toString()) : null;
+                                final priceVal = it.price != null ? double.tryParse(it.price.toString()) : null;
+                                final kub = it.kubikasi != null ? int.tryParse(it.kubikasi.toString()) : null;
+                                final noContainerVal = it.noContainer != null ? int.tryParse(it.noContainer.toString()) : null;
                                 final brutoVal = bruto;
                                 final nettoVal = netto;
                                 final afterVal = afterCut;
+                                final supplierIdVal = it.supplierId != null ? int.tryParse(it.supplierId.toString()) ?? 0 : 0;
+                                final customerIdVal = it.customerId != null ? int.tryParse(it.customerId.toString()) ?? 0 : 0;
+                                final productIdVal = it.productId != null ? int.tryParse(it.productId.toString()) ?? 0 : 0;
+                                int mapBoolToInt(dynamic v) {
+                                  if (v == null) return 0;
+                                  if (v is int) return v;
+                                  if (v is bool) return v ? 1 : 0;
+                                  final s = v.toString().toLowerCase();
+                                  if (s == '1' || s == 'true') return 1;
+                                  return 0;
+                                }
                                 final model = ListTransactionJson(
                                   vehiclePlate: plate,
                                   driverName: driver,
-                                  supplierName: supplier ?? '',
-                                  customerName: customer ?? '',
-                                  ProductName: product,
-                                  cut: int.tryParse(it['cut']?.toString() ?? '0') ?? 0,
+                                  supplierId: supplierIdVal,
+                                  customerId: customerIdVal,
+                                  productId: productIdVal,
+                                  cut: int.tryParse(it.cut?.toString() ?? '0') ?? 0,
                                   kubikasi: kub,
                                   noDO: doNo,
                                   noContainer: noContainerVal,
@@ -1656,16 +1748,16 @@ class _TransactionState extends State<Transaction> {
                                   noTicket: noTicket,
                                   inTime: inTimeParsed,
                                   outTime: outTimeParsed,
-                                  totalPrice: double.tryParse(it['totalPrice']?.toString() ?? '0') ?? 0.0,
+                                  totalPrice: double.tryParse(it.totalPrice?.toString() ?? '0') ?? 0.0,
                                   bruto: brutoVal,
-                                  tare: double.tryParse(it['tare']?.toString() ?? '0') ?? 0.0,
+                                  tare: double.tryParse(it.tare?.toString() ?? '0') ?? 0.0,
                                   netto: nettoVal,
                                   nettoAfterCut: afterVal,
-                                  driverLabel: (it['driverLabel'] ?? false) as bool? ?? false,
-                                  transactionId: int.tryParse(it['transactionId']?.toString() ?? '0') ?? 0,
-                                  operatorLabel: (it['operatorLabel'] ?? false) as bool? ?? false,
-                                  managerLabel: (it['managerLabel'] ?? false) as bool? ?? false,
-                                  headWarehouseLabel: (it['headWarehouseLabel'] ?? it['headWearhouseLabel'] ?? false) as bool? ?? false,
+                                  driverLabel: mapBoolToInt(it.driverLabel),
+                                  transactionId: int.tryParse(it.transactionId?.toString() ?? '0') ?? 0,
+                                  operatorLabel: mapBoolToInt(it.operatorLabel),
+                                  managerLabel: mapBoolToInt(it.managerLabel),
+                                  headWarehouseLabel: mapBoolToInt(it.headWarehouseLabel),
                                 );
                                 await _continueNettoAndMaybeAuto(model);
                               }
@@ -1721,13 +1813,19 @@ class _TransactionState extends State<Transaction> {
                             const SizedBox(height: 8),
                             Row(
                               children: [
-                                if ((it['driverLabel'] ?? false) as bool) Icon(Icons.person, color: _primaryCyan, size: 16),
-                                const SizedBox(width: 6),
-                                if ((it['operatorLabel'] ?? false) as bool) Icon(Icons.admin_panel_settings, color: _primaryCyan, size: 16),
-                                const SizedBox(width: 6),
-                                if ((it['managerLabel'] ?? false) as bool) Icon(Icons.verified_user, color: _primaryCyan, size: 16),
-                                const SizedBox(width: 6),
-                                if ((it['headWarehouseLabel'] ?? false) as bool) Icon(Icons.home_work, color: _primaryCyan, size: 16),
+                                (() {
+                                  final dl = it.driverLabel;
+                                  final ol = it.operatorLabel;
+                                  final ml = it.managerLabel;
+                                  final hl = it.headWarehouseLabel  ;
+                                  bool has(dynamic v) => v == 1 || v == true || v?.toString() == '1';
+                                  final icons = <Widget>[];
+                                  if (has(dl)) icons.add(Icon(Icons.person, color: _primaryCyan, size: 16));
+                                  if (has(ol)) icons.addAll([const SizedBox(width: 6), Icon(Icons.admin_panel_settings, color: _primaryCyan, size: 16)]);
+                                  if (has(ml)) icons.addAll([const SizedBox(width: 6), Icon(Icons.verified_user, color: _primaryCyan, size: 16)]);
+                                  if (has(hl)) icons.addAll([const SizedBox(width: 6), Icon(Icons.home_work, color: _primaryCyan, size: 16)]);
+                                  return Row(mainAxisSize: MainAxisSize.min, children: icons);
+                                })(),
                               ],
                             ),
                           ],
@@ -1788,7 +1886,7 @@ class _TransactionState extends State<Transaction> {
                               const SizedBox(height: 6),
                               Text(tx.vehiclePlate, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16)),
                               const SizedBox(height: 4),
-                              Text('${tx.driverName} • ${tx.ProductName}', style: TextStyle(color: _textGrey, fontSize: 12)),
+                              Text('${tx.driverName} • ${_productNameFromId(tx.productId)}', style: TextStyle(color: _textGrey, fontSize: 12)),
                               const SizedBox(height: 4),
                               Text(outtime != null ? '$intime → $outtime' : '$intime • In progress', style: TextStyle(color: _textGrey.withValues(alpha: 0.9), fontSize: 11)),
                             ],
@@ -1850,8 +1948,8 @@ class _TransactionState extends State<Transaction> {
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text('Supplier: ${tx.supplierName}', style: TextStyle(color: _textGrey)),
-                          Text('Customer: ${tx.customerName}', style: TextStyle(color: _textGrey)),
+                          Text('Supplier: ${_supplierNameFromId(tx.supplierId)}', style: TextStyle(color: _textGrey)),
+                          Text('Customer: ${_customerNameFromId(tx.customerId)}', style: TextStyle(color: _textGrey)),
                           if (tx.noDO != null) Text('No DO: ${tx.noDO}', style: TextStyle(color: _textGrey)),
                           if (tx.noContainer != null) Text('No Container: ${tx.noContainer}', style: TextStyle(color: _textGrey)),
                           Text('Potongan: ${tx.cut} %', style: TextStyle(color: _textGrey)),
