@@ -3,6 +3,9 @@ import 'package:dakara_weighbridge/Json/listcustomer_json.dart';
 import 'package:dakara_weighbridge/Json/listproduct_json.dart';
 import 'package:dakara_weighbridge/Json/listsupplier_json.dart';
 import 'package:flutter/material.dart';
+import 'package:dakara_weighbridge/Pages/transaction_components/weight_monitor.dart';
+import 'package:dakara_weighbridge/Pages/transaction_components/form_card.dart';
+import 'package:dakara_weighbridge/Pages/transaction_components/recent_transactions.dart';
 import 'package:intl/intl.dart';
 import 'package:dakara_weighbridge/SQLite/db_helper.dart';
 import 'package:dakara_weighbridge/Json/listtransaction_json.dart';
@@ -52,8 +55,8 @@ class _TransactionState extends State<Transaction> {
   final TextEditingController _searchController = TextEditingController();
   bool _sortDesc = true; // sort by inTime desc by default
 
-  // Sample static transactions for UI/testing (will be initialized in initState)
-  late List<ListTransactionJson> _sampleTransactions = [];
+  // Transactions list backed by DB
+  // Removed sample/mock transactions; UI uses `_transactions` populated from DB.
   // paging
   int _currentPage = 0;
   static const int _pageSize = 5;
@@ -90,69 +93,11 @@ class _TransactionState extends State<Transaction> {
   void initState() {
     super.initState();
     _timeNotifier.value = _formatDateTime(DateTime.now());
-    loadData();
+    _initAsync();
     _timer = Timer.periodic(const Duration(seconds: 1), (Timer t) {
       _timeNotifier.value = _formatDateTime(DateTime.now());
     });
-    // sample data for Recent Transactions UI
-    _sampleTransactions = [
-      ListTransactionJson(
-        vehiclePlate: 'B 1234 ABC',
-        driverName: 'Ujang',
-        supplierId: 1,
-        customerId: 1,
-        productId: 1,
-        cut: 5,
-        kubikasi: 2,
-        noDO: 'DO-001',
-        noContainer: null,
-        temperature: 28.5,
-        price: 15000.0,
-        additionalInformation: 'Contoh',
-        noTicket: '20260107-0001',
-        inTime: DateTime.now().subtract(const Duration(hours: 1)),
-        outTime: DateTime.now(),
-        totalPrice: 15000.0 * 100,
-        bruto: 120.0,
-        tare: 20.0,
-        netto: 100.0,
-        nettoAfterCut: 95.0,
-        driverLabel: 1,
-        transactionId: 1,
-        operatorLabel: 0,
-        managerLabel: 0,
-        headWarehouseLabel: 0,
-      ),
-      ListTransactionJson(
-        vehiclePlate: 'D 5678 XYZ',
-        driverName: 'Siti',
-        supplierId: 2,
-        customerId: 2,
-        productId: 2,
-        cut: 0,
-        kubikasi: null,
-        noDO: 'DO-002',
-        noContainer: 12345,
-        temperature: null,
-        price: 12000.0,
-        additionalInformation: null,
-        noTicket: '20260107-0002',
-        inTime: DateTime.now().subtract(const Duration(hours: 3)),
-        outTime: DateTime.now().subtract(const Duration(hours: 1)),
-        totalPrice: 12000.0 * 80,
-        bruto: 90.0,
-        tare: 10.0,
-        netto: 80.0,
-        nettoAfterCut: 80.0,
-        driverLabel: 1,
-        transactionId: 2,
-        operatorLabel: 1,
-        managerLabel: 0,
-        headWarehouseLabel: 0,
-      ),
-    ];
-    // init ticket counter after sample
-    _ticketCounter = _sampleTransactions.length + 1;
+    // ticket counter will be initialized in _initAsync after DB load
   }
 
   @override
@@ -219,6 +164,13 @@ class _TransactionState extends State<Transaction> {
       return null;
     }
   }
+  int? _intFrom(dynamic raw) {
+    if (raw == null) return null;
+    if (raw is int) return raw;
+    if (raw is double) return raw.toInt();
+    if (raw is String) return int.tryParse(raw);
+    return null;
+  }
 
   String _supplierNameFromId(int? id) {
     if (id == null || id == 0) return '';
@@ -282,10 +234,105 @@ class _TransactionState extends State<Transaction> {
     setState(() {});
   }
 
+  Future<void> _initAsync() async {
+    await loadData();
+    if (!mounted) return;
+    setState(() {
+      final maxId = _transactions.isNotEmpty ? _transactions.map((t) => t.transactionId).fold<int>(0, (p, e) => e > p ? e : p) : 0;
+      _ticketCounter = (maxId > 0) ? (maxId + 1) : (_transactions.length + 1);
+    });
+  }
+
+  Future<void> _handleSavePressed() async {
+    if (_isDraftEditing) {
+      if (_editingDraftTicket != null && _lastCapturedWeight > 0) {
+        _finalizeDraft(_editingDraftTicket!, _lastCapturedWeight);
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Please capture tare to finalize Netto')));
+      }
+      return;
+    }
+
+    if (_isWeighIn) {
+      final ticket = _generateTicket();
+      final brutoVal = _lastCapturedWeight > 0 ? _lastCapturedWeight : double.tryParse(_displayWeight) ?? 0.0;
+      final draft = ListTransactionJson(
+        vehiclePlate: platnomorController.text.isEmpty ? 'Unknown' : platnomorController.text,
+        driverName: namasupirController.text.isEmpty ? 'Unknown' : namasupirController.text,
+        supplierId: _selectedSupplier ?? 0,
+        customerId: _selectedCustomer ?? 0,
+        productId: _selectedProduct ?? 0,
+        cut: int.tryParse(potonganController.text) ?? 0,
+        kubikasi: int.tryParse(kubikasiController.text),
+        noDO: poController.text.isEmpty ? null : poController.text,
+        noContainer: nocontainerController.text.isEmpty ? null : int.tryParse(nocontainerController.text),
+        temperature: double.tryParse(suhuController.text),
+        price: double.tryParse(hargaController.text),
+        additionalInformation: keteranganController.text.isEmpty ? null : keteranganController.text,
+        noTicket: ticket,
+        inTime: DateTime.now(),
+        outTime: DateTime.fromMillisecondsSinceEpoch(0),
+        totalPrice: (double.tryParse(hargaController.text) ?? 0.0) * brutoVal,
+        bruto: brutoVal,
+        tare: 0.0,
+        netto: brutoVal,
+        nettoAfterCut: brutoVal - ((int.tryParse(potonganController.text) ?? 0) / 100 * brutoVal),
+        driverLabel: 1,
+        operatorLabel: 0,
+        managerLabel: 0,
+        headWarehouseLabel: 0,
+      );
+
+      try {
+        final insertedId = await DbHelper.instance.addTransaction(draft);
+        final persisted = ListTransactionJson(
+          vehiclePlate: draft.vehiclePlate,
+          driverName: draft.driverName,
+          supplierId: draft.supplierId,
+          customerId: draft.customerId,
+          productId: draft.productId,
+          cut: draft.cut,
+          kubikasi: draft.kubikasi,
+          noDO: draft.noDO,
+          noContainer: draft.noContainer,
+          temperature: draft.temperature,
+          price: draft.price,
+          additionalInformation: draft.additionalInformation,
+          noTicket: draft.noTicket,
+          inTime: draft.inTime,
+          outTime: draft.outTime,
+          totalPrice: draft.totalPrice,
+          bruto: draft.bruto,
+          tare: draft.tare,
+          netto: draft.netto,
+          nettoAfterCut: draft.nettoAfterCut,
+          driverLabel: draft.driverLabel,
+          transactionId: insertedId,
+          operatorLabel: draft.operatorLabel,
+          managerLabel: draft.managerLabel,
+          headWarehouseLabel: draft.headWarehouseLabel,
+        );
+
+        setState(() {
+          _transactions.insert(0, persisted);
+          _draftTickets.add(ticket);
+          _currentTicketPreview = ticket;
+          _ticketCounter++;
+          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Draft saved (Bruto)')));
+        });
+      } on Exception catch (e) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed saving draft: $e')));
+      }
+      return;
+    }
+
+    // For non-weigh-in saves (SIMPAN KELUAR), original logic remains in-place elsewhere.
+  }
+
   Future<void> _finalizeDraft(String ticket, double capturedValue) async {
-    final idx = _sampleTransactions.indexWhere((e) => e.noTicket == ticket);
+    final idx = _transactions.indexWhere((e) => e.noTicket == ticket);
     if (idx == -1) return;
-    final old = _sampleTransactions[idx];
+    final old = _transactions[idx];
     final bruto = old.bruto;
     final tare = capturedValue; // captured while finishing netto
     final netto = (bruto - tare) < 0 ? 0.0 : (bruto - tare);
@@ -323,7 +370,7 @@ class _TransactionState extends State<Transaction> {
     try {
       await DbHelper.instance.updateTransaction(updated);
       setState(() {
-        _sampleTransactions[idx] = updated;
+        _transactions[idx] = updated;
         _draftTickets.remove(ticket);
         _editingDraftTicket = null;
         _isDraftEditing = false;
@@ -417,13 +464,34 @@ class _TransactionState extends State<Transaction> {
     );
   }
 
-  void _showDetailDialogMap(Map<String, Object?> item) {
+  Future<void> _showDetailDialogMap(Map<String, Object?> item) async {
+    final pid = _intFrom(item['productId']);
+    final sid = _intFrom(item['supplierId']);
+    final cid = _intFrom(item['customerId']);
+
+    if ((_products.isEmpty && pid != null) || (_suppliers.isEmpty && sid != null) || (_customers.isEmpty && cid != null)) {
+      await loadData();
+      if (!mounted) return;
+      setState(() {});
+    }
+
+    final intime = _formatShortDate(item['inTime']?.toString());
+    final outtimeRaw = item['outTime']?.toString();
+    final outtime = (outtimeRaw != null && outtimeRaw.isNotEmpty) ? _formatShortDate(outtimeRaw) : null;
+
+    final productName = (item['productName'] ?? item['ProductName'])?.toString().trim().isNotEmpty == true
+      ? (item['productName'] ?? item['ProductName']).toString()
+      : _productNameFromId(pid);
+    final supplierName = (item['supplierName'] ?? item['SupplierName'])?.toString().trim().isNotEmpty == true
+      ? (item['supplierName'] ?? item['SupplierName']).toString()
+      : _supplierNameFromId(sid);
+    final customerName = (item['customerName'] ?? item['CustomerName'])?.toString().trim().isNotEmpty == true
+      ? (item['customerName'] ?? item['CustomerName']).toString()
+      : _customerNameFromId(cid);
+
     showDialog<void>(
       context: context,
       builder: (ctx) {
-        final intime = _formatShortDate(item['inTime']?.toString());
-        final outtimeRaw = item['outTime']?.toString();
-        final outtime = (outtimeRaw != null && outtimeRaw.isNotEmpty) ? _formatShortDate(outtimeRaw) : null;
         return Dialog(
           backgroundColor: Colors.transparent,
           child: Center(
@@ -455,9 +523,9 @@ class _TransactionState extends State<Transaction> {
                             children: [
                               _detailRow('Plate', item['vehiclePlate']?.toString() ?? '-'),
                               _detailRow('Driver', item['driverName']?.toString() ?? '-'),
-                              _detailRow('Product', item['ProductName']?.toString() ?? '-'),
-                              _detailRow('Supplier', item['supplierName']?.toString() ?? '-'),
-                              _detailRow('Customer', item['customerName']?.toString() ?? '-'),
+                              _detailRow('Product', productName.isNotEmpty ? productName : '-'),
+                              _detailRow('Supplier', supplierName.isNotEmpty ? supplierName : '-'),
+                              _detailRow('Customer', customerName.isNotEmpty ? customerName : '-'),
                               _detailRow('In', intime),
                               _detailRow('Out', outtime ?? '-'),
                               _detailRow('Bruto', '${item['bruto'] ?? 0} kg'),
@@ -479,9 +547,9 @@ class _TransactionState extends State<Transaction> {
                           ),
                           const SizedBox(width: 12),
                           ElevatedButton(
-                            onPressed: () {
+                            onPressed: () async {
                               Navigator.of(ctx).pop();
-                              _printTransactionMap(item);
+                              await _printTransactionMap(item);
                             },
                             style: ElevatedButton.styleFrom(backgroundColor: _primaryCyan, foregroundColor: Colors.black),
                             child: const Text('Print'),
@@ -499,12 +567,33 @@ class _TransactionState extends State<Transaction> {
     );
   }
 
-  void _printTransactionMap(Map<String, Object?> item) {
+  Future<void> _printTransactionMap(Map<String, Object?> item) async {
+    final pid = _intFrom(item['productId']);
+    final sid = _intFrom(item['supplierId']);
+    final cid = _intFrom(item['customerId']);
+
+    if ((_products.isEmpty && pid != null) || (_suppliers.isEmpty && sid != null) || (_customers.isEmpty && cid != null)) {
+      await loadData();
+      if (!mounted) return;
+      setState(() {});
+    }
+
     final sb = StringBuffer();
     sb.writeln('Ticket: ${item['noTicket'] ?? ''}');
     sb.writeln('Plate: ${item['vehiclePlate'] ?? ''}');
     sb.writeln('Driver: ${item['driverName'] ?? ''}');
-    sb.writeln('Product: ${item['ProductName'] ?? ''}');
+    final pName = (item['productName'] ?? item['ProductName'])?.toString().isNotEmpty == true
+      ? (item['productName'] ?? item['ProductName']).toString()
+      : _productNameFromId(pid);
+    final sName = (item['supplierName'] ?? item['SupplierName'])?.toString().isNotEmpty == true
+      ? (item['supplierName'] ?? item['SupplierName']).toString()
+      : _supplierNameFromId(sid);
+    final cName = (item['customerName'] ?? item['CustomerName'])?.toString().isNotEmpty == true
+      ? (item['customerName'] ?? item['CustomerName']).toString()
+      : _customerNameFromId(cid);
+    sb.writeln('Product: $pName');
+    sb.writeln('Supplier: $sName');
+    sb.writeln('Customer: $cName');
     sb.writeln('Bruto: ${item['bruto'] ?? ''} kg');
     // placeholder for real print integration
     showDialog<void>(context: context, builder: (c) => AlertDialog(title: const Text('Print'), content: Text(sb.toString()), actions: [TextButton(onPressed: () => Navigator.of(c).pop(), child: const Text('Close'))]));
@@ -629,14 +718,70 @@ class _TransactionState extends State<Transaction> {
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Expanded(flex: 3, child: _buildFormCard(context)),
+                Expanded(
+                  flex: 3,
+                  child: TransactionFormCard(
+                    platnomorController: platnomorController,
+                    poController: poController,
+                    namasupirController: namasupirController,
+                    potonganController: potonganController,
+                    kubikasiController: kubikasiController,
+                    nocontainerController: nocontainerController,
+                    suhuController: suhuController,
+                    hargaController: hargaController,
+                    keteranganController: keteranganController,
+                    focusPlatnomor: focusPlatnomor,
+                    focusPO: focusPO,
+                    focusSupir: focusSupir,
+                    focusPotongan: focusPotongan,
+                    focusKubikasi: focusKubikasi,
+                    focusNoContainer: focusNoContainer,
+                    focusSuhu: focusSuhu,
+                    focusHarga: focusHarga,
+                    focusKeterangan: focusKeterangan,
+                    suppliers: _suppliers,
+                    customers: _customers,
+                    products: _products,
+                    selectedSupplier: _selectedSupplier,
+                    selectedCustomer: _selectedCustomer,
+                    selectedProduct: _selectedProduct,
+                    isWeighing: _isWeighing,
+                    isDraftEditing: _isDraftEditing,
+                    currentTicketPreview: _currentTicketPreview,
+                    cardBg: _cardBg,
+                    primaryCyan: _primaryCyan,
+                    textGrey: _textGrey,
+                    inputBg: _inputBg,
+                    onSelectSupplier: (v) => setState(() => _selectedSupplier = v),
+                    onSelectCustomer: (v) => setState(() => _selectedCustomer = v),
+                    onSelectProduct: (v) => setState(() => _selectedProduct = v),
+                    onSavePressed: () async => _handleSavePressed(),
+                  ),
+                ),
                 const SizedBox(width: 20),
                 Expanded(flex: 2, child: _buildWeightDetails()),
               ],
             ),
             const SizedBox(height: 30),
             // RECENT TRANSACTIONS
-            _buildRecentTransactions(),
+            RecentTransactions(
+              searchController: _searchController,
+              sortDesc: _sortDesc,
+              draftTickets: _draftTickets,
+              transactions: _transactions,
+              suppliers: _suppliers,
+              customers: _customers,
+              products: _products,
+              cardBg: _cardBg,
+              textGrey: _textGrey,
+              primaryCyan: _primaryCyan,
+              inputBg: _inputBg,
+              onShowDetailMap: (m) async => _showDetailDialogMap(m),
+              onPrintMap: (m) async => _printTransactionMap(m),
+              onContinueAuto: (tx) async => _continueNettoAndMaybeAuto(tx),
+              onLoadDraft: (tx) => _loadDraftIntoForm(tx),
+              onCopyToClipboard: (t) => _copyToClipboard(t),
+            ),
           ],
         ),
       ),
@@ -644,191 +789,95 @@ class _TransactionState extends State<Transaction> {
   }
 
   Widget _buildWeightMonitorCard() {
-    return Container(
-      height: 280,
-      padding: const EdgeInsets.all(30),
-      decoration: BoxDecoration(
-        color: _cardBg,
-        borderRadius: BorderRadius.circular(24),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.3),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Column(
-        children: [
-          Row(
-            children: [
-              GestureDetector(
-                onTap: () => setState(() => _isWeighIn = !_isWeighIn),
-                child: Tooltip(
-                  message: _isWeighIn ? 'Mode: Timbang Masuk (tap to switch)' : 'Mode: Timbang Keluar (tap to switch)',
-                  child: Container(
-                    width: 12,
-                    height: 12,
-                    decoration: BoxDecoration(
-                      color: _isConnected ? limeGreen : Colors.redAccent,
-                      shape: BoxShape.circle,
-                      boxShadow: [
-                        BoxShadow(color: (_isConnected ? limeGreen.withValues(alpha: 0.6) : Colors.redAccent.withOpacity(0.6)), blurRadius: 6),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-              const SizedBox(width: 10),
-              Text(
-                "Weighing Indicator",
-                style: TextStyle(
-                  color: _textGrey.withValues(alpha: 0.85),
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                  shadows: [
-                    const Shadow(
-                      color: Colors.black26,
-                      offset: Offset(0, 1),
-                      blurRadius: 1,
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-          const Spacer(),
-          Text(
-            "${_displayWeight} kg",
-            style: TextStyle(
-              fontSize: 90,
-              color: _textWhite,
-              fontWeight: FontWeight.bold,
-              height: 1.0,
-              shadows: [
-                Shadow(
-                  color: Colors.black54,
-                  offset: Offset(0, 2),
-                  blurRadius: 6,
-                ),
-              ],
-            ),
-          ),
-          const Spacer(),
-          Row(
-            children: [
-              Expanded(
-                child: ElevatedButton(
-                  onPressed: _isWeighing
-                      ? null
-                      : () async {
-                          if (!_isConnected) {
-                            ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Indicator not connected')));
-                            return;
-                          }
-                          setState(() {
-                            _isWeighing = true;
-                          });
-                          // simulate capture
-                          await Future.delayed(const Duration(milliseconds: 700));
-                          // simple mock weight
-                          _lastCapturedWeight = 100 + DateTime.now().second % 50;
-                          // If we are editing a draft, treat this capture as the tare (exit) measurement
-                          // but do NOT finalize automatically. User must press SIMPAN KELUAR.
-                          if (_isDraftEditing && _editingDraftTicket != null) {
-                            final capturedTare = _lastCapturedWeight.toDouble();
-                            // update the in-memory draft entry so UI shows updated tare/netto
-                            final idx = _sampleTransactions.indexWhere((e) => e.noTicket == _editingDraftTicket);
-                            if (idx != -1) {
-                              final old = _sampleTransactions[idx];
-                              final bruto = old.bruto;
-                              final tare = capturedTare;
-                              final netto = (bruto - tare) < 0 ? 0.0 : (bruto - tare);
-                              final nettoAfterCut = netto - ((old.cut / 100) * netto);
-                              final price = old.price ?? double.tryParse(hargaController.text) ?? 0.0;
-                              final totalPrice = price * nettoAfterCut;
+    return WeightMonitorCard(
+      displayWeight: _displayWeight,
+      isWeighing: _isWeighing,
+      isWeighIn: _isWeighIn,
+      isConnected: _isConnected,
+      cardBg: _cardBg,
+      primaryCyan: _primaryCyan,
+      textGrey: _textGrey,
+      textWhite: _textWhite,
+      indicatorGreen: limeGreen,
+      onToggleMode: () => setState(() => _isWeighIn = !_isWeighIn),
+      onCapture: () async {
+        if (!_isConnected) {
+          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Indicator not connected')));
+          return;
+        }
+        setState(() {
+          _isWeighing = true;
+        });
+        await Future.delayed(const Duration(milliseconds: 700));
+        _lastCapturedWeight = 100 + DateTime.now().second % 50;
 
-                              final updated = ListTransactionJson(
-                                vehiclePlate: old.vehiclePlate,
-                                driverName: old.driverName,
-                                supplierId: (old as dynamic).supplierId ?? 0,
-                                customerId: (old as dynamic).customerId ?? 0,
-                                productId: (old as dynamic).productId ?? 0,
-                                cut: old.cut,
-                                kubikasi: old.kubikasi,
-                                noDO: old.noDO,
-                                noContainer: old.noContainer,
-                                temperature: old.temperature,
-                                price: old.price,
-                                additionalInformation: old.additionalInformation,
-                                noTicket: old.noTicket,
-                                inTime: old.inTime,
-                                outTime: old.outTime,
-                                totalPrice: totalPrice,
-                                bruto: bruto,
-                                tare: tare,
-                                netto: netto,
-                                nettoAfterCut: nettoAfterCut,
-                                driverLabel: (old.driverLabel is int) ? old.driverLabel : ((old.driverLabel == true) ? 1 : 0),
-                                transactionId: old.transactionId,
-                                operatorLabel: (old.operatorLabel is int) ? old.operatorLabel : ((old.operatorLabel == true) ? 1 : 0),
-                                managerLabel: (old.managerLabel is int) ? old.managerLabel : ((old.managerLabel == true) ? 1 : 0),
-                                headWarehouseLabel: (old.headWarehouseLabel is int) ? old.headWarehouseLabel : ((old.headWarehouseLabel == true) ? 1 : 0),
-                              );
+        if (_isDraftEditing && _editingDraftTicket != null) {
+          final capturedTare = _lastCapturedWeight.toDouble();
+          final idx = _transactions.indexWhere((e) => e.noTicket == _editingDraftTicket);
+          if (idx != -1) {
+            final old = _transactions[idx];
+            final bruto = old.bruto;
+            final tare = capturedTare;
+            final netto = (bruto - tare) < 0 ? 0.0 : (bruto - tare);
+            final nettoAfterCut = netto - ((old.cut / 100) * netto);
+            final price = old.price ?? double.tryParse(hargaController.text) ?? 0.0;
+            final totalPrice = price * nettoAfterCut;
 
-                              setState(() {
-                                _sampleTransactions[idx] = updated;
-                                _displayWeight = _lastCapturedWeight.toStringAsFixed(0);
-                                _isWeighing = false;
-                              });
-                              ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Tare captured — press SIMPAN KELUAR to finalize')));
-                            } else {
-                              setState(() {
-                                _displayWeight = _lastCapturedWeight.toStringAsFixed(0);
-                                _isWeighing = false;
-                              });
-                              ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Tare captured — press SIMPAN KELUAR to finalize')));
-                            }
-                            return;
-                          }
-                          setState(() {
-                            _displayWeight = _lastCapturedWeight.toStringAsFixed(0);
-                            _isWeighing = false;
-                          });
-                        },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: _primaryCyan,
-                    foregroundColor: Colors.black,
-                    elevation: 4,
-                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                  ),
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 6.0),
-                    child: Text(_isWeighing ? 'Weighing...' : 'Capture Weight', style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-                  ),
-                ),
-              ),
-              const SizedBox(width: 12),
-              Column(
-                children: [
-                  IconButton(
-                    onPressed: () async {
-                      // retry connect simulation
-                      setState(() => _isConnected = false);
-                      await Future.delayed(const Duration(milliseconds: 500));
-                      setState(() => _isConnected = true);
-                      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Connection retried')));
-                    },
-                    icon: Icon(Icons.refresh, color: _textGrey),
-                    tooltip: 'Retry connection',
-                  ),
-                ],
-              ),
-            ],
-          ),
-        ],
-      ),
+            final updated = ListTransactionJson(
+              vehiclePlate: old.vehiclePlate,
+              driverName: old.driverName,
+              supplierId: (old as dynamic).supplierId ?? 0,
+              customerId: (old as dynamic).customerId ?? 0,
+              productId: (old as dynamic).productId ?? 0,
+              cut: old.cut,
+              kubikasi: old.kubikasi,
+              noDO: old.noDO,
+              noContainer: old.noContainer,
+              temperature: old.temperature,
+              price: old.price,
+              additionalInformation: old.additionalInformation,
+              noTicket: old.noTicket,
+              inTime: old.inTime,
+              outTime: old.outTime,
+              totalPrice: totalPrice,
+              bruto: bruto,
+              tare: tare,
+              netto: netto,
+              nettoAfterCut: nettoAfterCut,
+              driverLabel: (old.driverLabel is int) ? old.driverLabel : ((old.driverLabel == true) ? 1 : 0),
+              transactionId: old.transactionId,
+              operatorLabel: (old.operatorLabel is int) ? old.operatorLabel : ((old.operatorLabel == true) ? 1 : 0),
+              managerLabel: (old.managerLabel is int) ? old.managerLabel : ((old.managerLabel == true) ? 1 : 0),
+              headWarehouseLabel: (old.headWarehouseLabel is int) ? old.headWarehouseLabel : ((old.headWarehouseLabel == true) ? 1 : 0),
+            );
+
+            setState(() {
+              _transactions[idx] = updated;
+              _displayWeight = _lastCapturedWeight.toStringAsFixed(0);
+              _isWeighing = false;
+            });
+            ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Tare captured — press SIMPAN KELUAR to finalize')));
+          } else {
+            setState(() {
+              _displayWeight = _lastCapturedWeight.toStringAsFixed(0);
+              _isWeighing = false;
+            });
+            ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Tare captured — press SIMPAN KELUAR to finalize')));
+          }
+          return;
+        }
+
+        setState(() {
+          _displayWeight = _lastCapturedWeight.toStringAsFixed(0);
+          _isWeighing = false;
+        });
+      },
+      onRetry: () async {
+        setState(() => _isConnected = false);
+        await Future.delayed(const Duration(milliseconds: 500));
+        setState(() => _isConnected = true);
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Connection retried')));
+      },
     );
   }
 
@@ -1251,7 +1300,7 @@ class _TransactionState extends State<Transaction> {
                     );
 
                     setState(() {
-                      _sampleTransactions.insert(0, persisted);
+                      _transactions.insert(0, persisted);
                       _draftTickets.add(ticket);
                       _currentTicketPreview = ticket;
                       _ticketCounter++;
@@ -1311,7 +1360,7 @@ class _TransactionState extends State<Transaction> {
 
   double _computeBrutoDisplay() {
     if (_isDraftEditing && _editingDraftTicket != null) {
-      final d = _sampleTransactions.firstWhere((e) => e.noTicket == _editingDraftTicket, orElse: () => _sampleTransactions.isNotEmpty ? _sampleTransactions.first : ListTransactionJson(
+      final d = _transactions.firstWhere((e) => e.noTicket == _editingDraftTicket, orElse: () => _transactions.isNotEmpty ? _transactions.first : ListTransactionJson(
             vehiclePlate: '',
             driverName: '',
             supplierId: 0,
@@ -1340,10 +1389,10 @@ class _TransactionState extends State<Transaction> {
 
   double _computeTareDisplay() {
     if (_isDraftEditing && _editingDraftTicket != null) {
-      final d = _sampleTransactions.firstWhere(
+      final d = _transactions.firstWhere(
         (e) => e.noTicket == _editingDraftTicket,
-        orElse: () => _sampleTransactions.isNotEmpty
-          ? _sampleTransactions.first
+        orElse: () => _transactions.isNotEmpty
+          ? _transactions.first
           : ListTransactionJson(
                       vehiclePlate: '',
                       driverName: '',
@@ -1658,9 +1707,9 @@ class _TransactionState extends State<Transaction> {
                     final outtime = (outtimeRaw != null && outtimeRaw.trim().isNotEmpty) ? _formatShortDate(outtimeRaw) : null;
                     final noTicket = it.noTicket?.toString() ?? '';
                     final driver = it.driverName?.toString() ?? '';
-                    final product = it.productId?.toString() ?? '';
-                    final supplier = it.supplierId?.toString();
-                    final customer = it.customerId?.toString();
+                    final productName = _productNameFromId(it.productId);
+                    final supplierName = _supplierNameFromId(it.supplierId);
+                    final customerName = _customerNameFromId(it.customerId);
                     final cut = it.cut?.toString();
                     final doNo = it.noDO?.toString();
                     final container = it.noContainer?.toString();
@@ -1692,7 +1741,7 @@ class _TransactionState extends State<Transaction> {
                                   const SizedBox(height: 6),
                                   Text(plate, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16)),
                                   const SizedBox(height: 4),
-                                  Text('$driver • $product', style: TextStyle(color: _textGrey, fontSize: 12)),
+                                  Text('$driver • ${productName.isNotEmpty ? productName : '-'}', style: TextStyle(color: _textGrey, fontSize: 12)),
                                   const SizedBox(height: 4),
                                   Text(outtime != null ? '$intime → $outtime' : '$intime • In progress', style: TextStyle(color: _textGrey.withValues(alpha: 0.9), fontSize: 11)),
                                 ],
@@ -1707,9 +1756,9 @@ class _TransactionState extends State<Transaction> {
                                 _copyToClipboard(noTicket);
                                 ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Ticket copied')));
                               } else if (v == 'detail') {
-                                // _showDetailDialogMap(it);
+                                _showDetailDialogMap(it.toJson());
                               } else if (v == 'print') {
-                                // _printTransactionMap(it);
+                                _printTransactionMap(it.toJson());
                               } else if (v == 'continue') {
                                 // convert map to model and attempt auto finalize
                                 final inTimeParsed = _parseDateMaybe(it.inTime) ?? DateTime.now();
@@ -1801,9 +1850,11 @@ class _TransactionState extends State<Transaction> {
                       children: [
                         Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            if (supplier != null) Text('Supplier: $supplier', style: TextStyle(color: _textGrey)),
-                            if (customer != null) Text('Customer: $customer', style: TextStyle(color: _textGrey)),
+                            children: [
+                            if (supplierName.isNotEmpty) Text('Supplier: $supplierName', style: TextStyle(color: _textGrey))
+                            else if (it.supplierId != 0) Text('Supplier: ${it.supplierId}', style: TextStyle(color: _textGrey)),
+                            if (customerName.isNotEmpty) Text('Customer: $customerName', style: TextStyle(color: _textGrey))
+                            else if (it.customerId != 0) Text('Customer: ${it.customerId}', style: TextStyle(color: _textGrey)),
                             if (doNo != null) Text('No DO: $doNo', style: TextStyle(color: _textGrey)),
                             if (container != null) Text('No Container: $container', style: TextStyle(color: _textGrey)),
                             if (cut != null) Text('Potongan: $cut %', style: TextStyle(color: _textGrey)),
@@ -1838,7 +1889,7 @@ class _TransactionState extends State<Transaction> {
 
               // Fallback to sample static data (apply same search + sort logic)
               final query = _searchController.text.trim().toLowerCase();
-              final List<ListTransactionJson> filtered = _sampleTransactions.where((tx) {
+              final List<ListTransactionJson> filtered = _transactions.where((tx) {
                 if (query.isEmpty) return true;
                 final ticket = tx.noTicket.toLowerCase();
                 final plate = tx.vehiclePlate.toLowerCase();
