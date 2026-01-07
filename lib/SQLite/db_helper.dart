@@ -72,10 +72,10 @@ class DbHelper {
       CREATE TABLE IF NOT EXISTS "transaction" (
 	    "transactionId"	INTEGER NOT NULL UNIQUE,
 	    "vehiclePlate"	TEXT NOT NULL,
-	    "driverName"	INT NOT NULL,
-	    "supplierName"	INT NOT NULL,
-	    "customerName"	INT NOT NULL,
-	    "productName"	TEXT NOT NULL,
+	    "driverName"	TEXT NOT NULL,
+	    "supplierId"	INTEGER NOT NULL,
+	    "customerId"	INTEGER NOT NULL,
+	    "productId"	INTEGER NOT NULL,
 	    "cut"	INTEGER NOT NULL,
 	    "kubikasi"	INTEGER,
 	    "noDO"	TEXT,
@@ -96,10 +96,10 @@ class DbHelper {
 	    "managerLabel"	INTEGER NOT NULL,
 	    "headWarehouseLabel"	INTEGER NOT NULL,
 	    PRIMARY KEY("transactionId" AUTOINCREMENT),
-	    FOREIGN KEY("customerName") REFERENCES "customer"("customerId"),
-	    FOREIGN KEY("productName") REFERENCES "product"("productId"),
-	    FOREIGN KEY("supplierName") REFERENCES "supplier"("supplierId")
-      );
+	    FOREIGN KEY("customerId") REFERENCES "customer"("customerId"),
+	    FOREIGN KEY("productId") REFERENCES "product"("productId"),
+	    FOREIGN KEY("supplierId") REFERENCES "supplier"("supplierId")
+    );
       ''';
 
       return await openDatabase(
@@ -147,7 +147,11 @@ class DbHelper {
   /// Delete Customer
   Future<int> deleteCustomer(ListCustomerJson customer) async {
     final Database db = await database;
-    return db.delete('customer', where: customer.customerId.toString());
+    return db.delete(
+      'customer',
+      where: 'customerId = ?',
+      whereArgs: [customer.customerId],
+    );
   }
 
   /* product */
@@ -178,7 +182,11 @@ class DbHelper {
   /// Delete Product
   Future<int> deleteProduct(ListProductJson product) async {
     final Database db = await database;
-    return db.delete('product', where: product.productId.toString());
+    return db.delete(
+      'product',
+      where: 'productId = ?',
+      whereArgs: [product.productId],
+    );
   }
 
   /* Supplier */
@@ -209,7 +217,11 @@ class DbHelper {
   /// Delete Supplier
   Future<int> deleteSupplier(ListSupplierJson supplier) async {
     final Database db = await database;
-    return db.delete('product', where: supplier.supplierId.toString());
+    return db.delete(
+      'product',
+      where: 'supplierId = ?',
+      whereArgs: [supplier.supplierId],
+    );
   }
 
   /* Transaction */
@@ -219,10 +231,71 @@ class DbHelper {
     return db.insert('transaction', transaction.toJson());
   }
 
+  /// Delete Transaction
+  Future<int> deleteTransaction(ListTransactionJson transaction) async {
+    final Database db = await database;
+    return db.delete(
+      'transaction',
+      where: 'transactionId = ?',
+      whereArgs: [transaction.transactionId],
+    );
+  }
+
+  /// Update Transaction
+  Future<int> updateTransaction(ListTransactionJson transaction) async {
+    final Database db = await database;
+    return db.update(
+      'transaction',
+      transaction.toJson(),
+      where: 'transactionId = ?',
+      whereArgs: [transaction.transactionId],
+    );
+  }
+
   /// Get Transactions
   Future<List<ListTransactionJson>> getListTransaction() async {
     final Database db = await database;
-    List<Map<String, Object?>> result = await db.query('transaction');
+    List<Map<String, Object?>> result = await db.rawQuery('''
+        SELECT 
+      t.transactionId,
+      t.vehiclePlate,
+      t.driverName,
+      t.noTicket,
+      t.inTime,
+      t.outTime,
+      t.bruto,
+      t.tare,
+      t.netto,
+      t.nettoAfterCut,
+      t.totalPrice,
+      t.cut,
+      t.driverLabel,
+      t.operatorLabel,
+      t.managerLabel,
+      t.headWarehouseLabel,
+      s.supplierId,
+      c.customerId,
+      p.productId
+      FROM "transaction" t
+      LEFT JOIN supplier s ON t.supplierId = s.supplierId
+      LEFT JOIN customer c ON t.customerId = c.customerId
+      LEFT JOIN product p ON t.productId = p.productId
+      ORDER BY t.inTime DESC;
+
+      ''');
+    return result.map((e) => ListTransactionJson.fromJson(e)).toList();
+  }
+
+  Future<List<ListTransactionJson>> getTransactionById({
+    required int id,
+  }) async {
+    final Database db = await database;
+    List<Map<String, Object?>> result = await db.query(
+      'transaction',
+      where: 'transactionId = ?',
+      whereArgs: [id],
+      limit: 1,
+    );
     return result.map((e) => ListTransactionJson.fromJson(e)).toList();
   }
 
@@ -243,7 +316,11 @@ class DbHelper {
   /// Delete User
   Future<int> deleteUser(ListAccountJson user) async {
     final Database db = await database;
-    return db.delete('account', where: user.accountID.toString());
+    return db.delete(
+      'account',
+      where: 'accountId = ?',
+      whereArgs: [user.accountID],
+    );
   }
 
   /// Update User
@@ -255,6 +332,19 @@ class DbHelper {
       where: 'userId = ?',
       whereArgs: [user.accountID],
     );
+  }
+
+  Future<List<ListAccountJson>> getUserByUsername({
+    required String username,
+  }) async {
+    final Database db = await database;
+    List<Map<String, Object?>> result = await db.query(
+      'account',
+      where: 'accountUsername = ?',
+      whereArgs: [username],
+      limit: 1,
+    );
+    return result.map((e) => ListAccountJson.fromJson(e)).toList();
   }
 }
 
