@@ -51,7 +51,7 @@ class Operator implements AbstractOperator {
           operatorLabel: 0,
           managerLabel: 0,
           headWarehouseLabel: 0,
-          // isDraft: 1,
+          isDrafted: 1,
         ),
       );
       return id;
@@ -75,7 +75,9 @@ class Operator implements AbstractOperator {
     final bool? isLoggedInStatus = prefs.getBool('isLoggedIn');
     final String? roleStatus = prefs.getString('role');
     if (isLoggedInStatus == true && roleStatus == 'operator') {
-      final transaction = await DbHelper.instance.getTransactionById(id: transactionId);
+      final transaction = await DbHelper.instance.getTransactionById(
+        id: transactionId,
+      );
       if (transaction.isEmpty) return 0;
       final t = transaction[0];
       final updated = ListTransactionJson(
@@ -103,12 +105,11 @@ class Operator implements AbstractOperator {
         operatorLabel: t.operatorLabel,
         managerLabel: t.managerLabel,
         headWarehouseLabel: t.headWarehouseLabel,
-        // isDraft: 0,
+        isDrafted: 0,
         transactionId: t.transactionId,
       );
       return await DbHelper.instance.updateTransaction(updated);
     }
     return 0;
   }
-
 }
