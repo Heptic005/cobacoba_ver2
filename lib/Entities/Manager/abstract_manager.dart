@@ -1,6 +1,4 @@
 abstract class AbstractManager {
-  Future<void> login({required String username, required String password});
-  Future<void> logout();
   Future<void> createSupervisorAndOperator({
     required String username,
     required String password,

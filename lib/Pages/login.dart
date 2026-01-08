@@ -1,9 +1,9 @@
+import 'package:dakara_weighbridge/Services/auth_service.dart';
 import 'package:flutter/material.dart';
 import 'package:dakara_weighbridge/dashboard.dart';
-import 'package:dakara_weighbridge/Entities/Operator/operator.dart';
 import 'package:dakara_weighbridge/Exception/auth_exception.dart';
-import '../SQLite/db_helper.dart';
-import '../Json/listaccount_json.dart';
+import 'package:dakara_weighbridge/SQLite/db_helper.dart';
+import 'package:dakara_weighbridge/Json/listaccount_json.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -48,9 +48,9 @@ class _LoginPageState extends State<LoginPage> {
       );
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Gagal mendaftar: $e')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Gagal mendaftar: $e')));
     } finally {
       if (mounted) setState(() => _loading = false);
     }
@@ -68,25 +68,28 @@ class _LoginPageState extends State<LoginPage> {
 
     setState(() => _loading = true);
     try {
-      final op = Operator();
-      await op.login(username: username, password: password);
+      final authService = AuthService();
+      final user = await authService.login(
+        username: username,
+        password: password,
+      );
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Login berhasil')),
-      );
-      Navigator.of(context).pushReplacement(
-        MaterialPageRoute(builder: (_) => const Dashboard()),
-      );
-    } on InvalidCredential {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Login berhasil')));
+      Navigator.of(
+        context,
+      ).pushReplacement(MaterialPageRoute(builder: (_) => const Dashboard()));
+    } on InvalidCredentialException {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Username atau password salah')),
       );
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Gagal login: $e')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Gagal login: $e')));
     } finally {
       if (mounted) setState(() => _loading = false);
     }
@@ -107,36 +110,41 @@ class _LoginPageState extends State<LoginPage> {
           padding: const EdgeInsets.all(20),
           child: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 1100),
-              child: Container(
-                padding: const EdgeInsets.all(24),
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                    colors: [
-                      cardBg.withAlpha((0.95 * 255).round()),
-                      cardBg.withAlpha((0.6 * 255).round()),
-                      Colors.black.withAlpha((0.25 * 255).round()),
-                    ],
-                  ),
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: textGrey.withAlpha((0.06 * 255).round())),
-                  boxShadow: [
-                      BoxShadow(
-                      color: Colors.black.withAlpha((0.65 * 255).round()),
-                      blurRadius: 30,
-                      spreadRadius: 2,
-                      offset: const Offset(0, 10),
-                    ),
+            child: Container(
+              padding: const EdgeInsets.all(24),
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [
+                    cardBg.withAlpha((0.95 * 255).round()),
+                    cardBg.withAlpha((0.6 * 255).round()),
+                    Colors.black.withAlpha((0.25 * 255).round()),
                   ],
                 ),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(
+                  color: textGrey.withAlpha((0.06 * 255).round()),
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withAlpha((0.65 * 255).round()),
+                    blurRadius: 30,
+                    spreadRadius: 2,
+                    offset: const Offset(0, 10),
+                  ),
+                ],
+              ),
               child: Row(
                 children: [
                   // Left column: title, form, instructions
                   Expanded(
                     flex: 5,
                     child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 8),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 28,
+                        vertical: 8,
+                      ),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
@@ -144,7 +152,10 @@ class _LoginPageState extends State<LoginPage> {
                           Row(
                             mainAxisAlignment: MainAxisAlignment.end,
                             children: [
-                              const Text('EN', style: TextStyle(color: Colors.white70)),
+                              const Text(
+                                'EN',
+                                style: TextStyle(color: Colors.white70),
+                              ),
                               const SizedBox(width: 8),
                               SizedBox(
                                 width: 44,
@@ -154,14 +165,32 @@ class _LoginPageState extends State<LoginPage> {
                             ],
                           ),
                           const SizedBox(height: 8),
-                          const Text('Welcome', style: TextStyle(color: Colors.white70, fontSize: 18)),
+                          const Text(
+                            'Welcome',
+                            style: TextStyle(
+                              color: Colors.white70,
+                              fontSize: 18,
+                            ),
+                          ),
                           const SizedBox(height: 8),
-                          const Text('Dakara Weighbridge', style: TextStyle(color: Colors.white, fontSize: 44, fontWeight: FontWeight.w700)),
+                          const Text(
+                            'Dakara Weighbridge',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 44,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
                           const SizedBox(height: 24),
                           // instructions block
                           Container(
-                                    padding: const EdgeInsets.all(12),
-                                    decoration: BoxDecoration(color: Colors.black.withAlpha((0.06 * 255).round()), borderRadius: BorderRadius.circular(8)),
+                            padding: const EdgeInsets.all(12),
+                            decoration: BoxDecoration(
+                              color: Colors.black.withAlpha(
+                                (0.06 * 255).round(),
+                              ),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
                             child: const Text(
                               'Testing: please register first using "Register as Operator" to create an operator account, then sign in. This build is for testing only.',
                               style: TextStyle(color: Colors.white70),
@@ -182,7 +211,10 @@ class _LoginPageState extends State<LoginPage> {
                                     labelStyle: TextStyle(color: textGrey),
                                     filled: true,
                                     fillColor: const Color(0xFF383C42),
-                                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(6), borderSide: BorderSide.none),
+                                    border: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(6),
+                                      borderSide: BorderSide.none,
+                                    ),
                                   ),
                                 ),
                                 const SizedBox(height: 12),
@@ -195,7 +227,10 @@ class _LoginPageState extends State<LoginPage> {
                                     labelStyle: TextStyle(color: textGrey),
                                     filled: true,
                                     fillColor: const Color(0xFF383C42),
-                                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(6), borderSide: BorderSide.none),
+                                    border: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(6),
+                                      borderSide: BorderSide.none,
+                                    ),
                                   ),
                                 ),
                                 const SizedBox(height: 18),
@@ -204,39 +239,75 @@ class _LoginPageState extends State<LoginPage> {
                                   style: ElevatedButton.styleFrom(
                                     backgroundColor: primaryCyan,
                                     foregroundColor: Colors.black,
-                                    padding: const EdgeInsets.symmetric(vertical: 14),
-                                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                                    padding: const EdgeInsets.symmetric(
+                                      vertical: 14,
+                                    ),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(8),
+                                    ),
                                   ),
-                                  child: _loading ? const SizedBox(height: 18, width: 18, child: CircularProgressIndicator(color: Colors.black, strokeWidth: 2)) : const Text('Sign In', style: TextStyle(fontWeight: FontWeight.w700)),
+                                  child:
+                                      _loading
+                                          ? const SizedBox(
+                                            height: 18,
+                                            width: 18,
+                                            child: CircularProgressIndicator(
+                                              color: Colors.black,
+                                              strokeWidth: 2,
+                                            ),
+                                          )
+                                          : const Text(
+                                            'Sign In',
+                                            style: TextStyle(
+                                              fontWeight: FontWeight.w700,
+                                            ),
+                                          ),
                                 ),
                                 const SizedBox(height: 10),
                                 OutlinedButton(
-                                  onPressed: _loading ? null : _registerOperator,
+                                  onPressed:
+                                      _loading ? null : _registerOperator,
                                   style: OutlinedButton.styleFrom(
                                     side: const BorderSide(color: primaryCyan),
                                     foregroundColor: primaryCyan,
-                                    padding: const EdgeInsets.symmetric(vertical: 12),
-                                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                                    padding: const EdgeInsets.symmetric(
+                                      vertical: 12,
+                                    ),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(8),
+                                    ),
                                   ),
                                   child: const Text('Register as Operator'),
                                 ),
                                 const SizedBox(height: 18),
                                 TextButton(
                                   onPressed: () {},
-                                  child: const Text('Need help? Contact Customer Services', style: TextStyle(decoration: TextDecoration.underline)),
+                                  child: const Text(
+                                    'Need help? Contact Customer Services',
+                                    style: TextStyle(
+                                      decoration: TextDecoration.underline,
+                                    ),
+                                  ),
                                 ),
                               ],
                             ),
                           ),
                           const SizedBox(height: 12),
                           // version text bottom-left
-                          Text('Version 1.0.0', style: TextStyle(color: textGrey, fontSize: 12)),
+                          Text(
+                            'Version 1.0.0',
+                            style: TextStyle(color: textGrey, fontSize: 12),
+                          ),
                         ],
                       ),
                     ),
                   ),
 
-                  const VerticalDivider(width: 1, thickness: 1, color: Colors.black26),
+                  const VerticalDivider(
+                    width: 1,
+                    thickness: 1,
+                    color: Colors.black26,
+                  ),
 
                   // Right column: image/illustration placeholder
                   Expanded(
@@ -246,11 +317,17 @@ class _LoginPageState extends State<LoginPage> {
                         width: 260,
                         height: 260,
                         decoration: BoxDecoration(
-                          color: Colors.grey.shade700.withAlpha((0.18 * 255).round()),
+                          color: Colors.grey.shade700.withAlpha(
+                            (0.18 * 255).round(),
+                          ),
                           borderRadius: BorderRadius.circular(20),
                           border: Border.all(color: Colors.black12),
                         ),
-                        child: const Icon(Icons.image, size: 96, color: Colors.white24),
+                        child: const Icon(
+                          Icons.image,
+                          size: 96,
+                          color: Colors.white24,
+                        ),
                       ),
                     ),
                   ),

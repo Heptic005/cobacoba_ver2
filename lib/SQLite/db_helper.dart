@@ -1,3 +1,4 @@
+import 'package:dakara_weighbridge/Exception/auth_exception.dart';
 import 'package:dakara_weighbridge/Json/listaccount_json.dart';
 import 'package:dakara_weighbridge/Json/listcustomer_json.dart';
 import 'package:dakara_weighbridge/Json/listproduct_json.dart';
@@ -334,6 +335,7 @@ class DbHelper {
     );
   }
 
+  /// Get User By Username
   Future<List<ListAccountJson>> getUserByUsername({
     required String username,
   }) async {
@@ -345,6 +347,21 @@ class DbHelper {
       limit: 1,
     );
     return result.map((e) => ListAccountJson.fromJson(e)).toList();
+  }
+
+  /// Authenticate User
+  Future<ListAccountJson?> authenticateUser({
+    required String username,
+    required String password,
+  }) async {
+    final user = await getUserByUsername(username: username);
+    if (user.isEmpty) throw InvalidCredentialException();
+    final storedPassword = user[0].accountPassword;
+    if (storedPassword == password) {
+      return user[0];
+    } else {
+      throw InvalidCredentialException();
+    }
   }
 }
 
