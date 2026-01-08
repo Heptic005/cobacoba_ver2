@@ -150,12 +150,14 @@ class TransactionController extends ChangeNotifier {
   double computeTareDisplay() {
     // If just reset, show 0
     if (isJustReset) return 0.0;
+    // capture recent tare
+    if (capturedTare != null) return capturedTare!;
     if (isDraftEditing && editingDraftTicket != null) {
       final idx = transactions.indexWhere((e) => e.noTicket == editingDraftTicket);
       if (idx != -1) return transactions[idx].tare.toDouble();
     }
     // If captured, return captured tare
-    if (capturedTare != null) return capturedTare!;
+  
     return lastCapturedWeight;
   }
 
