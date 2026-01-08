@@ -188,9 +188,8 @@ class RecentTransactions extends StatelessWidget {
                     final netto = nettoNum.toDouble();
                     final afterCut = afterCutNum.toDouble();
                     final intimeRaw = it.inTime.toString();
-                    final outtimeRaw = it.outTime.toString();
                     final intime = _formatShortDate(intimeRaw);
-                    final outtime = outtimeRaw.trim().isNotEmpty ? _formatShortDate(outtimeRaw) : null;
+                    final outtime = it.outTime != null ? _formatShortDate(it.outTime.toString()) : null;
                     final noTicket = it.noTicket;
                     final driver = it.driverName;
                     final productName = _productNameFromId(it.productId);
@@ -310,7 +309,7 @@ class RecentTransactions extends StatelessWidget {
                 itemBuilder: (ctx, i) {
                   final tx = filtered[i];
                   final intime = DateFormat('dd MMM HH:mm').format(tx.inTime);
-                  final outtime = tx.outTime.isAfter(tx.inTime) ? DateFormat('dd MMM HH:mm').format(tx.outTime) : null;
+                  final outtime = (tx.outTime != null && tx.outTime!.isAfter(tx.inTime)) ? DateFormat('dd MMM HH:mm').format(tx.outTime!) : null;
                   return ExpansionTile(
                     tilePadding: const EdgeInsets.symmetric(vertical: 4),
                     childrenPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),

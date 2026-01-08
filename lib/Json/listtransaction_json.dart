@@ -25,7 +25,7 @@ class ListTransactionJson {
   final String? additionalInformation;
   final String noTicket;
   final DateTime inTime;
-  final DateTime outTime;
+  final DateTime? outTime;
   final double totalPrice;
   final double bruto;
   final double tare;
@@ -35,7 +35,7 @@ class ListTransactionJson {
   final int operatorLabel;
   final int managerLabel;
   final int headWarehouseLabel;
-  final int isDraft;
+  // final int isDraft;
 
   ListTransactionJson({
     required this.vehiclePlate,
@@ -63,7 +63,7 @@ class ListTransactionJson {
     required this.operatorLabel,
     required this.managerLabel,
     required this.headWarehouseLabel,
-    required this.isDraft,
+    // required this.isDraft,
   });
 
   factory ListTransactionJson.fromJson(
@@ -77,7 +77,7 @@ class ListTransactionJson {
     cut: json['cut'],
     noTicket: json['noTicket'],
     inTime: DateTime.parse(json['inTime']),
-    outTime: DateTime.parse(json['outTime']),
+    outTime: json['outTime'] == null ? null : DateTime.parse(json['outTime']),
     totalPrice: (json['totalPrice'] as num).toDouble(),
     bruto: (json['bruto'] as num).toDouble(),
     tare: (json['tare'] as num).toDouble(),
@@ -88,7 +88,7 @@ class ListTransactionJson {
     operatorLabel: json['operatorLabel'],
     managerLabel: json['managerLabel'],
     headWarehouseLabel: json['headWarehouseLabel'],
-    isDraft: json['isDraft'],
+    // isDraft: json['isDraft'],
   );
 
   Map<String, dynamic> toJson() => {
@@ -106,7 +106,7 @@ class ListTransactionJson {
     "additionalInformation": additionalInformation,
     "noTicket": noTicket,
     "inTime": inTime.toIso8601String(),
-    "outTime": outTime.toIso8601String(),
+    "outTime": outTime == null ? null : outTime!.toIso8601String(),
     "totalPrice": totalPrice,
     "bruto": bruto,
     "tare": tare,

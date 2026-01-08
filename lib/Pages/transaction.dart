@@ -222,7 +222,7 @@ class _TransactionState extends State<Transaction> {
       operatorLabel: 0,
       managerLabel: 0,
       headWarehouseLabel: 0,
-      isDraft: 1,
+      // isDraft: 1,
     );
 
     try {
@@ -352,23 +352,26 @@ class _TransactionState extends State<Transaction> {
     }
     try {
       if (_isWeighIn) {
-        // Weigh-In: capture bruto (weight-in)
-        await _controller.captureBrutoSimulated();
-        if (!mounted) return;
-        messenger.showSnackBar(
-          const SnackBar(
-            content: Text('Bruto captured — press SIMPAN to save draft'),
-          ),
-        );
+        // Weigh-In: if editing a draft, persist bruto via controller/operator
+        if (_controller.editingDraftTicket != null) {
+          await _controller.captureBrutoForTicket(_controller.editingDraftTicket!);
+          if (!mounted) return;
+          messenger.showSnackBar(const SnackBar(content: Text('Bruto captured and saved to draft')));
+        } else {
+          // otherwise perform a live capture and let user press SIMPAN to persist
+          await _controller.captureBrutoSimulated();
+          if (!mounted) return;
+          messenger.showSnackBar(const SnackBar(content: Text('Bruto captured — press SIMPAN to save draft')));
+        }
       } else {
         // Weigh-Out: capture tare (weight-out)
-        await _controller.captureTareSimulated();
+        if (_controller.editingDraftTicket == null) {
+          messenger.showSnackBar(const SnackBar(content: Text('Pilih draft terlebih dahulu sebelum timbang keluar')));
+          return;
+        }
+        await _controller.captureTareForTicket(_controller.editingDraftTicket!);
         if (!mounted) return;
-        messenger.showSnackBar(
-          const SnackBar(
-            content: Text('Tare captured — press SIMPAN to finalize'),
-          ),
-        );
+        messenger.showSnackBar(const SnackBar(content: Text('Tare captured and transaction finalized')));
       }
     } catch (e) {
       if (!mounted) return;

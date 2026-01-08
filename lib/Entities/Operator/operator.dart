@@ -6,7 +6,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 /// TODO : Need to add export to pdf, excel and print feature
 class Operator implements AbstractOperator {
   @override
-  Future<void> addBrutoTransaction({
+  Future<int> addBrutoTransaction({
     required String vehiclePlate,
     required String driverName,
     required int supplierId,
@@ -24,38 +24,43 @@ class Operator implements AbstractOperator {
     final prefs = await SharedPreferences.getInstance();
     final bool? isLoggedInStatus = prefs.getBool('isLoggedIn');
     final String? roleStatus = prefs.getString('role');
-
-    if (isLoggedInStatus != null && isLoggedInStatus) {
-      if (roleStatus != null && roleStatus == 'operator') {
-        DbHelper.instance.addTransaction(
-          ListTransactionJson(
-            vehiclePlate: vehiclePlate,
-            driverName: driverName,
-            supplierId: supplierId,
-            customerId: customerId,
-            productId: productId,
-            cut: cut,
-            noTicket: 'WB-${DateTime.now()}',
-            inTime: DateTime.now(),
-            outTime: DateTime.now(),
-            totalPrice: 0,
-            bruto: bruto,
-            tare: 0,
-            netto: 0,
-            nettoAfterCut: 0,
-            driverLabel: 0,
-            operatorLabel: 0,
-            managerLabel: 0,
-            headWarehouseLabel: 0,
-            isDraft: 1,
-          ),
-        );
-      }
+    if (isLoggedInStatus == true && roleStatus == 'operator') {
+      final id = await DbHelper.instance.addTransaction(
+        ListTransactionJson(
+          vehiclePlate: vehiclePlate,
+          driverName: driverName,
+          supplierId: supplierId,
+          customerId: customerId,
+          productId: productId,
+          cut: cut,
+          kubikasi: kubikasi,
+          noDO: noDo,
+          noContainer: noContainer,
+          temperature: temperature,
+          price: price,
+          additionalInformation: additionalInformation,
+          noTicket: 'WB-${DateTime.now().millisecondsSinceEpoch}',
+          inTime: DateTime.now(),
+          outTime: DateTime.now(),
+          totalPrice: 0,
+          bruto: bruto,
+          tare: 0,
+          netto: 0,
+          nettoAfterCut: 0,
+          driverLabel: 0,
+          operatorLabel: 0,
+          managerLabel: 0,
+          headWarehouseLabel: 0,
+          // isDraft: 1,
+        ),
+      );
+      return id;
     }
+    return -1;
   }
 
   @override
-  Future<void> addNettoTransaction({
+  Future<int> addNettoTransaction({
     required int transactionId,
     int? kubikasi,
     String? noDo,
@@ -69,36 +74,41 @@ class Operator implements AbstractOperator {
     final prefs = await SharedPreferences.getInstance();
     final bool? isLoggedInStatus = prefs.getBool('isLoggedIn');
     final String? roleStatus = prefs.getString('role');
-
-    if (isLoggedInStatus != null && isLoggedInStatus) {
-      if (roleStatus != null && roleStatus == 'operator') {
-        final transaction = await DbHelper.instance.getTransactionById(
-          id: transactionId,
-        );
-        await DbHelper.instance.updateTransaction(
-          ListTransactionJson(
-            vehiclePlate: transaction[0].vehiclePlate,
-            driverName: transaction[0].driverName,
-            supplierId: transaction[0].supplierId,
-            customerId: transaction[0].customerId,
-            productId: transaction[0].productId,
-            cut: transaction[0].cut,
-            noTicket: transaction[0].noTicket,
-            inTime: transaction[0].inTime,
-            outTime: DateTime.now(),
-            totalPrice: 0,
-            bruto: transaction[0].bruto,
-            tare: tare,
-            netto: transaction[0].bruto - tare,
-            nettoAfterCut: nettoAfterCut / 100 * transaction[0].bruto,
-            driverLabel: 0,
-            operatorLabel: 0,
-            managerLabel: 0,
-            headWarehouseLabel: 0,
-            isDraft: 0,
-          ),
-        );
-      }
+    if (isLoggedInStatus == true && roleStatus == 'operator') {
+      final transaction = await DbHelper.instance.getTransactionById(id: transactionId);
+      if (transaction.isEmpty) return 0;
+      final t = transaction[0];
+      final updated = ListTransactionJson(
+        vehiclePlate: t.vehiclePlate,
+        driverName: t.driverName,
+        supplierId: t.supplierId,
+        customerId: t.customerId,
+        productId: t.productId,
+        cut: t.cut,
+        kubikasi: kubikasi ?? t.kubikasi,
+        noDO: noDo ?? t.noDO,
+        noContainer: noContainer ?? t.noContainer,
+        temperature: temperature ?? t.temperature,
+        price: price ?? t.price,
+        additionalInformation: additionalInformation ?? t.additionalInformation,
+        noTicket: t.noTicket,
+        inTime: t.inTime,
+        outTime: DateTime.now(),
+        totalPrice: 0,
+        bruto: t.bruto,
+        tare: tare,
+        netto: t.bruto - tare,
+        nettoAfterCut: nettoAfterCut,
+        driverLabel: t.driverLabel,
+        operatorLabel: t.operatorLabel,
+        managerLabel: t.managerLabel,
+        headWarehouseLabel: t.headWarehouseLabel,
+        // isDraft: 0,
+        transactionId: t.transactionId,
+      );
+      return await DbHelper.instance.updateTransaction(updated);
     }
+    return 0;
   }
+
 }

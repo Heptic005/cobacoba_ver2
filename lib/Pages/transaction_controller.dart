@@ -8,11 +8,13 @@ import 'package:dakara_weighbridge/Json/listtransaction_json.dart';
 import 'package:dakara_weighbridge/Json/listproduct_json.dart';
 import 'package:dakara_weighbridge/Json/listsupplier_json.dart';
 import 'package:dakara_weighbridge/Json/listcustomer_json.dart';
+import 'package:dakara_weighbridge/Entities/Operator/operator.dart';
 
 /// TransactionController — single source of truth for transaction feature.
 /// Holds all business logic, data, and state. UI widgets only render and wire events.
 class TransactionController extends ChangeNotifier {
   final DbHelper _db = DbHelper.instance;
+  final Operator _operator = Operator();
 
   List<ListSupplierJson> suppliers = [];
   List<ListCustomerJson> customers = [];
@@ -26,6 +28,8 @@ class TransactionController extends ChangeNotifier {
   final Set<String> draftTickets = {};
   String? editingDraftTicket;
   bool isDraftEditing = false;
+  // map noTicket -> transactionId returned by Operator.addBrutoTransaction
+  final Map<String, int> _ticketToId = {};
   double lastCapturedWeight = 0.0;
   String? currentTicketPreview;
 
@@ -126,12 +130,34 @@ class TransactionController extends ChangeNotifier {
   }
 
   Future<void> saveDraftFromForm(ListTransactionJson tx) async {
-    await _db.addTransaction(tx);
-    transactions = await _db.getListTransaction();
-    draftTickets.add(tx.noTicket);
-    editingDraftTicket = tx.noTicket;
-    isDraftEditing = true;
-    notifyListeners();
+    // delegate creation to Operator for role-check and reuse
+    final insertedId = await _operator.addBrutoTransaction(
+      vehiclePlate: tx.vehiclePlate,
+      driverName: tx.driverName,
+      supplierId: tx.supplierId,
+      customerId: tx.customerId,
+      productId: tx.productId,
+      cut: tx.cut,
+      kubikasi: tx.kubikasi,
+      noDo: tx.noDO,
+      noContainer: tx.noContainer,
+      temperature: tx.temperature,
+      price: tx.price,
+      additionalInformation: tx.additionalInformation,
+      bruto: tx.bruto,
+    );
+    if (insertedId > 0) {
+      transactions = await _db.getListTransaction();
+      final newTx = transactions.firstWhere((e) => e.transactionId == insertedId, orElse: () => transactions.isNotEmpty ? transactions.last : tx);
+      draftTickets.add(newTx.noTicket);
+      editingDraftTicket = newTx.noTicket;
+      isDraftEditing = true;
+      // store mapping from ticket to inserted id
+      _ticketToId[newTx.noTicket] = insertedId;
+      notifyListeners();
+    } else {
+      throw Exception('Permission denied or insert failed');
+    }
   }
 
   double computeAfterCut(double netto, double cutPct) {
@@ -182,15 +208,99 @@ class TransactionController extends ChangeNotifier {
     return lastCapturedWeight;
   }
 
+  /// Capture bruto for a ticket: reuse simulated capture, then persist via Operator
+  Future<void> captureBrutoForTicket(String ticket) async {
+    developer.log('captureBrutoForTicket: $ticket', name: 'TransactionController');
+    isWeighing = true;
+    notifyListeners();
+    await captureBrutoSimulated();
+    final value = capturedBruto ?? lastCapturedWeight;
+
+    // prefer stored mapping for transactionId
+    int? txId = _ticketToId[ticket];
+    if (txId == null) {
+      // try to find existing transaction with non-zero id
+      final idx = transactions.indexWhere((e) => e.noTicket == ticket && e.transactionId != 0);
+      if (idx != -1) txId = transactions[idx].transactionId;
+    }
+
+    if (txId == null) {
+      // No persisted draft exists yet — keep bruto in memory and require user to Save draft
+      capturedBruto = value;
+      lastCapturedWeight = value;
+      isWeighing = false;
+      notifyListeners();
+      throw Exception('Draft not saved. Press SIMPAN to create draft before finalizing.');
+    }
+
+    // If txId exists, we consider bruto already stored in DB from saveDraftFromForm.
+    // Do not create or update bruto here to avoid duplicate rows — UI should save draft.
+    transactions = await _db.getListTransaction();
+    isWeighing = false;
+    notifyListeners();
+  }
+
+  /// Capture tare for a ticket: reuse simulated capture, compute totals, then finalize via Operator
+  Future<void> captureTareForTicket(String ticket) async {
+    developer.log('captureTareForTicket: $ticket', name: 'TransactionController');
+    isWeighing = true;
+    notifyListeners();
+    await captureTareSimulated();
+    final tareVal = capturedTare ?? lastCapturedWeight;
+
+    final idx = transactions.indexWhere((e) => e.noTicket == ticket);
+    if (idx == -1) {
+      isWeighing = false;
+      notifyListeners();
+      throw Exception('Ticket not found');
+    }
+    final old = transactions[idx];
+    final bruto = old.bruto.toDouble();
+    final netto = computeNetto(bruto, tareVal);
+    final after = computeAfterCut(netto, old.cut.toDouble());
+    final price = old.price ?? 0.0;
+    final totalPrice = computeTotalPrice(after, price);
+
+    // resolve transactionId: prefer stored mapping
+    int? txId = _ticketToId[ticket] ?? old.transactionId;
+    if (txId == 0) txId = null;
+    if (txId == null) {
+      isWeighing = false;
+      notifyListeners();
+      throw Exception('Transaction id missing; save draft first');
+    }
+
+    final rows = await _operator.addNettoTransaction(
+      transactionId: txId,
+      kubikasi: old.kubikasi,
+      noDo: old.noDO,
+      noContainer: old.noContainer,
+      temperature: old.temperature,
+      price: old.price,
+      additionalInformation: old.additionalInformation,
+      tare: tareVal,
+      nettoAfterCut: after,
+    );
+    if (rows <= 0) {
+      isWeighing = false;
+      notifyListeners();
+      throw Exception('Failed to finalize transaction');
+    }
+
+    transactions = await _db.getListTransaction();
+    draftTickets.remove(ticket);
+    editingDraftTicket = null;
+    isDraftEditing = false;
+    isWeighing = false;
+    notifyListeners();
+  }
+
   Future<void> finalizeDraft(
     String ticket,
     double capturedTare, {
     double? priceFromForm,
   }) async {
-    developer.log(
-      'Finalizing draft: $ticket with tare: $capturedTare',
-      name: 'TransactionController',
-    );
+    developer.log('Finalizing draft: $ticket with tare: $capturedTare', name: 'TransactionController');
     final idx = transactions.indexWhere((e) => e.noTicket == ticket);
     if (idx == -1) throw Exception('Draft not found');
     final old = transactions[idx];
@@ -201,44 +311,41 @@ class TransactionController extends ChangeNotifier {
     final price = old.price ?? priceFromForm ?? 0.0;
     final totalPrice = computeTotalPrice(after, price);
 
-    final updated = ListTransactionJson(
-      vehiclePlate: old.vehiclePlate,
-      driverName: old.driverName,
-      supplierId: old.supplierId,
-      customerId: old.customerId,
-      productId: old.productId,
-      cut: old.cut,
+    // prefer mapping if present
+    int? txId = _ticketToId[ticket] ?? (old.transactionId != 0 ? old.transactionId : null);
+    if (txId == null) {
+      // fallback: create then finalize via addNettoTransaction
+      final newId = await _operator.addBrutoTransaction(
+        vehiclePlate: old.vehiclePlate,
+        driverName: old.driverName,
+        supplierId: old.supplierId,
+        customerId: old.customerId,
+        productId: old.productId,
+        cut: old.cut,
+        bruto: bruto,
+      );
+      if (newId <= 0) throw Exception('Failed to create transaction for finalize');
+      txId = newId;
+    }
+
+    final rows = await _operator.addNettoTransaction(
+      transactionId: txId,
       kubikasi: old.kubikasi,
-      noDO: old.noDO,
+      noDo: old.noDO,
       noContainer: old.noContainer,
       temperature: old.temperature,
-      price: price,
+      price: old.price,
       additionalInformation: old.additionalInformation,
-      noTicket: old.noTicket,
-      inTime: old.inTime,
-      outTime: DateTime.now(),
-      totalPrice: totalPrice,
-      bruto: bruto,
       tare: tare,
-      netto: netto,
       nettoAfterCut: after,
-      driverLabel: old.driverLabel,
-      transactionId: old.transactionId,
-      operatorLabel: old.operatorLabel,
-      managerLabel: old.managerLabel,
-      headWarehouseLabel: old.headWarehouseLabel,
-      isDraft: 0,
     );
+    if (rows <= 0) throw Exception('Finalize failed');
 
-    await _db.updateTransaction(updated);
     transactions = await _db.getListTransaction();
     draftTickets.remove(ticket);
     editingDraftTicket = null;
     isDraftEditing = false;
-    developer.log(
-      'Draft finalized: netto=$netto, afterCut=$after, totalPrice=$totalPrice',
-      name: 'TransactionController',
-    );
+    developer.log('Draft finalized: netto=$netto, afterCut=$after, totalPrice=$totalPrice', name: 'TransactionController');
     notifyListeners();
   }
 
