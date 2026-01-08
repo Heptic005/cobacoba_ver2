@@ -44,6 +44,7 @@ class TransactionFormCard extends StatelessWidget {
   final void Function(int?) onSelectCustomer;
   final void Function(int?) onSelectProduct;
   final Future<void> Function() onSavePressed;
+  final bool isFormValid;
 
   const TransactionFormCard({
     super.key,
@@ -82,6 +83,7 @@ class TransactionFormCard extends StatelessWidget {
     required this.onSelectCustomer,
     required this.onSelectProduct,
     required this.onSavePressed,
+    required this.isFormValid,
   });
 
   Widget _buildTextInput({
@@ -206,8 +208,29 @@ class TransactionFormCard extends StatelessWidget {
           const SizedBox(height: 16),
           _buildTextInput(controller: keteranganController, label: 'Keterangan (Manual) (opt)', hint: 'Catatan...', focus: focusKeterangan, maxLength: 500, prefixIcon: Icons.note_outlined, enabled: !isWeighing),
           const SizedBox(height: 32),
-          SizedBox(width: double.infinity, child: ElevatedButton(onPressed: () => onSavePressed(), style: ElevatedButton.styleFrom(backgroundColor: primaryCyan, foregroundColor: Colors.black, padding: const EdgeInsets.symmetric(vertical: 22), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(50)), textStyle: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, letterSpacing: 1)), child: const Text('SIMPAN'))),
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton(
+              onPressed: isFormValid ? () => onSavePressed() : null,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: primaryCyan,
+                foregroundColor: Colors.black,
+                padding: const EdgeInsets.symmetric(vertical: 22),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(50)),
+                textStyle: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, letterSpacing: 1),
+              ),
+              child: const Text('SIMPAN'),
+            ),
+          ),
           const SizedBox(height: 8),
+          if (!isFormValid)
+            Padding(
+              padding: const EdgeInsets.only(top: 4.0),
+              child: Text(
+                'Lengkapi: Supplier, Customer, Barang, Plat Nomor, Nama Supir',
+                style: TextStyle(color: textGrey, fontSize: 12),
+              ),
+            ),
         ],
       ),
     );

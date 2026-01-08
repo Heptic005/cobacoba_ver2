@@ -84,6 +84,9 @@ class _TransactionState extends State<Transaction> {
     _controller = TransactionController();
     _controller.addListener(_syncFromController);
     _controller.init();
+    // listen to important form fields so UI validity re-evaluates
+    platnomorController.addListener(() { if (mounted) setState(() {}); });
+    namasupirController.addListener(() { if (mounted) setState(() {}); });
     _timeNotifier.value = DateFormat('HH:mm:ss').format(DateTime.now());
     _timer = Timer.periodic(const Duration(seconds: 1), (_) {
       _timeNotifier.value = DateFormat('HH:mm:ss').format(DateTime.now());
@@ -394,7 +397,22 @@ class _TransactionState extends State<Transaction> {
     final afterCut = _controller.computeAfterCut(netto, cut);
     final price = double.tryParse(hargaController.text) ?? 0.0;
     final totalPrice = _controller.computeTotalPrice(afterCut, price);
+    // determine form validity (UI-layer)
+    final isFormValid = (_selectedSupplier != null)
+        && (_selectedCustomer != null)
+        && (_selectedProduct != null)
+        && platnomorController.text.trim().isNotEmpty
+        && namasupirController.text.trim().isNotEmpty;
 
+    // wrap capture so it enforces form validation
+    Future<void> onCaptureCallback() async {
+      if (!isFormValid) {
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Lengkapi form (Supplier, Customer, Barang, Plat, Supir) sebelum timbang')));
+        return;
+      }
+      await _handleCapture();
+    }
+    
     // Dynamic weight display based on current mode
     final displayWeight =
         _isWeighIn
@@ -426,9 +444,7 @@ class _TransactionState extends State<Transaction> {
                     textGrey: _textGrey,
                     textWhite: _textWhite,
                     indicatorGreen: _limeGreen,
-                    onToggleMode:
-                        () => setState(() => _isWeighIn = !_isWeighIn),
-                    onCapture: _handleCapture,
+                    onToggleMode: () => setState(() => _isWeighIn = !_isWeighIn),                          onCapture: onCaptureCallback,
                     onRetry: _handleRetry,
                   ),
                 ),
@@ -492,6 +508,7 @@ class _TransactionState extends State<Transaction> {
                     onSelectProduct:
                         (v) => setState(() => _selectedProduct = v),
                     onSavePressed: _handleSavePressed,
+                        isFormValid: isFormValid,
                   ),
                 ),
                 const SizedBox(width: 20),
