@@ -36,9 +36,10 @@ class _LoginPageState extends State<LoginPage> {
 
     setState(() => _loading = true);
     try {
+      final authService = AuthService();
       final newAccount = ListAccountJson(
         accountUsername: username,
-        accountPassword: password,
+        accountPassword: authService.hashPassword(password),
         accountPosition: 'operator',
       );
       await DbHelper.instance.addUser(newAccount);

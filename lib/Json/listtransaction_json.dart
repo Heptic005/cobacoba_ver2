@@ -35,6 +35,7 @@ class ListTransactionJson {
   final int operatorLabel;
   final int managerLabel;
   final int headWarehouseLabel;
+  final int isDraft;
 
   ListTransactionJson({
     required this.vehiclePlate,
@@ -62,6 +63,7 @@ class ListTransactionJson {
     required this.operatorLabel,
     required this.managerLabel,
     required this.headWarehouseLabel,
+    required this.isDraft,
   });
 
   factory ListTransactionJson.fromJson(
@@ -86,6 +88,7 @@ class ListTransactionJson {
     operatorLabel: json['operatorLabel'],
     managerLabel: json['managerLabel'],
     headWarehouseLabel: json['headWarehouseLabel'],
+    isDraft: json['isDraft'],
   );
 
   Map<String, dynamic> toJson() => {

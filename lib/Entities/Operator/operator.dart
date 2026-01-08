@@ -1,5 +1,4 @@
 import 'package:dakara_weighbridge/Entities/Operator/abstract_operator.dart';
-import 'package:dakara_weighbridge/Exception/auth_exception.dart';
 import 'package:dakara_weighbridge/Json/listtransaction_json.dart';
 import 'package:dakara_weighbridge/SQLite/db_helper.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -48,6 +47,7 @@ class Operator implements AbstractOperator {
             operatorLabel: 0,
             managerLabel: 0,
             headWarehouseLabel: 0,
+            isDraft: 1,
           ),
         );
       }
@@ -95,6 +95,7 @@ class Operator implements AbstractOperator {
             operatorLabel: 0,
             managerLabel: 0,
             headWarehouseLabel: 0,
+            isDraft: 0,
           ),
         );
       }

@@ -70,7 +70,7 @@ class DbHelper {
       ''';
 
       const createTransactionTable = '''
-      CREATE TABLE IF NOT EXISTS "transaction" (
+      CREATE TABLE "transaction" (
 	    "transactionId"	INTEGER NOT NULL UNIQUE,
 	    "vehiclePlate"	TEXT NOT NULL,
 	    "driverName"	TEXT NOT NULL,
@@ -96,11 +96,12 @@ class DbHelper {
 	    "operatorLabel"	INTEGER NOT NULL,
 	    "managerLabel"	INTEGER NOT NULL,
 	    "headWarehouseLabel"	INTEGER NOT NULL,
+	    "isDrafted"	INTEGER NOT NULL DEFAULT 0,
 	    PRIMARY KEY("transactionId" AUTOINCREMENT),
 	    FOREIGN KEY("customerId") REFERENCES "customer"("customerId"),
 	    FOREIGN KEY("productId") REFERENCES "product"("productId"),
 	    FOREIGN KEY("supplierId") REFERENCES "supplier"("supplierId")
-    );
+      );
       ''';
 
       return await openDatabase(
