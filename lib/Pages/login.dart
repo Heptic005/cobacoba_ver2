@@ -69,10 +69,7 @@ class _LoginPageState extends State<LoginPage> {
     setState(() => _loading = true);
     try {
       final authService = AuthService();
-      final user = await authService.login(
-        username: username,
-        password: password,
-      );
+      await authService.login(username: username, password: password);
       if (!mounted) return;
       ScaffoldMessenger.of(
         context,
