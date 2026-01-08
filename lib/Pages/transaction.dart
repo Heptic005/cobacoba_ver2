@@ -85,8 +85,12 @@ class _TransactionState extends State<Transaction> {
     _controller.addListener(_syncFromController);
     _controller.init();
     // listen to important form fields so UI validity re-evaluates
-    platnomorController.addListener(() { if (mounted) setState(() {}); });
-    namasupirController.addListener(() { if (mounted) setState(() {}); });
+    platnomorController.addListener(() {
+      if (mounted) setState(() {});
+    });
+    namasupirController.addListener(() {
+      if (mounted) setState(() {});
+    });
     _timeNotifier.value = DateFormat('HH:mm:ss').format(DateTime.now());
     _timer = Timer.periodic(const Duration(seconds: 1), (_) {
       _timeNotifier.value = DateFormat('HH:mm:ss').format(DateTime.now());
@@ -354,24 +358,42 @@ class _TransactionState extends State<Transaction> {
       if (_isWeighIn) {
         // Weigh-In: if editing a draft, persist bruto via controller/operator
         if (_controller.editingDraftTicket != null) {
-          await _controller.captureBrutoForTicket(_controller.editingDraftTicket!);
+          await _controller.captureBrutoForTicket(
+            _controller.editingDraftTicket!,
+          );
           if (!mounted) return;
-          messenger.showSnackBar(const SnackBar(content: Text('Bruto captured and saved to draft')));
+          messenger.showSnackBar(
+            const SnackBar(content: Text('Bruto captured and saved to draft')),
+          );
         } else {
           // otherwise perform a live capture and let user press SIMPAN to persist
           await _controller.captureBrutoSimulated();
           if (!mounted) return;
-          messenger.showSnackBar(const SnackBar(content: Text('Bruto captured — press SIMPAN to save draft')));
+          messenger.showSnackBar(
+            const SnackBar(
+              content: Text('Bruto captured — press SIMPAN to save draft'),
+            ),
+          );
         }
       } else {
         // Weigh-Out: capture tare (weight-out)
         if (_controller.editingDraftTicket == null) {
-          messenger.showSnackBar(const SnackBar(content: Text('Pilih draft terlebih dahulu sebelum timbang keluar')));
+          messenger.showSnackBar(
+            const SnackBar(
+              content: Text(
+                'Pilih draft terlebih dahulu sebelum timbang keluar',
+              ),
+            ),
+          );
           return;
         }
         await _controller.captureTareForTicket(_controller.editingDraftTicket!);
         if (!mounted) return;
-        messenger.showSnackBar(const SnackBar(content: Text('Tare captured and transaction finalized')));
+        messenger.showSnackBar(
+          const SnackBar(
+            content: Text('Tare captured and transaction finalized'),
+          ),
+        );
       }
     } catch (e) {
       if (!mounted) return;
@@ -401,21 +423,28 @@ class _TransactionState extends State<Transaction> {
     final price = double.tryParse(hargaController.text) ?? 0.0;
     final totalPrice = _controller.computeTotalPrice(afterCut, price);
     // determine form validity (UI-layer)
-    final isFormValid = (_selectedSupplier != null)
-        && (_selectedCustomer != null)
-        && (_selectedProduct != null)
-        && platnomorController.text.trim().isNotEmpty
-        && namasupirController.text.trim().isNotEmpty;
+    final isFormValid =
+        (_selectedSupplier != null) &&
+        (_selectedCustomer != null) &&
+        (_selectedProduct != null) &&
+        platnomorController.text.trim().isNotEmpty &&
+        namasupirController.text.trim().isNotEmpty;
 
     // wrap capture so it enforces form validation
     Future<void> onCaptureCallback() async {
       if (!isFormValid) {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Lengkapi form (Supplier, Customer, Barang, Plat, Supir) sebelum timbang')));
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text(
+              'Lengkapi form (Supplier, Customer, Barang, Plat, Supir) sebelum timbang',
+            ),
+          ),
+        );
         return;
       }
       await _handleCapture();
     }
-    
+
     // Dynamic weight display based on current mode
     final displayWeight =
         _isWeighIn
@@ -428,7 +457,7 @@ class _TransactionState extends State<Transaction> {
         padding: const EdgeInsets.all(24.0),
         child: Column(
           children: [
-            const SizedBox(height: 10),
+            const SizedBox(height: 70),
             const TransactionHeader(),
             const SizedBox(height: 20),
             // Top section: Weight Monitor + Actions
@@ -447,7 +476,9 @@ class _TransactionState extends State<Transaction> {
                     textGrey: _textGrey,
                     textWhite: _textWhite,
                     indicatorGreen: _limeGreen,
-                    onToggleMode: () => setState(() => _isWeighIn = !_isWeighIn),                          onCapture: onCaptureCallback,
+                    onToggleMode:
+                        () => setState(() => _isWeighIn = !_isWeighIn),
+                    onCapture: onCaptureCallback,
                     onRetry: _handleRetry,
                   ),
                 ),
@@ -511,7 +542,7 @@ class _TransactionState extends State<Transaction> {
                     onSelectProduct:
                         (v) => setState(() => _selectedProduct = v),
                     onSavePressed: _handleSavePressed,
-                        isFormValid: isFormValid,
+                    isFormValid: isFormValid,
                   ),
                 ),
                 const SizedBox(width: 20),

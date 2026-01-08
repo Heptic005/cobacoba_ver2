@@ -35,7 +35,8 @@ class ListTransactionJson {
   final int operatorLabel;
   final int managerLabel;
   final int headWarehouseLabel;
-  // final int isDraft;
+  final int isDrafted;
+  final int isManual;
 
   ListTransactionJson({
     required this.vehiclePlate,
@@ -63,7 +64,8 @@ class ListTransactionJson {
     required this.operatorLabel,
     required this.managerLabel,
     required this.headWarehouseLabel,
-    // required this.isDraft,
+    this.isDrafted = 1,
+    this.isManual = 0,
   });
 
   factory ListTransactionJson.fromJson(
@@ -88,7 +90,8 @@ class ListTransactionJson {
     operatorLabel: json['operatorLabel'],
     managerLabel: json['managerLabel'],
     headWarehouseLabel: json['headWarehouseLabel'],
-    // isDraft: json['isDraft'],
+    isDrafted: json['isDrafted'],
+    isManual: json['isManual'],
   );
 
   Map<String, dynamic> toJson() => {
@@ -116,5 +119,7 @@ class ListTransactionJson {
     "operatorLabel": operatorLabel,
     "managerLabel": managerLabel,
     "headWarehouseLabel": headWarehouseLabel,
+    "isDrafted": isDrafted,
+    "isManual": isManual,
   };
 }

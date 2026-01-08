@@ -96,7 +96,8 @@ class DbHelper {
 	    "operatorLabel"	INTEGER NOT NULL,
 	    "managerLabel"	INTEGER NOT NULL,
 	    "headWarehouseLabel"	INTEGER NOT NULL,
-	    "isDrafted"	INTEGER NOT NULL DEFAULT 0,
+	    "isDrafted"	INTEGER NOT NULL DEFAULT 1,
+	    "isManual"	INTEGER NOT NULL DEFAULT 0,
 	    PRIMARY KEY("transactionId" AUTOINCREMENT),
 	    FOREIGN KEY("customerId") REFERENCES "customer"("customerId"),
 	    FOREIGN KEY("productId") REFERENCES "product"("productId"),
@@ -275,6 +276,8 @@ class DbHelper {
       t.operatorLabel,
       t.managerLabel,
       t.headWarehouseLabel,
+      t.isDrafted,
+      t.isManual,
       s.supplierId,
       c.customerId,
       p.productId
