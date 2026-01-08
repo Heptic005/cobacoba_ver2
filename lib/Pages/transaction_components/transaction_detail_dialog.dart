@@ -52,7 +52,7 @@ class TransactionDetailDialog extends StatelessWidget {
       supplierName = controller.supplierNameFromId(tx.supplierId);
       customerName = controller.customerNameFromId(tx.customerId);
       intime = DateFormat('dd MMM yyyy HH:mm').format(tx.inTime);
-      outtime = tx.outTime.isAfter(tx.inTime) ? DateFormat('dd MMM yyyy HH:mm').format(tx.outTime) : null;
+      outtime = (tx.outTime != null && tx.outTime!.isAfter(tx.inTime)) ? DateFormat('dd MMM yyyy HH:mm').format(tx.outTime!) : null;
       bruto = '${tx.bruto} kg';
       tare = '${tx.tare} kg';
       netto = '${tx.netto} kg';
