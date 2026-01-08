@@ -1,6 +1,4 @@
 abstract class AbstractOperator {
-  Future<void> login({required String username, required String password});
-  Future<void> logout();
   Future<void> addBrutoTransaction({
     required String vehiclePlate,
     required String driverName,

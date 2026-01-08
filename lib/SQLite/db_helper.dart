@@ -1,3 +1,4 @@
+import 'package:dakara_weighbridge/Exception/auth_exception.dart';
 import 'package:dakara_weighbridge/Json/listaccount_json.dart';
 import 'package:dakara_weighbridge/Json/listcustomer_json.dart';
 import 'package:dakara_weighbridge/Json/listproduct_json.dart';
@@ -69,7 +70,7 @@ class DbHelper {
       ''';
 
       const createTransactionTable = '''
-      CREATE TABLE IF NOT EXISTS "transaction" (
+      CREATE TABLE "transaction" (
 	    "transactionId"	INTEGER NOT NULL UNIQUE,
 	    "vehiclePlate"	TEXT NOT NULL,
 	    "driverName"	TEXT NOT NULL,
@@ -95,11 +96,12 @@ class DbHelper {
 	    "operatorLabel"	INTEGER NOT NULL,
 	    "managerLabel"	INTEGER NOT NULL,
 	    "headWarehouseLabel"	INTEGER NOT NULL,
+	    "isDrafted"	INTEGER NOT NULL DEFAULT 0,
 	    PRIMARY KEY("transactionId" AUTOINCREMENT),
 	    FOREIGN KEY("customerId") REFERENCES "customer"("customerId"),
 	    FOREIGN KEY("productId") REFERENCES "product"("productId"),
 	    FOREIGN KEY("supplierId") REFERENCES "supplier"("supplierId")
-    );
+      );
       ''';
 
       return await openDatabase(
@@ -334,6 +336,7 @@ class DbHelper {
     );
   }
 
+  /// Get User By Username
   Future<List<ListAccountJson>> getUserByUsername({
     required String username,
   }) async {
@@ -345,6 +348,21 @@ class DbHelper {
       limit: 1,
     );
     return result.map((e) => ListAccountJson.fromJson(e)).toList();
+  }
+
+  /// Authenticate User
+  Future<ListAccountJson?> authenticateUser({
+    required String username,
+    required String password,
+  }) async {
+    final user = await getUserByUsername(username: username);
+    if (user.isEmpty) throw InvalidCredentialException();
+    final storedPassword = user[0].accountPassword;
+    if (storedPassword == password) {
+      return user[0];
+    } else {
+      throw InvalidCredentialException();
+    }
   }
 }
 
