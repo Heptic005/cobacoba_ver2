@@ -37,18 +37,6 @@ class Manager implements AbstractManager {
   }
 
   @override
-  Future<void> login({required String username, required String password}) {
-    // TODO: implement login
-    throw UnimplementedError();
-  }
-
-  @override
-  Future<void> logout() {
-    // TODO: implement logout
-    throw UnimplementedError();
-  }
-
-  @override
   Future<void> updateSupervisorAndOperator({
     required int id,
     required String username,

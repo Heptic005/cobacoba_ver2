@@ -145,24 +145,31 @@ class _TransactionState extends State<Transaction> {
 
   Future<void> _handleSavePressed() async {
     final messenger = ScaffoldMessenger.of(context);
-    
+
     // Detect if this is finalize (weight out on existing draft) or new draft
     if (_isDraftEditing && !_isWeighIn) {
       // This is weight out finalize - use captured tare
       if (_controller.capturedTare == null || _controller.capturedTare == 0) {
-        messenger.showSnackBar(const SnackBar(content: Text('Please capture weight out first')));
+        messenger.showSnackBar(
+          const SnackBar(content: Text('Please capture weight out first')),
+        );
         return;
       }
-      
+
       try {
-        final price = hargaController.text.isNotEmpty ? double.tryParse(hargaController.text) : null;
+        final price =
+            hargaController.text.isNotEmpty
+                ? double.tryParse(hargaController.text)
+                : null;
         await _controller.finalizeDraft(
           _controller.editingDraftTicket!,
           _controller.capturedTare!,
           priceFromForm: price,
         );
         if (!mounted) return;
-        messenger.showSnackBar(const SnackBar(content: Text('Transaction finalized!')));
+        messenger.showSnackBar(
+          const SnackBar(content: Text('Transaction finalized!')),
+        );
         _resetForm();
       } catch (e) {
         if (!mounted) return;
@@ -170,7 +177,7 @@ class _TransactionState extends State<Transaction> {
       }
       return;
     }
-    
+
     // This is new draft (weight in)
     final ticket = _controller.generateTicket();
     final bruto = _lastCapturedWeight;
@@ -182,12 +189,27 @@ class _TransactionState extends State<Transaction> {
       customerId: _selectedCustomer ?? 0,
       productId: _selectedProduct ?? 0,
       cut: int.tryParse(potonganController.text) ?? 0,
-      kubikasi: kubikasiController.text.isNotEmpty ? int.tryParse(kubikasiController.text) : null,
+      kubikasi:
+          kubikasiController.text.isNotEmpty
+              ? int.tryParse(kubikasiController.text)
+              : null,
       noDO: poController.text.isNotEmpty ? poController.text : null,
-      noContainer: nocontainerController.text.isNotEmpty ? int.tryParse(nocontainerController.text) : null,
-      temperature: suhuController.text.isNotEmpty ? double.tryParse(suhuController.text) : null,
-      price: hargaController.text.isNotEmpty ? double.tryParse(hargaController.text) : null,
-      additionalInformation: keteranganController.text.isNotEmpty ? keteranganController.text : null,
+      noContainer:
+          nocontainerController.text.isNotEmpty
+              ? int.tryParse(nocontainerController.text)
+              : null,
+      temperature:
+          suhuController.text.isNotEmpty
+              ? double.tryParse(suhuController.text)
+              : null,
+      price:
+          hargaController.text.isNotEmpty
+              ? double.tryParse(hargaController.text)
+              : null,
+      additionalInformation:
+          keteranganController.text.isNotEmpty
+              ? keteranganController.text
+              : null,
       noTicket: ticket,
       inTime: DateTime.now(),
       outTime: DateTime.now(),
@@ -200,12 +222,15 @@ class _TransactionState extends State<Transaction> {
       operatorLabel: 0,
       managerLabel: 0,
       headWarehouseLabel: 0,
+      isDraft: 1,
     );
 
     try {
       await _controller.saveDraftFromForm(tx);
       if (!mounted) return;
-      messenger.showSnackBar(const SnackBar(content: Text('Draft saved - ready for weight out')));
+      messenger.showSnackBar(
+        const SnackBar(content: Text('Draft saved - ready for weight out')),
+      );
     } catch (e) {
       if (!mounted) return;
       messenger.showSnackBar(SnackBar(content: Text('Save failed: $e')));
@@ -219,7 +244,11 @@ class _TransactionState extends State<Transaction> {
     setState(() {
       _isWeighIn = false; // Switch to Weight Out mode
     });
-    messenger.showSnackBar(const SnackBar(content: Text('Draft loaded - capture weight out, then SIMPAN')));
+    messenger.showSnackBar(
+      const SnackBar(
+        content: Text('Draft loaded - capture weight out, then SIMPAN'),
+      ),
+    );
   }
 
   void _resetForm() {
@@ -234,16 +263,16 @@ class _TransactionState extends State<Transaction> {
       suhuController.clear();
       hargaController.clear();
       keteranganController.clear();
-      
+
       // Reset selections
       _selectedSupplier = null;
       _selectedCustomer = null;
       _selectedProduct = null;
-      
+
       // Reset to Weigh-In mode
       _isWeighIn = true;
     });
-    
+
     // Reset controller captured weights via controller method
     _controller.resetCapture();
   }
@@ -269,7 +298,9 @@ class _TransactionState extends State<Transaction> {
   void _copyToClipboard(String text) {
     _controller.copyToClipboard(text);
     if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Copied to clipboard')));
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(const SnackBar(content: Text('Copied to clipboard')));
   }
 
   Future<void> _showDetailDialogMap(Map<String, Object?> item) async {
@@ -279,14 +310,15 @@ class _TransactionState extends State<Transaction> {
     if (!mounted) return;
     showDialog<void>(
       context: context,
-      builder: (ctx) => TransactionDetailDialog(
-        itemMap: item,
-        controller: _controller,
-        cardBg: _cardBg,
-        textGrey: _textGrey,
-        primaryCyan: _primaryCyan,
-        onPrint: () => _printTransactionMap(item),
-      ),
+      builder:
+          (ctx) => TransactionDetailDialog(
+            itemMap: item,
+            controller: _controller,
+            cardBg: _cardBg,
+            textGrey: _textGrey,
+            primaryCyan: _primaryCyan,
+            onPrint: () => _printTransactionMap(item),
+          ),
     );
   }
 
@@ -296,18 +328,26 @@ class _TransactionState extends State<Transaction> {
     final text = _controller.buildPrintText(item);
     showDialog<void>(
       context: context,
-      builder: (c) => AlertDialog(
-        title: const Text('Print Preview'),
-        content: Text(text),
-        actions: [TextButton(onPressed: () => navigator.pop(), child: const Text('Close'))],
-      ),
+      builder:
+          (c) => AlertDialog(
+            title: const Text('Print Preview'),
+            content: Text(text),
+            actions: [
+              TextButton(
+                onPressed: () => navigator.pop(),
+                child: const Text('Close'),
+              ),
+            ],
+          ),
     );
   }
 
   Future<void> _handleCapture() async {
     final messenger = ScaffoldMessenger.of(context);
     if (!_isConnected) {
-      messenger.showSnackBar(const SnackBar(content: Text('Indicator not connected')));
+      messenger.showSnackBar(
+        const SnackBar(content: Text('Indicator not connected')),
+      );
       return;
     }
     try {
@@ -315,12 +355,20 @@ class _TransactionState extends State<Transaction> {
         // Weigh-In: capture bruto (weight-in)
         await _controller.captureBrutoSimulated();
         if (!mounted) return;
-        messenger.showSnackBar(const SnackBar(content: Text('Bruto captured — press SIMPAN to save draft')));
+        messenger.showSnackBar(
+          const SnackBar(
+            content: Text('Bruto captured — press SIMPAN to save draft'),
+          ),
+        );
       } else {
         // Weigh-Out: capture tare (weight-out)
         await _controller.captureTareSimulated();
         if (!mounted) return;
-        messenger.showSnackBar(const SnackBar(content: Text('Tare captured — press SIMPAN to finalize')));
+        messenger.showSnackBar(
+          const SnackBar(
+            content: Text('Tare captured — press SIMPAN to finalize'),
+          ),
+        );
       }
     } catch (e) {
       if (!mounted) return;
@@ -366,9 +414,10 @@ class _TransactionState extends State<Transaction> {
     }
     
     // Dynamic weight display based on current mode
-    final displayWeight = _isWeighIn 
-        ? (_controller.capturedBruto?.toStringAsFixed(0) ?? '0')
-        : (_controller.lastCapturedWeight.toStringAsFixed(0));
+    final displayWeight =
+        _isWeighIn
+            ? (_controller.capturedBruto?.toStringAsFixed(0) ?? '0')
+            : (_controller.lastCapturedWeight.toStringAsFixed(0));
 
     return Scaffold(
       backgroundColor: _bgDark,
@@ -452,9 +501,12 @@ class _TransactionState extends State<Transaction> {
                     primaryCyan: _primaryCyan,
                     textGrey: _textGrey,
                     inputBg: _inputBg,
-                    onSelectSupplier: (v) => setState(() => _selectedSupplier = v),
-                    onSelectCustomer: (v) => setState(() => _selectedCustomer = v),
-                    onSelectProduct: (v) => setState(() => _selectedProduct = v),
+                    onSelectSupplier:
+                        (v) => setState(() => _selectedSupplier = v),
+                    onSelectCustomer:
+                        (v) => setState(() => _selectedCustomer = v),
+                    onSelectProduct:
+                        (v) => setState(() => _selectedProduct = v),
                     onSavePressed: _handleSavePressed,
                         isFormValid: isFormValid,
                   ),

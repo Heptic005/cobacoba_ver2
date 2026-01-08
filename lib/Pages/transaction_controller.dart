@@ -45,7 +45,10 @@ class TransactionController extends ChangeNotifier {
     lastCapturedWeight = 0.0;
     currentTicketPreview = null;
     isJustReset = true; // Set flag to show 0 values
-    developer.log('Captured weights reset to initial state', name: 'TransactionController');
+    developer.log(
+      'Captured weights reset to initial state',
+      name: 'TransactionController',
+    );
     notifyListeners();
   }
 
@@ -80,31 +83,45 @@ class TransactionController extends ChangeNotifier {
 
   /// Capture bruto (weight-in) — simulates reading from scale hardware
   Future<void> captureBrutoSimulated() async {
-    developer.log('Capturing bruto (weight-in)...', name: 'TransactionController');
+    developer.log(
+      'Capturing bruto (weight-in)...',
+      name: 'TransactionController',
+    );
     isWeighing = true;
     isJustReset = false; // Clear reset flag when capturing new weight
     notifyListeners();
     await Future.delayed(const Duration(milliseconds: 400));
     // simulate weight read
-    capturedBruto = (5000 + (DateTime.now().millisecondsSinceEpoch % 2000)).toDouble();
+    capturedBruto =
+        (5000 + (DateTime.now().millisecondsSinceEpoch % 2000)).toDouble();
     lastCapturedWeight = capturedBruto!;
     isWeighing = false;
-    developer.log('Bruto captured: ${capturedBruto!.toStringAsFixed(2)} kg', name: 'TransactionController');
+    developer.log(
+      'Bruto captured: ${capturedBruto!.toStringAsFixed(2)} kg',
+      name: 'TransactionController',
+    );
     notifyListeners();
   }
 
   /// Capture tare (weight-out) — simulates reading from scale hardware
   Future<void> captureTareSimulated() async {
-    developer.log('Capturing tare (weight-out)...', name: 'TransactionController');
+    developer.log(
+      'Capturing tare (weight-out)...',
+      name: 'TransactionController',
+    );
     isWeighing = true;
     isJustReset = false; // Clear reset flag when capturing new weight
     notifyListeners();
     await Future.delayed(const Duration(milliseconds: 400));
     // simulate a weight read
-    capturedTare = (3000 + (DateTime.now().millisecondsSinceEpoch % 1000)).toDouble();
+    capturedTare =
+        (3000 + (DateTime.now().millisecondsSinceEpoch % 1000)).toDouble();
     lastCapturedWeight = capturedTare!;
     isWeighing = false;
-    developer.log('Tare captured: ${capturedTare!.toStringAsFixed(2)} kg', name: 'TransactionController');
+    developer.log(
+      'Tare captured: ${capturedTare!.toStringAsFixed(2)} kg',
+      name: 'TransactionController',
+    );
     notifyListeners();
   }
 
@@ -138,7 +155,9 @@ class TransactionController extends ChangeNotifier {
     if (isJustReset) return 0.0;
     // If draft editing, return bruto from transaction
     if (isDraftEditing && editingDraftTicket != null) {
-      final idx = transactions.indexWhere((e) => e.noTicket == editingDraftTicket);
+      final idx = transactions.indexWhere(
+        (e) => e.noTicket == editingDraftTicket,
+      );
       if (idx != -1) return transactions[idx].bruto.toDouble();
     }
     // If captured, return captured bruto
@@ -153,16 +172,25 @@ class TransactionController extends ChangeNotifier {
     // capture recent tare
     if (capturedTare != null) return capturedTare!;
     if (isDraftEditing && editingDraftTicket != null) {
-      final idx = transactions.indexWhere((e) => e.noTicket == editingDraftTicket);
+      final idx = transactions.indexWhere(
+        (e) => e.noTicket == editingDraftTicket,
+      );
       if (idx != -1) return transactions[idx].tare.toDouble();
     }
     // If captured, return captured tare
-  
+
     return lastCapturedWeight;
   }
 
-  Future<void> finalizeDraft(String ticket, double capturedTare, {double? priceFromForm}) async {
-    developer.log('Finalizing draft: $ticket with tare: $capturedTare', name: 'TransactionController');
+  Future<void> finalizeDraft(
+    String ticket,
+    double capturedTare, {
+    double? priceFromForm,
+  }) async {
+    developer.log(
+      'Finalizing draft: $ticket with tare: $capturedTare',
+      name: 'TransactionController',
+    );
     final idx = transactions.indexWhere((e) => e.noTicket == ticket);
     if (idx == -1) throw Exception('Draft not found');
     final old = transactions[idx];
@@ -199,6 +227,7 @@ class TransactionController extends ChangeNotifier {
       operatorLabel: old.operatorLabel,
       managerLabel: old.managerLabel,
       headWarehouseLabel: old.headWarehouseLabel,
+      isDraft: 0,
     );
 
     await _db.updateTransaction(updated);
@@ -206,7 +235,10 @@ class TransactionController extends ChangeNotifier {
     draftTickets.remove(ticket);
     editingDraftTicket = null;
     isDraftEditing = false;
-    developer.log('Draft finalized: netto=$netto, afterCut=$after, totalPrice=$totalPrice', name: 'TransactionController');
+    developer.log(
+      'Draft finalized: netto=$netto, afterCut=$after, totalPrice=$totalPrice',
+      name: 'TransactionController',
+    );
     notifyListeners();
   }
 
@@ -286,7 +318,10 @@ class TransactionController extends ChangeNotifier {
 
   // --- Clipboard helper ---
   void copyToClipboard(String text) {
-    developer.log('Copying to clipboard: ${text.length} chars', name: 'TransactionController');
+    developer.log(
+      'Copying to clipboard: ${text.length} chars',
+      name: 'TransactionController',
+    );
     Clipboard.setData(ClipboardData(text: text));
   }
 
@@ -301,15 +336,21 @@ class TransactionController extends ChangeNotifier {
     sb.writeln('Plate: ${item['vehiclePlate'] ?? ''}');
     sb.writeln('Driver: ${item['driverName'] ?? ''}');
 
-    final pName = (item['productName'] ?? item['ProductName'])?.toString().isNotEmpty == true
-        ? (item['productName'] ?? item['ProductName']).toString()
-        : productNameFromId(pid);
-    final sName = (item['supplierName'] ?? item['SupplierName'])?.toString().isNotEmpty == true
-        ? (item['supplierName'] ?? item['SupplierName']).toString()
-        : supplierNameFromId(sid);
-    final cName = (item['customerName'] ?? item['CustomerName'])?.toString().isNotEmpty == true
-        ? (item['customerName'] ?? item['CustomerName']).toString()
-        : customerNameFromId(cid);
+    final pName =
+        (item['productName'] ?? item['ProductName'])?.toString().isNotEmpty ==
+                true
+            ? (item['productName'] ?? item['ProductName']).toString()
+            : productNameFromId(pid);
+    final sName =
+        (item['supplierName'] ?? item['SupplierName'])?.toString().isNotEmpty ==
+                true
+            ? (item['supplierName'] ?? item['SupplierName']).toString()
+            : supplierNameFromId(sid);
+    final cName =
+        (item['customerName'] ?? item['CustomerName'])?.toString().isNotEmpty ==
+                true
+            ? (item['customerName'] ?? item['CustomerName']).toString()
+            : customerNameFromId(cid);
 
     sb.writeln('Product: $pName');
     sb.writeln('Supplier: $sName');
