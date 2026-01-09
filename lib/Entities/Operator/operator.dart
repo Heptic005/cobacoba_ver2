@@ -1,6 +1,7 @@
 import 'package:dakara_weighbridge/Entities/Operator/abstract_operator.dart';
 import 'package:dakara_weighbridge/Json/listtransaction_json.dart';
 import 'package:dakara_weighbridge/SQLite/db_helper.dart';
+import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 /// TODO : Need to add export to pdf, excel and print feature
@@ -13,13 +14,13 @@ class Operator implements AbstractOperator {
     required int customerId,
     required int productId,
     required int cut,
+    required double bruto,
     int? kubikasi,
     String? noDo,
     int? noContainer,
     double? temperature,
     double? price,
     String? additionalInformation,
-    required double bruto,
   }) async {
     final prefs = await SharedPreferences.getInstance();
     final bool? isLoggedInStatus = prefs.getBool('isLoggedIn');

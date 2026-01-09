@@ -279,14 +279,16 @@ class DbHelper {
       t.isDrafted,
       t.isManual,
       s.supplierId,
+      s.supplierName,
       c.customerId,
-      p.productId
+      c.customerName,
+      p.productId,
+      p.productName
       FROM "transaction" t
       LEFT JOIN supplier s ON t.supplierId = s.supplierId
       LEFT JOIN customer c ON t.customerId = c.customerId
       LEFT JOIN product p ON t.productId = p.productId
       ORDER BY t.inTime DESC;
-
       ''');
     return result.map((e) => ListTransactionJson.fromJson(e)).toList();
   }

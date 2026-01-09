@@ -1,34 +1,44 @@
+import 'dart:async';
+
+import 'package:dakara_weighbridge/Pages/transaction_components/weight_count_from_serial.dart';
+import 'package:dakara_weighbridge/Services/serial_service.dart';
 import 'package:flutter/material.dart';
 
-class WeightMonitorCard extends StatelessWidget {
-  final String displayWeight;
-  final bool isWeighing;
+class WeightMonitorCard extends StatefulWidget {
   final bool isWeighIn;
-  final bool isConnected;
   final Color cardBg;
   final Color primaryCyan;
   final Color textGrey;
   final Color textWhite;
-  final Color indicatorGreen;
-  final VoidCallback onToggleMode;
-  final Future<void> Function() onCapture;
-  final Future<void> Function() onRetry;
+  final void Function(double weight) onCaptured;
 
   const WeightMonitorCard({
     super.key,
-    required this.displayWeight,
-    required this.isWeighing,
     required this.isWeighIn,
-    required this.isConnected,
     required this.cardBg,
     required this.primaryCyan,
     required this.textGrey,
     required this.textWhite,
-    required this.indicatorGreen,
-    required this.onToggleMode,
-    required this.onCapture,
-    required this.onRetry,
+    required this.onCaptured,
   });
+
+  @override
+  State<WeightMonitorCard> createState() => _WeightMonitorCardState();
+}
+
+class _WeightMonitorCardState extends State<WeightMonitorCard> {
+  double? _displayWeight;
+  bool _isCaptured = false;
+
+  @override
+  void initState() {
+    super.initState();
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -36,7 +46,7 @@ class WeightMonitorCard extends StatelessWidget {
       height: 280,
       padding: const EdgeInsets.all(30),
       decoration: BoxDecoration(
-        color: cardBg,
+        color: widget.cardBg,
         borderRadius: BorderRadius.circular(24),
         boxShadow: [
           BoxShadow(
@@ -50,80 +60,113 @@ class WeightMonitorCard extends StatelessWidget {
         children: [
           Row(
             children: [
-              GestureDetector(
-                onTap: onToggleMode,
-                child: Tooltip(
-                  message: isWeighIn ? 'Mode: Timbang Masuk (tap to switch)' : 'Mode: Timbang Keluar (tap to switch)',
-                  child: Container(
-                    width: 12,
-                    height: 12,
-                    decoration: BoxDecoration(
-                      color: isConnected ? indicatorGreen : Colors.redAccent,
-                      shape: BoxShape.circle,
-                      boxShadow: [
-                        BoxShadow(color: (isConnected ? indicatorGreen.withAlpha((0.6 * 255).round()) : Colors.redAccent.withAlpha((0.6 * 255).round())), blurRadius: 6),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
               const SizedBox(width: 10),
               Text(
-                isWeighIn ? "Timbang Masuk" : "Timbang Keluar",
+                widget.isWeighIn ? "Timbang Masuk" : "Timbang Keluar",
                 style: TextStyle(
-                  color: textGrey.withAlpha((0.85 * 255).round()),
+                  color: widget.textGrey.withAlpha((0.85 * 255).round()),
                   fontSize: 16,
                   fontWeight: FontWeight.w600,
                   shadows: const [
-                    Shadow(color: Colors.black26, offset: Offset(0, 1), blurRadius: 1),
+                    Shadow(
+                      color: Colors.black26,
+                      offset: Offset(0, 1),
+                      blurRadius: 1,
+                    ),
                   ],
                 ),
               ),
             ],
           ),
-          const Spacer(),
-          Text(
-            "$displayWeight kg",
-            style: TextStyle(
-              fontSize: 90,
-              color: textWhite,
-              fontWeight: FontWeight.bold,
-              height: 1.0,
-              shadows: const [
-                Shadow(color: Colors.black54, offset: Offset(0, 2), blurRadius: 6),
-              ],
-            ),
-          ),
-          const Spacer(),
-          Row(
-            children: [
-              Expanded(
-                child: ElevatedButton(
-                  onPressed: isWeighing ? null : () => onCapture(),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: primaryCyan,
-                    foregroundColor: Colors.black,
-                    elevation: 4,
-                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                  ),
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 6.0),
-                    child: Text(isWeighing ? 'Weighing...' : 'Capture Weight', style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-                  ),
+          StreamBuilder(
+            stream: SerialService().stream,
+            builder: (context, snapshot) {
+              if (!_isCaptured && snapshot.hasData) {
+                _displayWeight = double.tryParse(snapshot.data!);
+              }
+
+              return Expanded(
+                child: Column(
+                  children: [
+                    Text(
+                      _displayWeight == null
+                          ? '-- KG'
+                          : "${_displayWeight!.toStringAsFixed(2)} KG",
+                      style: TextStyle(
+                        fontSize: 80,
+                        color: widget.textWhite,
+                        fontWeight: FontWeight.bold,
+                        height: 1.0,
+                        shadows: const [
+                          Shadow(
+                            color: Colors.black54,
+                            offset: Offset(0, 2),
+                            blurRadius: 6,
+                          ),
+                        ],
+                      ),
+                    ),
+                    const Spacer(),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: ElevatedButton(
+                            onPressed:
+                                (_displayWeight == null || _isCaptured)
+                                    ? null
+                                    : () {
+                                      setState(() {
+                                        _isCaptured = true;
+                                      });
+                                      widget.onCaptured(_displayWeight!);
+                                    },
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: widget.primaryCyan,
+                              foregroundColor: Colors.black,
+                              elevation: 4,
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 20,
+                                vertical: 18,
+                              ),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                            ),
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(
+                                vertical: 6.0,
+                              ),
+                              child: Text(
+                                _isCaptured ? "Captured" : "Capture Weight",
+                                style: const TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Column(
+                          children: [
+                            IconButton(
+                              onPressed: () {
+                                setState(() {
+                                  _isCaptured = false;
+                                  _displayWeight = null;
+                                });
+                              },
+                              icon: Icon(Icons.refresh, color: widget.textGrey),
+                              tooltip: 'Retry Capture',
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ],
                 ),
-              ),
-              const SizedBox(width: 12),
-              Column(
-                children: [
-                  IconButton(
-                    onPressed: () => onRetry(),
-                    icon: Icon(Icons.refresh, color: textGrey),
-                    tooltip: 'Retry connection',
-                  ),
-                ],
-              ),
-            ],
+              );
+            },
           ),
         ],
       ),
