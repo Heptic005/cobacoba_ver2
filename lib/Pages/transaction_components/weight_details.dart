@@ -34,7 +34,13 @@ class WeightDetails extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Text(label, style: TextStyle(color: textGrey, fontSize: 13)),
-            Text(value, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w700)),
+            Text(
+              value,
+              style: const TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
           ],
         ),
       ),

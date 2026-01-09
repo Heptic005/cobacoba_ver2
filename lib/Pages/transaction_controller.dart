@@ -148,7 +148,10 @@ class TransactionController extends ChangeNotifier {
     );
     if (insertedId > 0) {
       transactions = await _db.getListTransaction();
-      final newTx = transactions.firstWhere((e) => e.transactionId == insertedId, orElse: () => transactions.isNotEmpty ? transactions.last : tx);
+      final newTx = transactions.firstWhere(
+        (e) => e.transactionId == insertedId,
+        orElse: () => transactions.isNotEmpty ? transactions.last : tx,
+      );
       draftTickets.add(newTx.noTicket);
       editingDraftTicket = newTx.noTicket;
       isDraftEditing = true;
@@ -210,7 +213,10 @@ class TransactionController extends ChangeNotifier {
 
   /// Capture bruto for a ticket: reuse simulated capture, then persist via Operator
   Future<void> captureBrutoForTicket(String ticket) async {
-    developer.log('captureBrutoForTicket: $ticket', name: 'TransactionController');
+    developer.log(
+      'captureBrutoForTicket: $ticket',
+      name: 'TransactionController',
+    );
     isWeighing = true;
     notifyListeners();
     await captureBrutoSimulated();
@@ -220,7 +226,9 @@ class TransactionController extends ChangeNotifier {
     int? txId = _ticketToId[ticket];
     if (txId == null) {
       // try to find existing transaction with non-zero id
-      final idx = transactions.indexWhere((e) => e.noTicket == ticket && e.transactionId != 0);
+      final idx = transactions.indexWhere(
+        (e) => e.noTicket == ticket && e.transactionId != 0,
+      );
       if (idx != -1) txId = transactions[idx].transactionId;
     }
 
@@ -230,7 +238,9 @@ class TransactionController extends ChangeNotifier {
       lastCapturedWeight = value;
       isWeighing = false;
       notifyListeners();
-      throw Exception('Draft not saved. Press SIMPAN to create draft before finalizing.');
+      throw Exception(
+        'Draft not saved. Press SIMPAN to create draft before finalizing.',
+      );
     }
 
     // If txId exists, we consider bruto already stored in DB from saveDraftFromForm.
@@ -242,7 +252,10 @@ class TransactionController extends ChangeNotifier {
 
   /// Capture tare for a ticket: reuse simulated capture, compute totals, then finalize via Operator
   Future<void> captureTareForTicket(String ticket) async {
-    developer.log('captureTareForTicket: $ticket', name: 'TransactionController');
+    developer.log(
+      'captureTareForTicket: $ticket',
+      name: 'TransactionController',
+    );
     isWeighing = true;
     notifyListeners();
     await captureTareSimulated();
@@ -300,7 +313,10 @@ class TransactionController extends ChangeNotifier {
     double capturedTare, {
     double? priceFromForm,
   }) async {
-    developer.log('Finalizing draft: $ticket with tare: $capturedTare', name: 'TransactionController');
+    developer.log(
+      'Finalizing draft: $ticket with tare: $capturedTare',
+      name: 'TransactionController',
+    );
     final idx = transactions.indexWhere((e) => e.noTicket == ticket);
     if (idx == -1) throw Exception('Draft not found');
     final old = transactions[idx];
@@ -312,7 +328,9 @@ class TransactionController extends ChangeNotifier {
     final totalPrice = computeTotalPrice(after, price);
 
     // prefer mapping if present
-    int? txId = _ticketToId[ticket] ?? (old.transactionId != 0 ? old.transactionId : null);
+    int? txId =
+        _ticketToId[ticket] ??
+        (old.transactionId != 0 ? old.transactionId : null);
     if (txId == null) {
       // fallback: create then finalize via addNettoTransaction
       final newId = await _operator.addBrutoTransaction(
@@ -324,7 +342,8 @@ class TransactionController extends ChangeNotifier {
         cut: old.cut,
         bruto: bruto,
       );
-      if (newId <= 0) throw Exception('Failed to create transaction for finalize');
+      if (newId <= 0)
+        throw Exception('Failed to create transaction for finalize');
       txId = newId;
     }
 
@@ -345,7 +364,10 @@ class TransactionController extends ChangeNotifier {
     draftTickets.remove(ticket);
     editingDraftTicket = null;
     isDraftEditing = false;
-    developer.log('Draft finalized: netto=$netto, afterCut=$after, totalPrice=$totalPrice', name: 'TransactionController');
+    developer.log(
+      'Draft finalized: netto=$netto, afterCut=$after, totalPrice=$totalPrice',
+      name: 'TransactionController',
+    );
     notifyListeners();
   }
 

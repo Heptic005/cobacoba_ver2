@@ -110,17 +110,35 @@ class TransactionFormCard extends StatelessWidget {
         labelText: label,
         labelStyle: TextStyle(color: textGrey),
         hintText: hint,
-        hintStyle: TextStyle(color: Colors.white.withAlpha((0.5 * 255).round())),
+        hintStyle: TextStyle(
+          color: Colors.white.withAlpha((0.5 * 255).round()),
+        ),
         filled: true,
         fillColor: inputBg,
-        contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
-        prefixIcon: prefixIcon != null ? Icon(prefixIcon, color: textGrey) : null,
-        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
-        enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: textGrey.withAlpha((0.12 * 255).round()))),
-        focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: primaryCyan, width: 1.5)),
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 20,
+          vertical: 18,
+        ),
+        prefixIcon:
+            prefixIcon != null ? Icon(prefixIcon, color: textGrey) : null,
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide.none,
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(
+            color: textGrey.withAlpha((0.12 * 255).round()),
+          ),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(color: primaryCyan, width: 1.5),
+        ),
       ),
       onFieldSubmitted: (v) {
-        if (nextFocus != null) FocusScope.of(focus!.context!).requestFocus(nextFocus);
+        if (nextFocus != null)
+          FocusScope.of(focus!.context!).requestFocus(nextFocus);
       },
     );
   }
@@ -135,21 +153,31 @@ class TransactionFormCard extends StatelessWidget {
   }) {
     return DropdownButtonFormField<int>(
       initialValue: initialValue,
-      items: items.map((item) {
-        int id = 0;
-        String labelText = item.toString();
-        if (item is ListSupplierJson) {
-          id = item.supplierId;
-          labelText = item.supplierName;
-        } else if (item is ListCustomerJson) {
-          id = item.customerId;
-          labelText = item.customerName;
-        } else if (item is ListProductJson) {
-          id = item.productId;
-          labelText = item.productName;
-        }
-        return DropdownMenuItem<int>(value: id, child: Text(labelText, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w500)));
-      }).toList(),
+      items:
+          items.map((item) {
+            int id = 0;
+            String labelText = item.toString();
+            if (item is ListSupplierJson) {
+              id = item.supplierId;
+              labelText = item.supplierName;
+            } else if (item is ListCustomerJson) {
+              id = item.customerId;
+              labelText = item.customerName;
+            } else if (item is ListProductJson) {
+              id = item.productId;
+              labelText = item.productName;
+            }
+            return DropdownMenuItem<int>(
+              value: id,
+              child: Text(
+                labelText,
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            );
+          }).toList(),
       onChanged: enabled ? onChanged : null,
       dropdownColor: inputBg,
       style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w500),
@@ -158,11 +186,26 @@ class TransactionFormCard extends StatelessWidget {
         labelStyle: TextStyle(color: textGrey),
         filled: true,
         fillColor: inputBg,
-        contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
-        prefixIcon: prefixIcon != null ? Icon(prefixIcon, color: textGrey) : null,
-        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
-        enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: textGrey.withAlpha((0.12 * 255).round()))),
-        focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: primaryCyan, width: 1.5)),
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 20,
+          vertical: 18,
+        ),
+        prefixIcon:
+            prefixIcon != null ? Icon(prefixIcon, color: textGrey) : null,
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide.none,
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(
+            color: textGrey.withAlpha((0.12 * 255).round()),
+          ),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(color: primaryCyan, width: 1.5),
+        ),
       ),
       icon: Icon(Icons.arrow_drop_down, color: textGrey),
     );
@@ -175,7 +218,12 @@ class TransactionFormCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: cardBg,
         borderRadius: BorderRadius.circular(24),
-        boxShadow: [BoxShadow(color: Colors.black.withAlpha((0.2 * 255).round()), blurRadius: 8)],
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withAlpha((0.2 * 255).round()),
+            blurRadius: 8,
+          ),
+        ],
       ),
       child: Column(
         children: [
@@ -185,28 +233,224 @@ class TransactionFormCard extends StatelessWidget {
               child: Row(
                 children: [
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                    decoration: BoxDecoration(color: cardBg, borderRadius: BorderRadius.circular(20), border: Border.all(color: textGrey.withAlpha((0.12 * 255).round()))),
-                    child: Row(children: [Text('Ticket: ', style: TextStyle(color: textGrey, fontSize: 12)), const SizedBox(width: 6), Text(currentTicketPreview!, style: TextStyle(color: primaryCyan, fontWeight: FontWeight.w700))]),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 6,
+                    ),
+                    decoration: BoxDecoration(
+                      color: cardBg,
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(
+                        color: textGrey.withAlpha((0.12 * 255).round()),
+                      ),
+                    ),
+                    child: Row(
+                      children: [
+                        Text(
+                          'Ticket: ',
+                          style: TextStyle(color: textGrey, fontSize: 12),
+                        ),
+                        const SizedBox(width: 6),
+                        Text(
+                          currentTicketPreview!,
+                          style: TextStyle(
+                            color: primaryCyan,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                   const SizedBox(width: 12),
-                  if (isDraftEditing) Container(padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6), decoration: BoxDecoration(color: primaryCyan, borderRadius: BorderRadius.circular(20)), child: const Text('DRAFT', style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold))),
+                  if (isDraftEditing)
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 10,
+                        vertical: 6,
+                      ),
+                      decoration: BoxDecoration(
+                        color: primaryCyan,
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: const Text(
+                        'DRAFT',
+                        style: TextStyle(
+                          color: Colors.black,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
                 ],
               ),
             ),
-          Row(children: [Expanded(child: _buildTextInput(controller: platnomorController, label: 'Plat Nomor', hint: 'B 1234 ABC', focus: focusPlatnomor, nextFocus: focusSupir, textCapital: TextCapitalization.characters, prefixIcon: Icons.local_shipping_outlined, enabled: !isWeighing)), const SizedBox(width: 16), Expanded(child: _buildTextInput(controller: namasupirController, label: 'Nama Supir', focus: focusSupir, nextFocus: focusPotongan, prefixIcon: Icons.person_outline, enabled: !isWeighing))]),
+          Row(
+            children: [
+              Expanded(
+                child: _buildTextInput(
+                  controller: platnomorController,
+                  label: 'Plat Nomor',
+                  hint: 'B 1234 ABC',
+                  focus: focusPlatnomor,
+                  nextFocus: focusSupir,
+                  textCapital: TextCapitalization.characters,
+                  prefixIcon: Icons.local_shipping_outlined,
+                  enabled: !isWeighing,
+                ),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: _buildTextInput(
+                  controller: namasupirController,
+                  label: 'Nama Supir',
+                  focus: focusSupir,
+                  nextFocus: focusPotongan,
+                  prefixIcon: Icons.person_outline,
+                  enabled: !isWeighing,
+                ),
+              ),
+            ],
+          ),
           const SizedBox(height: 16),
-          Row(children: [Expanded(child: _buildDropdown<ListSupplierJson>(label: 'Supplier', items: suppliers, onChanged: onSelectSupplier, initialValue: selectedSupplier, prefixIcon: Icons.store_mall_directory_outlined, enabled: !isWeighing)), const SizedBox(width: 16), Expanded(child: _buildDropdown<ListCustomerJson>(label: 'Customer', items: customers, onChanged: onSelectCustomer, initialValue: selectedCustomer, prefixIcon: Icons.business_outlined, enabled: !isWeighing))]),
+          Row(
+            children: [
+              Expanded(
+                child: _buildDropdown<ListSupplierJson>(
+                  label: 'Supplier',
+                  items: suppliers,
+                  onChanged: onSelectSupplier,
+                  initialValue: selectedSupplier,
+                  prefixIcon: Icons.store_mall_directory_outlined,
+                  enabled: !isWeighing,
+                ),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: _buildDropdown<ListCustomerJson>(
+                  label: 'Customer',
+                  items: customers,
+                  onChanged: onSelectCustomer,
+                  initialValue: selectedCustomer,
+                  prefixIcon: Icons.business_outlined,
+                  enabled: !isWeighing,
+                ),
+              ),
+            ],
+          ),
           const SizedBox(height: 16),
-          Row(children: [Expanded(child: _buildDropdown<ListProductJson>(label: 'Barang', items: products, onChanged: onSelectProduct, initialValue: selectedProduct, prefixIcon: Icons.category_outlined, enabled: !isWeighing)), const SizedBox(width: 16), Expanded(child: _buildTextInput(controller: poController, label: 'Nomor DO / PO', focus: focusPO, nextFocus: focusNoContainer, prefixIcon: Icons.description_outlined, enabled: !isWeighing))]),
+          Row(
+            children: [
+              Expanded(
+                child: _buildDropdown<ListProductJson>(
+                  label: 'Barang',
+                  items: products,
+                  onChanged: onSelectProduct,
+                  initialValue: selectedProduct,
+                  prefixIcon: Icons.category_outlined,
+                  enabled: !isWeighing,
+                ),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: _buildTextInput(
+                  controller: poController,
+                  label: 'Nomor DO / PO',
+                  focus: focusPO,
+                  nextFocus: focusNoContainer,
+                  prefixIcon: Icons.description_outlined,
+                  enabled: !isWeighing,
+                ),
+              ),
+            ],
+          ),
           const SizedBox(height: 16),
-          Row(children: [Expanded(child: _buildTextInput(controller: potonganController, label: 'Potongan (%)', hint: '0', focus: focusPotongan, nextFocus: focusKubikasi, keyboardType: TextInputType.number, prefixIcon: Icons.percent, enabled: !isWeighing)), const SizedBox(width: 16), Expanded(child: _buildTextInput(controller: kubikasiController, label: 'Kubikasi (opt)', hint: '0', focus: focusKubikasi, nextFocus: focusPO, keyboardType: TextInputType.number, prefixIcon: Icons.numbers, enabled: !isWeighing))]),
+          Row(
+            children: [
+              Expanded(
+                child: _buildTextInput(
+                  controller: potonganController,
+                  label: 'Potongan (%)',
+                  hint: '0',
+                  focus: focusPotongan,
+                  nextFocus: focusKubikasi,
+                  keyboardType: TextInputType.number,
+                  prefixIcon: Icons.percent,
+                  enabled: !isWeighing,
+                ),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: _buildTextInput(
+                  controller: kubikasiController,
+                  label: 'Kubikasi (opt)',
+                  hint: '0',
+                  focus: focusKubikasi,
+                  nextFocus: focusPO,
+                  keyboardType: TextInputType.number,
+                  prefixIcon: Icons.numbers,
+                  enabled: !isWeighing,
+                ),
+              ),
+            ],
+          ),
           const SizedBox(height: 16),
-          Row(children: [Expanded(child: _buildTextInput(controller: nocontainerController, label: 'No Container (opt)', hint: 'max 20 chars', focus: focusNoContainer, nextFocus: focusSuhu, maxLength: 20, prefixIcon: Icons.inventory_2_outlined, enabled: !isWeighing && !isDraftEditing)), const SizedBox(width: 16), Expanded(child: _buildTextInput(controller: suhuController, label: 'Suhu (opt)', hint: '°C', focus: focusSuhu, nextFocus: focusHarga, keyboardType: TextInputType.number, prefixIcon: Icons.thermostat_outlined, enabled: !isWeighing && !isDraftEditing))]),
+          Row(
+            children: [
+              Expanded(
+                child: _buildTextInput(
+                  controller: nocontainerController,
+                  label: 'No Container (opt)',
+                  hint: 'max 20 chars',
+                  focus: focusNoContainer,
+                  nextFocus: focusSuhu,
+                  maxLength: 20,
+                  prefixIcon: Icons.inventory_2_outlined,
+                  enabled: !isWeighing && !isDraftEditing,
+                ),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: _buildTextInput(
+                  controller: suhuController,
+                  label: 'Suhu (opt)',
+                  hint: '°C',
+                  focus: focusSuhu,
+                  nextFocus: focusHarga,
+                  keyboardType: TextInputType.number,
+                  prefixIcon: Icons.thermostat_outlined,
+                  enabled: !isWeighing && !isDraftEditing,
+                ),
+              ),
+            ],
+          ),
           const SizedBox(height: 16),
-          Row(children: [Expanded(child: _buildTextInput(controller: hargaController, label: 'Harga / kg (opt)', hint: '0', focus: focusHarga, nextFocus: focusKeterangan, keyboardType: TextInputType.number, prefixIcon: Icons.attach_money, enabled: !isWeighing && !isDraftEditing)), const SizedBox(width: 16), const Expanded(child: SizedBox())]),
+          Row(
+            children: [
+              Expanded(
+                child: _buildTextInput(
+                  controller: hargaController,
+                  label: 'Harga / kg (opt)',
+                  hint: '0',
+                  focus: focusHarga,
+                  nextFocus: focusKeterangan,
+                  keyboardType: TextInputType.number,
+                  prefixIcon: Icons.attach_money,
+                  enabled: !isWeighing && !isDraftEditing,
+                ),
+              ),
+              const SizedBox(width: 16),
+              const Expanded(child: SizedBox()),
+            ],
+          ),
           const SizedBox(height: 16),
-          _buildTextInput(controller: keteranganController, label: 'Keterangan (Manual) (opt)', hint: 'Catatan...', focus: focusKeterangan, maxLength: 500, prefixIcon: Icons.note_outlined, enabled: !isWeighing),
+          _buildTextInput(
+            controller: keteranganController,
+            label: 'Keterangan (Manual) (opt)',
+            hint: 'Catatan...',
+            focus: focusKeterangan,
+            maxLength: 500,
+            prefixIcon: Icons.note_outlined,
+            enabled: !isWeighing,
+          ),
           const SizedBox(height: 32),
           SizedBox(
             width: double.infinity,
@@ -216,8 +460,14 @@ class TransactionFormCard extends StatelessWidget {
                 backgroundColor: primaryCyan,
                 foregroundColor: Colors.black,
                 padding: const EdgeInsets.symmetric(vertical: 22),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(50)),
-                textStyle: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, letterSpacing: 1),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(50),
+                ),
+                textStyle: const TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  letterSpacing: 1,
+                ),
               ),
               child: const Text('SIMPAN'),
             ),

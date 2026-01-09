@@ -1,16 +1,10 @@
-import 'package:flutter/material.dart';
+/// Redirect ke ReportPage
+/// File ini dipertahankan untuk backward compatibility
+/// Implementasi sebenarnya ada di report/report_page.dart
 
-class Report extends StatefulWidget {
-  const Report({super.key});
+export 'package:dakara_weighbridge/Pages/report/report_page.dart';
 
-  @override
-  State<Report> createState() => _ReportState();
-}
+// Alias untuk backward compatibility
+import 'package:dakara_weighbridge/Pages/report/report_page.dart';
 
-//TODO: implement report page
-class _ReportState extends State<Report> {
-  @override
-  Widget build(BuildContext context) {
-    return const Placeholder();
-  }
-}
+typedef Report = ReportPage;

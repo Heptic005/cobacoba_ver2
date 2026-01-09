@@ -29,16 +29,29 @@ class MainActionsCard extends StatelessWidget {
           absorbing: true,
           child: ElevatedButton.icon(
             onPressed: () {},
-            icon: isWeighIn ? const Icon(Icons.check, size: 20) : const SizedBox.shrink(),
+            icon:
+                isWeighIn
+                    ? const Icon(Icons.check, size: 20)
+                    : const SizedBox.shrink(),
             label: const Text("Timbang Masuk"),
             style: ElevatedButton.styleFrom(
               backgroundColor: isWeighIn ? primaryCyan : Colors.transparent,
               foregroundColor: isWeighIn ? Colors.black : Colors.white,
               elevation: 0,
-              side: isWeighIn ? BorderSide.none : BorderSide(color: textGrey.withAlpha((0.6 * 255).round())),
+              side:
+                  isWeighIn
+                      ? BorderSide.none
+                      : BorderSide(
+                        color: textGrey.withAlpha((0.6 * 255).round()),
+                      ),
               padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-              textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              textStyle: const TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w600,
+              ),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
             ),
           ),
         ),
@@ -47,16 +60,29 @@ class MainActionsCard extends StatelessWidget {
           absorbing: true,
           child: ElevatedButton.icon(
             onPressed: () {},
-            icon: !isWeighIn ? const Icon(Icons.check, size: 20) : const SizedBox.shrink(),
+            icon:
+                !isWeighIn
+                    ? const Icon(Icons.check, size: 20)
+                    : const SizedBox.shrink(),
             label: const Text("Timbang Keluar"),
             style: ElevatedButton.styleFrom(
               backgroundColor: !isWeighIn ? Colors.white : Colors.transparent,
               foregroundColor: !isWeighIn ? Colors.black : Colors.white,
               elevation: 0,
-              side: !isWeighIn ? BorderSide.none : BorderSide(color: textGrey.withAlpha((0.6 * 255).round())),
+              side:
+                  !isWeighIn
+                      ? BorderSide.none
+                      : BorderSide(
+                        color: textGrey.withAlpha((0.6 * 255).round()),
+                      ),
               padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-              textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              textStyle: const TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w600,
+              ),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
             ),
           ),
         ),
@@ -73,10 +99,15 @@ class MainActionsCard extends StatelessWidget {
             children: [
               ValueListenableBuilder<String>(
                 valueListenable: timeNotifier,
-                builder: (ctx, val, _) => Text(
-                  val,
-                  style: TextStyle(color: textWhite, fontSize: 20, fontWeight: FontWeight.bold),
-                ),
+                builder:
+                    (ctx, val, _) => Text(
+                      val,
+                      style: TextStyle(
+                        color: textWhite,
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
               ),
               const SizedBox(height: 6),
               Text(

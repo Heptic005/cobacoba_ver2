@@ -53,7 +53,10 @@ class WeightMonitorCard extends StatelessWidget {
               GestureDetector(
                 onTap: onToggleMode,
                 child: Tooltip(
-                  message: isWeighIn ? 'Mode: Timbang Masuk (tap to switch)' : 'Mode: Timbang Keluar (tap to switch)',
+                  message:
+                      isWeighIn
+                          ? 'Mode: Timbang Masuk (tap to switch)'
+                          : 'Mode: Timbang Keluar (tap to switch)',
                   child: Container(
                     width: 12,
                     height: 12,
@@ -61,7 +64,17 @@ class WeightMonitorCard extends StatelessWidget {
                       color: isConnected ? indicatorGreen : Colors.redAccent,
                       shape: BoxShape.circle,
                       boxShadow: [
-                        BoxShadow(color: (isConnected ? indicatorGreen.withAlpha((0.6 * 255).round()) : Colors.redAccent.withAlpha((0.6 * 255).round())), blurRadius: 6),
+                        BoxShadow(
+                          color:
+                              (isConnected
+                                  ? indicatorGreen.withAlpha(
+                                    (0.6 * 255).round(),
+                                  )
+                                  : Colors.redAccent.withAlpha(
+                                    (0.6 * 255).round(),
+                                  )),
+                          blurRadius: 6,
+                        ),
                       ],
                     ),
                   ),
@@ -75,7 +88,11 @@ class WeightMonitorCard extends StatelessWidget {
                   fontSize: 16,
                   fontWeight: FontWeight.w600,
                   shadows: const [
-                    Shadow(color: Colors.black26, offset: Offset(0, 1), blurRadius: 1),
+                    Shadow(
+                      color: Colors.black26,
+                      offset: Offset(0, 1),
+                      blurRadius: 1,
+                    ),
                   ],
                 ),
               ),
@@ -90,7 +107,11 @@ class WeightMonitorCard extends StatelessWidget {
               fontWeight: FontWeight.bold,
               height: 1.0,
               shadows: const [
-                Shadow(color: Colors.black54, offset: Offset(0, 2), blurRadius: 6),
+                Shadow(
+                  color: Colors.black54,
+                  offset: Offset(0, 2),
+                  blurRadius: 6,
+                ),
               ],
             ),
           ),
@@ -104,12 +125,23 @@ class WeightMonitorCard extends StatelessWidget {
                     backgroundColor: primaryCyan,
                     foregroundColor: Colors.black,
                     elevation: 4,
-                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 20,
+                      vertical: 18,
+                    ),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
                   ),
                   child: Padding(
                     padding: const EdgeInsets.symmetric(vertical: 6.0),
-                    child: Text(isWeighing ? 'Weighing...' : 'Capture Weight', style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                    child: Text(
+                      isWeighing ? 'Weighing...' : 'Capture Weight',
+                      style: const TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
                   ),
                 ),
               ),

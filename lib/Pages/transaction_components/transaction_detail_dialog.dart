@@ -52,7 +52,10 @@ class TransactionDetailDialog extends StatelessWidget {
       supplierName = controller.supplierNameFromId(tx.supplierId);
       customerName = controller.customerNameFromId(tx.customerId);
       intime = DateFormat('dd MMM yyyy HH:mm').format(tx.inTime);
-      outtime = (tx.outTime != null && tx.outTime!.isAfter(tx.inTime)) ? DateFormat('dd MMM yyyy HH:mm').format(tx.outTime!) : null;
+      outtime =
+          (tx.outTime != null && tx.outTime!.isAfter(tx.inTime))
+              ? DateFormat('dd MMM yyyy HH:mm').format(tx.outTime!)
+              : null;
       bruto = '${tx.bruto} kg';
       tare = '${tx.tare} kg';
       netto = '${tx.netto} kg';
@@ -68,19 +71,37 @@ class TransactionDetailDialog extends StatelessWidget {
       plate = item['vehiclePlate']?.toString() ?? '-';
       driver = item['driverName']?.toString() ?? '-';
 
-      productName = (item['productName'] ?? item['ProductName'])?.toString().trim().isNotEmpty == true
-          ? (item['productName'] ?? item['ProductName']).toString()
-          : controller.productNameFromId(pid);
-      supplierName = (item['supplierName'] ?? item['SupplierName'])?.toString().trim().isNotEmpty == true
-          ? (item['supplierName'] ?? item['SupplierName']).toString()
-          : controller.supplierNameFromId(sid);
-      customerName = (item['customerName'] ?? item['CustomerName'])?.toString().trim().isNotEmpty == true
-          ? (item['customerName'] ?? item['CustomerName']).toString()
-          : controller.customerNameFromId(cid);
+      productName =
+          (item['productName'] ?? item['ProductName'])
+                      ?.toString()
+                      .trim()
+                      .isNotEmpty ==
+                  true
+              ? (item['productName'] ?? item['ProductName']).toString()
+              : controller.productNameFromId(pid);
+      supplierName =
+          (item['supplierName'] ?? item['SupplierName'])
+                      ?.toString()
+                      .trim()
+                      .isNotEmpty ==
+                  true
+              ? (item['supplierName'] ?? item['SupplierName']).toString()
+              : controller.supplierNameFromId(sid);
+      customerName =
+          (item['customerName'] ?? item['CustomerName'])
+                      ?.toString()
+                      .trim()
+                      .isNotEmpty ==
+                  true
+              ? (item['customerName'] ?? item['CustomerName']).toString()
+              : controller.customerNameFromId(cid);
 
       intime = controller.formatShortDate(item['inTime']?.toString());
       final outtimeRaw = item['outTime']?.toString();
-      outtime = (outtimeRaw != null && outtimeRaw.isNotEmpty) ? controller.formatShortDate(outtimeRaw) : null;
+      outtime =
+          (outtimeRaw != null && outtimeRaw.isNotEmpty)
+              ? controller.formatShortDate(outtimeRaw)
+              : null;
 
       bruto = '${item['bruto'] ?? 0} kg';
       tare = '${item['tare'] ?? 0} kg';
@@ -94,69 +115,97 @@ class TransactionDetailDialog extends StatelessWidget {
       child: Center(
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 560),
-          child: LayoutBuilder(builder: (context, constraints) {
-            final maxHeight = MediaQuery.of(context).size.height * 0.8;
-            return Container(
-              padding: const EdgeInsets.all(20),
-              constraints: BoxConstraints(maxHeight: maxHeight),
-              decoration: BoxDecoration(
-                color: cardBg,
-                borderRadius: BorderRadius.circular(20),
-                border: Border.all(color: textGrey.withAlpha((0.08 * 255).round())),
-              ),
-              child: Column(
-                mainAxisSize: MainAxisSize.max,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(ticket.isNotEmpty ? ticket : 'Detail', style: TextStyle(color: primaryCyan, fontSize: 20, fontWeight: FontWeight.w700)),
-                  const SizedBox(height: 12),
-                  Divider(color: textGrey.withAlpha((0.12 * 255).round())),
-                  const SizedBox(height: 12),
-                  Expanded(
-                    child: SingleChildScrollView(
-                      child: Wrap(
-                        runSpacing: 10,
-                        spacing: 20,
-                        children: [
-                          _detailRow('Plate', plate),
-                          _detailRow('Driver', driver),
-                          _detailRow('Product', productName.isNotEmpty ? productName : '-'),
-                          _detailRow('Supplier', supplierName.isNotEmpty ? supplierName : '-'),
-                          _detailRow('Customer', customerName.isNotEmpty ? customerName : '-'),
-                          _detailRow('In', intime),
-                          _detailRow('Out', outtime ?? '-'),
-                          _detailRow('Bruto', bruto),
-                          _detailRow('Tare', tare),
-                          _detailRow('Netto', netto),
-                          _detailRow('After cut', afterCut),
-                          if (notes != null && notes.isNotEmpty) _detailRow('Notes', notes),
-                        ],
+          child: LayoutBuilder(
+            builder: (context, constraints) {
+              final maxHeight = MediaQuery.of(context).size.height * 0.8;
+              return Container(
+                padding: const EdgeInsets.all(20),
+                constraints: BoxConstraints(maxHeight: maxHeight),
+                decoration: BoxDecoration(
+                  color: cardBg,
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(
+                    color: textGrey.withAlpha((0.08 * 255).round()),
+                  ),
+                ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.max,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      ticket.isNotEmpty ? ticket : 'Detail',
+                      style: TextStyle(
+                        color: primaryCyan,
+                        fontSize: 20,
+                        fontWeight: FontWeight.w700,
                       ),
                     ),
-                  ),
-                  const SizedBox(height: 12),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.end,
-                    children: [
-                      TextButton(
-                        onPressed: () => Navigator.of(context).pop(),
-                        child: Text('Close', style: TextStyle(color: textGrey)),
+                    const SizedBox(height: 12),
+                    Divider(color: textGrey.withAlpha((0.12 * 255).round())),
+                    const SizedBox(height: 12),
+                    Expanded(
+                      child: SingleChildScrollView(
+                        child: Wrap(
+                          runSpacing: 10,
+                          spacing: 20,
+                          children: [
+                            _detailRow('Plate', plate),
+                            _detailRow('Driver', driver),
+                            _detailRow(
+                              'Product',
+                              productName.isNotEmpty ? productName : '-',
+                            ),
+                            _detailRow(
+                              'Supplier',
+                              supplierName.isNotEmpty ? supplierName : '-',
+                            ),
+                            _detailRow(
+                              'Customer',
+                              customerName.isNotEmpty ? customerName : '-',
+                            ),
+                            _detailRow('In', intime),
+                            _detailRow('Out', outtime ?? '-'),
+                            _detailRow('Bruto', bruto),
+                            _detailRow('Tare', tare),
+                            _detailRow('Netto', netto),
+                            _detailRow('After cut', afterCut),
+                            if (notes != null && notes.isNotEmpty)
+                              _detailRow('Notes', notes),
+                          ],
+                        ),
                       ),
-                      const SizedBox(width: 12),
-                      ElevatedButton(
-                        onPressed: () {
-                          Navigator.of(context).pop();
-                          onPrint?.call();
-                        },
-                        style: ElevatedButton.styleFrom(backgroundColor: primaryCyan, foregroundColor: Colors.black),
-                        child: const Text('Print'),
-                      ),
-                    ],
-                  )
-                ],
-              ),
-            );
-          }),
+                    ),
+                    const SizedBox(height: 12),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      children: [
+                        TextButton(
+                          onPressed: () => Navigator.of(context).pop(),
+                          child: Text(
+                            'Close',
+                            style: TextStyle(color: textGrey),
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        ElevatedButton(
+                          onPressed: () {
+                            
+                            Navigator.of(context).pop();
+                            Future.microtask(() => onPrint?.call());
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: primaryCyan,
+                            foregroundColor: Colors.black,
+                          ),
+                          child: const Text('Print'),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              );
+            },
+          ),
         ),
       ),
     );
@@ -170,7 +219,14 @@ class TransactionDetailDialog extends StatelessWidget {
         children: [
           Text(label, style: TextStyle(color: textGrey, fontSize: 12)),
           const SizedBox(height: 4),
-          Text(value, style: const TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.w600)),
+          Text(
+            value,
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 14,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
         ],
       ),
     );

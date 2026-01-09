@@ -19,13 +19,11 @@ Future main() async {
   appWindow.alignment = Alignment.center;
   appWindow.show();
 
-  await initializeDateFormatting(
-    'id_ID',
-    null,
-  ).then((_) => runApp(const MaterialApp(
-        debugShowCheckedModeBanner: false,
-        home: LoginPage(),
-      )));
+  await initializeDateFormatting('id_ID', null).then(
+    (_) => runApp(
+      const MaterialApp(debugShowCheckedModeBanner: false, home: LoginPage()),
+    ),
+  );
 
   doWhenWindowReady(() {
     final win = appWindow;
