@@ -153,6 +153,7 @@ class _WeightMonitorCardState extends State<WeightMonitorCard> {
                                 setState(() {
                                   _isCaptured = false;
                                   _displayWeight = null;
+                                  // widget.onCaptured(0);
                                 });
                               },
                               icon: Icon(Icons.refresh, color: widget.textGrey),
