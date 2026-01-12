@@ -95,8 +95,24 @@ class ReportController {
 
   /// Set search query dan re-apply filters
   void setSearch(String s) {
-    _search = s;
+    _search = _sanitizeSearchQuery(s);
     _applyFilters();
+  }
+
+  /// Sanitasi input search: buang karakter kontrol, angle brackets, dan pola script
+  String _sanitizeSearchQuery(String raw) {
+    var q = raw.trim();
+
+    // Hapus karakter kontrol non-printable
+    q = q.replaceAll(RegExp(r'[\x00-\x08\x0B\x0C\x0E-\x1F]'), '');
+
+    // Hapus angle brackets untuk cegah HTML/script
+    q = q.replaceAll(RegExp(r'[<>]'), '');
+
+    // Hapus pola script sederhana
+    q = q.replaceAll(RegExp(r'</?script>', caseSensitive: false), '');
+
+    return q;
   }
 
   /// Set start date filter
