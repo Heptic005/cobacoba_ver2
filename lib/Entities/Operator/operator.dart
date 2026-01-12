@@ -60,6 +60,7 @@ class Operator implements AbstractOperator {
     return -1;
   }
 
+  /// TODO : MAKE SURE THE CALCULATION IS CORRECT
   @override
   Future<int> addNettoTransaction({
     required int transactionId,
@@ -91,16 +92,17 @@ class Operator implements AbstractOperator {
         noDO: noDo ?? t.noDO,
         noContainer: noContainer ?? t.noContainer,
         temperature: temperature ?? t.temperature,
-        price: price ?? t.price,
+        price: t.price,
         additionalInformation: additionalInformation ?? t.additionalInformation,
         noTicket: t.noTicket,
         inTime: t.inTime,
         outTime: DateTime.now(),
-        totalPrice: 0,
+        totalPrice:
+            t.price! * (t.bruto - tare - ((t.bruto - tare) * (t.cut / 100))),
         bruto: t.bruto,
         tare: tare,
         netto: t.bruto - tare,
-        nettoAfterCut: 0,
+        nettoAfterCut: t.bruto - tare - ((t.bruto - tare) * (t.cut / 100)),
         driverLabel: t.driverLabel,
         operatorLabel: t.operatorLabel,
         managerLabel: t.managerLabel,

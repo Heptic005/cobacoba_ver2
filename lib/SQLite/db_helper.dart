@@ -3,6 +3,7 @@ import 'package:dakara_weighbridge/Json/listaccount_json.dart';
 import 'package:dakara_weighbridge/Json/listcustomer_json.dart';
 import 'package:dakara_weighbridge/Json/listproduct_json.dart';
 import 'package:dakara_weighbridge/Json/listsupplier_json.dart';
+import 'package:dakara_weighbridge/Json/listtoken_json.dart';
 import 'package:dakara_weighbridge/Json/listtransaction_json.dart';
 import 'package:path/path.dart';
 import 'package:path_provider/path_provider.dart';
@@ -69,6 +70,34 @@ class DbHelper {
       );
       ''';
 
+      const createManualTokensTable = '''
+      CREATE TABLE "manual_tokens" (
+	    "tokenId"	INTEGER NOT NULL UNIQUE,
+	    "tokenCode"	TEXT NOT NULL,
+	    "expiresAt"	TEXT NOT NULL,
+	    "isUsed"	INTEGER NOT NULL,
+	    "createdBy"	INTEGER NOT NULL,
+	    "usedAt"	TEXT,
+	    "createdAt"	TEXT,
+	    PRIMARY KEY("tokenId" AUTOINCREMENT)
+      );
+      ''';
+
+      const createTokenRequestTable = '''
+      CREATE TABLE "token_requests" (
+	    "tokenRequestId"	INTEGER NOT NULL UNIQUE,
+	    "requestedBy"	INTEGER NOT NULL,
+	    "reason"	TEXT NOT NULL,
+	    "status"	TEXT NOT NULL,
+	    "approvedBy"	INTEGER,
+	    "tokenId"	INTEGER,
+	    "requestedAt"	TEXT NOT NULL,
+	    "approvedAt"	INTEGER,
+	    PRIMARY KEY("tokenRequestId" AUTOINCREMENT),
+	    FOREIGN KEY("tokenId") REFERENCES "manual_tokens"("tokenId")
+      );
+      ''';
+
       const createTransactionTable = '''
       CREATE TABLE "transaction" (
 	    "transactionId"	INTEGER NOT NULL UNIQUE,
@@ -114,6 +143,8 @@ class DbHelper {
           await db.execute(createCustomerTable);
           await db.execute(createProductTable);
           await db.execute(createSupplierTable);
+          await db.execute(createManualTokensTable);
+          await db.execute(createTokenRequestTable);
           await db.execute(createTransactionTable);
         },
       );
@@ -247,12 +278,12 @@ class DbHelper {
   }
 
   /// Delete Transaction
-  Future<int> deleteTransaction(ListTransactionJson transaction) async {
+  Future<int> deleteTransaction({required int id}) async {
     final Database db = await database;
     return db.delete(
       'transaction',
       where: 'transactionId = ?',
-      whereArgs: [transaction.transactionId],
+      whereArgs: [id],
     );
   }
 
@@ -387,13 +418,9 @@ class DbHelper {
   }
 
   /// Delete User
-  Future<int> deleteUser(ListAccountJson user) async {
+  Future<int> deleteUser({required int id}) async {
     final Database db = await database;
-    return db.delete(
-      'account',
-      where: 'accountId = ?',
-      whereArgs: [user.accountID],
-    );
+    return db.delete('account', where: 'accountId = ?', whereArgs: [id]);
   }
 
   /// Update User
@@ -402,7 +429,7 @@ class DbHelper {
     return db.update(
       'account',
       user.toJson(),
-      where: 'userId = ?',
+      where: 'accountId = ?',
       whereArgs: [user.accountID],
     );
   }
@@ -434,6 +461,37 @@ class DbHelper {
     } else {
       throw InvalidCredentialException();
     }
+  }
+
+  /// TODO : Implementing Create and Update Manual Transaction Token
+  /// Create Manual Transaction Token
+  Future<int> createTokenForManualWeight(ListTokenJson token) async {
+    final Database db = await database;
+    return db.insert('manual_tokens', token.toJson());
+  }
+
+  /// get Token
+  Future<ListTokenJson?> getToken(String token) async {
+    final Database db = await database;
+    final result = await db.query(
+      'manual_tokens',
+      where: 'tokenCode = ?',
+      whereArgs: [token],
+      limit: 1,
+    );
+    if (result.isEmpty) return null;
+    return result.map((e) => ListTokenJson.fromJson(e)).first;
+  }
+
+  /// mark token as used
+  Future<void> markTokenUsed(String token) async {
+    final Database db = await database;
+    await db.update(
+      'manual_tokens',
+      {'isUsed': 1},
+      where: 'tokenCode = ?',
+      whereArgs: [token],
+    );
   }
 }
 

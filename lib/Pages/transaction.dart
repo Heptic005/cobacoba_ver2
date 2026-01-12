@@ -158,6 +158,8 @@ class _TransactionState extends State<Transaction> {
       } else {
         operator.addNettoTransaction(
           transactionId: int.tryParse(_transactionIdController.text)!,
+          kubikasi: kubikasi,
+          additionalInformation: _keteranganController.text,
           tare: tare!,
         );
       }
@@ -208,6 +210,9 @@ class _TransactionState extends State<Transaction> {
   void initState() {
     super.initState();
 
+    /// Captured Weight
+    _capturedWeight = null;
+
     /// Get Current Time
     _timeNotifier.value = DateFormat('HH:mm:ss').format(DateTime.now());
     _timer = Timer.periodic(const Duration(seconds: 1), (_) {
@@ -239,6 +244,9 @@ class _TransactionState extends State<Transaction> {
     _brutoController.dispose();
     _tareController.dispose();
     _nettoController.dispose();
+
+    // /// Serial Close Connection
+    // SerialService().disconnect();
 
     _timer.cancel();
     _timeNotifier.dispose();
