@@ -192,6 +192,18 @@ class DbHelper {
     );
   }
 
+  /// Get Product Name By ID
+  Future<String> getProductNameById(int id) async {
+    final Database db = await database;
+    List<Map<String, dynamic>> result = await db.query(
+      'product',
+      where: 'id = ?',
+      whereArgs: [id],
+      limit: 1,
+    );
+    return result.map((e) => e['productName']).toString();
+  }
+
   /* Supplier */
   /// Get Supplier
   Future<List<ListSupplierJson>> getListSupplier() async {
@@ -266,6 +278,12 @@ class DbHelper {
       t.noTicket,
       t.inTime,
       t.outTime,
+      t.kubikasi,
+      t.noDO,
+      t.noContainer,
+      t.temperature,
+      t.additionalInformation,
+      t.price,
       t.bruto,
       t.tare,
       t.netto,
@@ -293,6 +311,7 @@ class DbHelper {
     return result.map((e) => ListTransactionJson.fromJson(e)).toList();
   }
 
+  /// Get Transaction By Id
   Future<List<ListTransactionJson>> getTransactionById({
     required int id,
   }) async {
@@ -303,6 +322,53 @@ class DbHelper {
       whereArgs: [id],
       limit: 1,
     );
+    return result.map((e) => ListTransactionJson.fromJson(e)).toList();
+  }
+
+  /// Get Transactions By No Ticket
+  Future<List<ListTransactionJson>> getTransactionByNoTicket({
+    required String noTicket,
+  }) async {
+    final Database db = await database;
+    List<Map<String, Object?>> result = await db.rawQuery('''
+    SELECT 
+      t.transactionId,
+      t.vehiclePlate,
+      t.driverName,
+      t.noTicket,
+      t.inTime,
+      t.outTime,
+      t.kubikasi,
+      t.noDO,
+      t.noContainer,
+      t.temperature,
+      t.additionalInformation,
+      t.price,
+      t.bruto,
+      t.tare,
+      t.netto,
+      t.nettoAfterCut,
+      t.totalPrice,
+      t.cut,
+      t.driverLabel,
+      t.operatorLabel,
+      t.managerLabel,
+      t.headWarehouseLabel,
+      t.isDrafted,
+      t.isManual,
+      s.supplierId,
+      s.supplierName,
+      c.customerId,
+      c.customerName,
+      p.productId,
+      p.productName
+      FROM "transaction" t
+      LEFT JOIN supplier s ON t.supplierId = s.supplierId
+      LEFT JOIN customer c ON t.customerId = c.customerId
+      LEFT JOIN product p ON t.productId = p.productId
+    WHERE noTicket LIKE "%$noTicket%" AND isDrafted = '1'
+    LIMIT 3
+    ''');
     return result.map((e) => ListTransactionJson.fromJson(e)).toList();
   }
 

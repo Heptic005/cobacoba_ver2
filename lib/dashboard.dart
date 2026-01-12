@@ -3,6 +3,7 @@ import 'dart:ui';
 import 'package:animated_toggle_switch/animated_toggle_switch.dart';
 import 'package:bitsdojo_window/bitsdojo_window.dart';
 import 'package:dakara_weighbridge/Menu/menu_items.dart';
+import 'package:dakara_weighbridge/Pages/techician_page.dart';
 import 'package:dakara_weighbridge/Themes/app_themes.dart';
 import 'package:flutter/material.dart';
 
@@ -300,7 +301,16 @@ class _DashboardState extends State<Dashboard> {
                                       ),
                                     ),
                                     child: IconButton(
-                                      onPressed: () {},
+                                      onPressed: () {
+                                        Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                            builder: (context) {
+                                              return TechnicianPage();
+                                            },
+                                          ),
+                                        );
+                                      },
                                       icon: Icon(Icons.settings),
                                       color: Colors.white,
                                       iconSize: 18,

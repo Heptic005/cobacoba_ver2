@@ -23,7 +23,6 @@ abstract class AbstractOperator {
     double? price,
     String? additionalInformation,
     required double tare,
-    required double nettoAfterCut,
   });
   // Future<void> requestTokenForManualWeight();
   // Future<void> exportReportPdf();
