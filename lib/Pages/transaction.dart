@@ -20,6 +20,7 @@ import 'package:dakara_weighbridge/Pages/transaction_components/transaction_deta
 
 /// Transaction page — thin UI wrapper around TransactionController.
 /// All business logic lives in the controller; this widget only renders layout and wires events.
+/// TODO : Make Weight Detail and Recent Transaction
 class Transaction extends StatefulWidget {
   const Transaction({super.key});
 

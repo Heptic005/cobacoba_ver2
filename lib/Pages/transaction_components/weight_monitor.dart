@@ -1,6 +1,8 @@
 import 'package:dakara_weighbridge/Services/serial_service.dart';
 import 'package:flutter/material.dart';
 
+/// TODO : Make Weight 0 While restart Capture
+
 class WeightMonitorCard extends StatefulWidget {
   final bool isWeighIn;
   final Color cardBg;
