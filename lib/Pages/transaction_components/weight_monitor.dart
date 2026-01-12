@@ -1,6 +1,3 @@
-import 'dart:async';
-
-import 'package:dakara_weighbridge/Pages/transaction_components/weight_count_from_serial.dart';
 import 'package:dakara_weighbridge/Services/serial_service.dart';
 import 'package:flutter/material.dart';
 

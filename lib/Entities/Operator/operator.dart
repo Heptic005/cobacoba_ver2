@@ -70,7 +70,6 @@ class Operator implements AbstractOperator {
     double? price,
     String? additionalInformation,
     required double tare,
-    required double nettoAfterCut,
   }) async {
     final prefs = await SharedPreferences.getInstance();
     final bool? isLoggedInStatus = prefs.getBool('isLoggedIn');
@@ -101,7 +100,7 @@ class Operator implements AbstractOperator {
         bruto: t.bruto,
         tare: tare,
         netto: t.bruto - tare,
-        nettoAfterCut: nettoAfterCut,
+        nettoAfterCut: 0,
         driverLabel: t.driverLabel,
         operatorLabel: t.operatorLabel,
         managerLabel: t.managerLabel,

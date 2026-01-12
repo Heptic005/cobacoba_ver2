@@ -1,6 +1,6 @@
 import 'dart:async';
 import 'package:dakara_weighbridge/Entities/Operator/operator.dart';
-import 'package:dakara_weighbridge/Pages/transaction_components/weight_count_from_serial.dart';
+import 'package:dakara_weighbridge/Pages/transaction_components/add_netto_transaction_form.dart';
 import 'package:dakara_weighbridge/SQLite/db_helper.dart';
 import 'package:dakara_weighbridge/Services/serial_service.dart';
 import 'package:flutter/material.dart';
@@ -39,6 +39,11 @@ class _TransactionState extends State<Transaction> {
 
   /// Main Actions Items
   final ValueNotifier<String> _timeNotifier = ValueNotifier('');
+  late Timer _timer;
+  bool _isWeightIn = true;
+
+  /// Load Data
+  bool _isLoaded = false;
 
   /// Form Card Items
   /// Text Controller
@@ -51,6 +56,10 @@ class _TransactionState extends State<Transaction> {
   final _suhuController = TextEditingController();
   final _hargaController = TextEditingController();
   final _keteranganController = TextEditingController();
+  final _supplierController = TextEditingController();
+  final _customerController = TextEditingController();
+  final _productController = TextEditingController();
+  final _transactionIdController = TextEditingController();
 
   /// Focus Node
   final _focusPlatNomor = FocusNode();
@@ -76,6 +85,13 @@ class _TransactionState extends State<Transaction> {
   /// Weight From Serial
   double? _capturedWeight;
 
+  void _onToggleButtonTimbang(bool mode) {
+    setState(() {
+      _isWeightIn = mode;
+      _resetForm();
+    });
+  }
+
   /// Captured Weight If Any Data Come From Connected Serial
   void _onWeightCaptured(double weight) {
     setState(() {
@@ -84,7 +100,7 @@ class _TransactionState extends State<Transaction> {
   }
 
   /// Load Needed Data For Transaction Form
-  void _loadSupplierProductCustomerData() async {
+  Future<void> _loadSupplierProductCustomerData() async {
     _suppliers = await DbHelper.instance.getListSupplier();
     _products = await DbHelper.instance.getListProducts();
     _customers = await DbHelper.instance.getListCustomers();
@@ -118,21 +134,28 @@ class _TransactionState extends State<Transaction> {
               : 0;
       final bruto = double.tryParse(_capturedWeight!.toStringAsFixed(2));
 
-      operator.addBrutoTransaction(
-        vehiclePlate: _platNomorController.text,
-        driverName: _namaSupirController.text,
-        supplierId: _selectedSupplierId!,
-        customerId: _selectedCustomerId!,
-        productId: _selectedProductId!,
-        cut: cut!,
-        bruto: bruto!,
-        kubikasi: kubikasi,
-        noDo: _noDoController.text,
-        noContainer: noContainer,
-        temperature: suhu,
-        price: price,
-        additionalInformation: _keteranganController.text,
-      );
+      if (_isWeightIn) {
+        operator.addBrutoTransaction(
+          vehiclePlate: _platNomorController.text,
+          driverName: _namaSupirController.text,
+          supplierId: _selectedSupplierId!,
+          customerId: _selectedCustomerId!,
+          productId: _selectedProductId!,
+          cut: cut!,
+          bruto: bruto!,
+          kubikasi: kubikasi,
+          noDo: _noDoController.text,
+          noContainer: noContainer,
+          temperature: suhu,
+          price: price,
+          additionalInformation: _keteranganController.text,
+        );
+      } else {
+        operator.addNettoTransaction(
+          transactionId: int.tryParse(_transactionIdController.text)!,
+          tare: _capturedWeight!,
+        );
+      }
 
       if (!mounted) return;
       messenger.showSnackBar(
@@ -159,6 +182,9 @@ class _TransactionState extends State<Transaction> {
       _suhuController.clear();
       _hargaController.clear();
       _keteranganController.clear();
+      _supplierController.clear();
+      _customerController.clear();
+      _productController.clear();
 
       // Reset selections
       _selectedSupplierId = null;
@@ -171,13 +197,36 @@ class _TransactionState extends State<Transaction> {
   void initState() {
     super.initState();
 
-    /// Load Data before Widget Building
-    _loadSupplierProductCustomerData();
+    /// Get Current Time
     _timeNotifier.value = DateFormat('HH:mm:ss').format(DateTime.now());
+    _timer = Timer.periodic(const Duration(seconds: 1), (_) {
+      _timeNotifier.value = DateFormat('HH:mm:ss').format(DateTime.now());
+    });
+
+    /// Load Data before Widget Building
+    _loadSupplierProductCustomerData().then((_) {
+      setState(() => _isLoaded = true);
+    });
   }
 
   @override
   void dispose() {
+    /// Dispose All Controller
+    _platNomorController.dispose();
+    _namaSupirController.dispose();
+    _noDoController.dispose();
+    _kubikasiController.dispose();
+    _potonganController.dispose();
+    _noContainerController.dispose();
+    _suhuController.dispose();
+    _hargaController.dispose();
+    _keteranganController.dispose();
+    _supplierController.dispose();
+    _customerController.dispose();
+    _productController.dispose();
+    _transactionIdController.dispose();
+
+    _timer.cancel();
     _timeNotifier.dispose();
     super.dispose();
   }
@@ -185,12 +234,16 @@ class _TransactionState extends State<Transaction> {
   @override
   Widget build(BuildContext context) {
     final isFormValid =
-        (_selectedSupplierId != null) &&
-        (_selectedCustomerId != null) &&
-        (_selectedProductId != null) &&
-        _platNomorController.text.trim().isNotEmpty &&
-        _namaSupirController.text.trim().isNotEmpty &&
-        _capturedWeight != null;
+        _isWeightIn
+            ? (_selectedSupplierId != null) &&
+                (_selectedCustomerId != null) &&
+                (_selectedProductId != null) &&
+                _platNomorController.text.trim().isNotEmpty &&
+                _namaSupirController.text.trim().isNotEmpty &&
+                _capturedWeight != null
+            : _platNomorController.text.trim().isNotEmpty &&
+                _namaSupirController.text.trim().isNotEmpty &&
+                _capturedWeight != null;
 
     return Scaffold(
       backgroundColor: _bgDark,
@@ -200,8 +253,6 @@ class _TransactionState extends State<Transaction> {
           children: [
             const SizedBox(height: 100),
             const TransactionHeader(),
-            const SizedBox(height: 20),
-            const WeightCountFromSerial(),
             const SizedBox(height: 20),
             Row(
               children: [
@@ -220,12 +271,12 @@ class _TransactionState extends State<Transaction> {
                 Expanded(
                   flex: 2,
                   child: MainActionsCard(
-                    isWeighIn: true,
                     timeNotifier: _timeNotifier,
                     primaryCyan: _primaryCyan,
                     textGrey: _textGrey,
                     textWhite: _textWhite,
                     cardBg: _cardBg,
+                    onToggleButtonTimbang: _onToggleButtonTimbang,
                   ),
                 ),
               ],
@@ -233,53 +284,85 @@ class _TransactionState extends State<Transaction> {
             const SizedBox(height: 30),
             Row(
               children: [
-                Expanded(
-                  flex: 3,
-                  child: TransactionFormCard(
-                    platnomorController: _platNomorController,
-                    poController: _noDoController,
-                    namasupirController: _namaSupirController,
-                    potonganController: _potonganController,
-                    kubikasiController: _kubikasiController,
-                    nocontainerController: _noContainerController,
-                    suhuController: _suhuController,
-                    hargaController: _hargaController,
-                    keteranganController: _keteranganController,
-                    focusPlatnomor: _focusPlatNomor,
-                    focusPO: _focusNoDo,
-                    focusSupir: _focusSupir,
-                    focusPotongan: _focusPotongan,
-                    focusKubikasi: _focusKubikasi,
-                    focusNoContainer: _focusNoContainer,
-                    focusSuhu: _focusSuhu,
-                    focusHarga: _focusHarga,
-                    focusKeterangan: _focusKeterangan,
-                    suppliers: _suppliers,
-                    customers: _customers,
-                    products: _products,
-                    selectedSupplier: _selectedSupplierId,
-                    selectedCustomer: _selectedCustomerId,
-                    selectedProduct: _selectedProductId,
-                    cardBg: _cardBg,
-                    primaryCyan: _primaryCyan,
-                    textGrey: _textGrey,
-                    inputBg: _inputBg,
-                    onSelectSupplier:
-                        (value) => setState(() {
-                          _selectedSupplierId = value;
-                        }),
-                    onSelectCustomer:
-                        (value) => setState(() {
-                          _selectedCustomerId = value;
-                        }),
-                    onSelectProduct:
-                        (value) => setState(() {
-                          _selectedProductId = value;
-                        }),
-                    onSavePressed: _handleSavePressed,
-                    isFormValid: isFormValid,
-                  ),
-                ),
+                _isWeightIn
+                    ? Expanded(
+                      flex: 3,
+                      child: TransactionFormCard(
+                        platnomorController: _platNomorController,
+                        poController: _noDoController,
+                        namasupirController: _namaSupirController,
+                        potonganController: _potonganController,
+                        kubikasiController: _kubikasiController,
+                        nocontainerController: _noContainerController,
+                        suhuController: _suhuController,
+                        hargaController: _hargaController,
+                        keteranganController: _keteranganController,
+                        focusPlatnomor: _focusPlatNomor,
+                        focusPO: _focusNoDo,
+                        focusSupir: _focusSupir,
+                        focusPotongan: _focusPotongan,
+                        focusKubikasi: _focusKubikasi,
+                        focusNoContainer: _focusNoContainer,
+                        focusSuhu: _focusSuhu,
+                        focusHarga: _focusHarga,
+                        focusKeterangan: _focusKeterangan,
+                        suppliers: _suppliers,
+                        customers: _customers,
+                        products: _products,
+                        selectedSupplier: _selectedSupplierId,
+                        selectedCustomer: _selectedCustomerId,
+                        selectedProduct: _selectedProductId,
+                        cardBg: _cardBg,
+                        primaryCyan: _primaryCyan,
+                        textGrey: _textGrey,
+                        inputBg: _inputBg,
+                        onSelectSupplier:
+                            (value) => setState(() {
+                              _selectedSupplierId = value;
+                            }),
+                        onSelectCustomer:
+                            (value) => setState(() {
+                              _selectedCustomerId = value;
+                            }),
+                        onSelectProduct:
+                            (value) => setState(() {
+                              _selectedProductId = value;
+                            }),
+                        onSavePressed: _handleSavePressed,
+                        isFormValid: isFormValid,
+                      ),
+                    )
+                    : Expanded(
+                      flex: 3,
+                      child: AddNettoTransactionFormCard(
+                        platnomorController: _platNomorController,
+                        poController: _noDoController,
+                        namasupirController: _namaSupirController,
+                        potonganController: _potonganController,
+                        kubikasiController: _kubikasiController,
+                        nocontainerController: _noContainerController,
+                        suhuController: _suhuController,
+                        hargaController: _hargaController,
+                        keteranganController: _keteranganController,
+                        supplierController: _supplierController,
+                        customerController: _customerController,
+                        productController: _productController,
+                        transactionIdController: _transactionIdController,
+                        focusPO: _focusNoDo,
+                        focusPotongan: _focusPotongan,
+                        focusKubikasi: _focusKubikasi,
+                        focusNoContainer: _focusNoContainer,
+                        focusSuhu: _focusSuhu,
+                        focusHarga: _focusHarga,
+                        focusKeterangan: _focusKeterangan,
+                        cardBg: _cardBg,
+                        primaryCyan: _primaryCyan,
+                        textGrey: _textGrey,
+                        inputBg: _inputBg,
+                        onSavePressed: _handleSavePressed,
+                        isFormValid: isFormValid,
+                      ),
+                    ),
                 const SizedBox(width: 20),
                 Expanded(flex: 2, child: SizedBox()),
               ],
