@@ -2,6 +2,7 @@ import 'package:dakara_weighbridge/Exception/auth_exception.dart';
 import 'package:dakara_weighbridge/Json/listaccount_json.dart';
 import 'package:dakara_weighbridge/Json/listcustomer_json.dart';
 import 'package:dakara_weighbridge/Json/listproduct_json.dart';
+import 'package:dakara_weighbridge/Json/listrequesttoken_json.dart';
 import 'package:dakara_weighbridge/Json/listsupplier_json.dart';
 import 'package:dakara_weighbridge/Json/listtoken_json.dart';
 import 'package:dakara_weighbridge/Json/listtransaction_json.dart';
@@ -475,8 +476,8 @@ class DbHelper {
     final Database db = await database;
     final result = await db.query(
       'manual_tokens',
-      where: 'tokenCode = ?',
-      whereArgs: [token],
+      where: 'tokenCode = ? AND isUsed = ?',
+      whereArgs: [token, 0],
       limit: 1,
     );
     if (result.isEmpty) return null;
@@ -488,10 +489,16 @@ class DbHelper {
     final Database db = await database;
     await db.update(
       'manual_tokens',
-      {'isUsed': 1},
+      {'isUsed': 1, 'usedAt': DateTime.now().toString()},
       where: 'tokenCode = ?',
       whereArgs: [token],
     );
+  }
+
+  /// Create Request for Manual Token
+  Future<int> createRequestForManualToken(ListRequestTokenJson token) async {
+    final Database db = await database;
+    return db.insert('token_requests', token.toJson());
   }
 }
 

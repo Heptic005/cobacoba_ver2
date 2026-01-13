@@ -29,11 +29,11 @@ class ListTokenJson {
   factory ListTokenJson.fromJson(Map<String, dynamic> json) => ListTokenJson(
     tokenId: json['tokenId'],
     tokenCode: json['tokenCode'],
-    expiresAt: json['expiresAt'],
+    expiresAt: DateTime.parse(json['expiresAt']),
     isUsed: json['isUsed'],
     createdBy: json['createdBy'],
     usedAt: json['usedAt'],
-    createdAt: json['createdAt'],
+    createdAt: DateTime.parse(json['createdAt']),
   );
 
   Map<String, dynamic> toJson() => {

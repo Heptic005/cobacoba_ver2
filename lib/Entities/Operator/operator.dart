@@ -74,8 +74,7 @@ class Operator implements AbstractOperator {
   }) async {
     final prefs = await SharedPreferences.getInstance();
     final bool? isLoggedInStatus = prefs.getBool('isLoggedIn');
-    final String? roleStatus = prefs.getString('role');
-    if (isLoggedInStatus == true && roleStatus == 'operator') {
+    if (isLoggedInStatus == true) {
       final transaction = await DbHelper.instance.getTransactionById(
         id: transactionId,
       );
@@ -109,6 +108,7 @@ class Operator implements AbstractOperator {
         headWarehouseLabel: t.headWarehouseLabel,
         isDrafted: 0,
         transactionId: t.transactionId,
+        isManual: t.isManual,
       );
       return await DbHelper.instance.updateTransaction(updated);
     }

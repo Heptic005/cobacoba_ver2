@@ -1,6 +1,9 @@
 import 'dart:async';
 import 'package:dakara_weighbridge/Entities/Operator/operator.dart';
+import 'package:dakara_weighbridge/Entities/Supervisor/supervisor.dart';
+import 'package:dakara_weighbridge/Exception/auth_exception.dart';
 import 'package:dakara_weighbridge/Pages/transaction_components/add_netto_transaction_form.dart';
+import 'package:dakara_weighbridge/Pages/transaction_components/manual_weight_monitor.dart';
 import 'package:dakara_weighbridge/SQLite/db_helper.dart';
 import 'package:dakara_weighbridge/Services/serial_service.dart';
 import 'package:flutter/material.dart';
@@ -19,6 +22,7 @@ import 'package:dakara_weighbridge/Pages/transaction_components/header.dart';
 import 'package:dakara_weighbridge/Pages/transaction_components/weight_details.dart';
 import 'package:dakara_weighbridge/Pages/transaction_components/main_actions.dart';
 import 'package:dakara_weighbridge/Pages/transaction_components/transaction_detail_dialog.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 /// Transaction page — thin UI wrapper around TransactionController.
 /// All business logic lives in the controller; this widget only renders layout and wires events.
@@ -66,6 +70,7 @@ class _TransactionState extends State<Transaction> {
   final _brutoController = TextEditingController();
   final _tareController = TextEditingController();
   final _nettoController = TextEditingController();
+  final _tokenController = TextEditingController();
 
   /// Focus Node
   final _focusPlatNomor = FocusNode();
@@ -77,6 +82,7 @@ class _TransactionState extends State<Transaction> {
   final _focusSuhu = FocusNode();
   final _focusHarga = FocusNode();
   final _focusKeterangan = FocusNode();
+  final _focusToken = FocusNode();
 
   /// U-I Needs
   int? _selectedSupplierId;
@@ -97,6 +103,18 @@ class _TransactionState extends State<Transaction> {
   List<ListSupplierJson> _suppliers = [];
   List<ListProductJson> _products = [];
   List<ListCustomerJson> _customers = [];
+
+  /// Load Role For Authorization
+  bool _isSupervisor = false;
+
+  Future<void> _loadRole() async {
+    final prefs = await SharedPreferences.getInstance();
+    final role = prefs.getString('role');
+
+    setState(() {
+      _isSupervisor = role == 'supervisor';
+    });
+  }
 
   /// Weight From Serial
   double? _capturedWeight;
@@ -126,13 +144,15 @@ class _TransactionState extends State<Transaction> {
     final items = await DbHelper.instance.getListTransaction();
     setState(() {
       _recentTransactions = items.where((e) => e.isDrafted == 0).toList();
-      _draftTickets = items.where((e) => e.isDrafted == 1).map((e) => e.noTicket).toSet();
+      _draftTickets =
+          items.where((e) => e.isDrafted == 1).map((e) => e.noTicket).toSet();
     });
   }
 
   /// Save Transaction
   Future<void> _handleSavePressed() async {
     final operator = Operator();
+    final supervisor = Supervisor();
     final messenger = ScaffoldMessenger.of(context);
 
     try {
@@ -159,7 +179,26 @@ class _TransactionState extends State<Transaction> {
       final bruto = double.tryParse(_capturedWeight!.toStringAsFixed(2));
       final tare = double.tryParse(_capturedWeight!.toStringAsFixed(2));
 
-      if (_isWeightIn) {
+      if (_isSupervisor && _isWeightIn) {
+        print(_tokenController.text);
+        await supervisor.validateToken(_tokenController.text);
+
+        supervisor.addEmergencyTransaction(
+          vehiclePlate: _platNomorController.text,
+          driverName: _namaSupirController.text,
+          supplierId: _selectedSupplierId!,
+          customerId: _selectedCustomerId!,
+          productId: _selectedProductId!,
+          cut: cut!,
+          bruto: bruto!,
+          kubikasi: kubikasi,
+          noDo: _noDoController.text,
+          noContainer: noContainer,
+          temperature: suhu,
+          price: price,
+          additionalInformation: _keteranganController.text,
+        );
+      } else if (_isWeightIn) {
         operator.addBrutoTransaction(
           vehiclePlate: _platNomorController.text,
           driverName: _namaSupirController.text,
@@ -218,6 +257,7 @@ class _TransactionState extends State<Transaction> {
       _brutoController.clear();
       _tareController.clear();
       _nettoController.clear();
+      _tokenController.clear();
 
       // Reset selections
       _selectedSupplierId = null;
@@ -247,12 +287,22 @@ class _TransactionState extends State<Transaction> {
               children: [
                 SizedBox(
                   width: 120,
-                  child: Text(label, style: TextStyle(color: _textGrey.withAlpha((0.8 * 255).round()), fontSize: 13)),
+                  child: Text(
+                    label,
+                    style: TextStyle(
+                      color: _textGrey.withAlpha((0.8 * 255).round()),
+                      fontSize: 13,
+                    ),
+                  ),
                 ),
                 Expanded(
                   child: Text(
                     value.isEmpty ? '-' : value,
-                    style: const TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.w600),
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
                 ),
               ],
@@ -263,15 +313,19 @@ class _TransactionState extends State<Transaction> {
         final ticket = (safe['noTicket'] ?? '').toString();
         final plate = (safe['vehiclePlate'] ?? '-').toString();
         final driver = (safe['driverName'] ?? '-').toString();
-        final productName = (safe['productName'] ?? safe['ProductName'] ?? '').toString();
-        final supplierName = (safe['supplierName'] ?? safe['SupplierName'] ?? '').toString();
-        final customerName = (safe['customerName'] ?? safe['CustomerName'] ?? '').toString();
+        final productName =
+            (safe['productName'] ?? safe['ProductName'] ?? '').toString();
+        final supplierName =
+            (safe['supplierName'] ?? safe['SupplierName'] ?? '').toString();
+        final customerName =
+            (safe['customerName'] ?? safe['CustomerName'] ?? '').toString();
         final inTime = safe['inTime']?.toString();
         final outTime = safe['outTime']?.toString();
         final bruto = (safe['bruto'] ?? '').toString();
         final tare = (safe['tare'] ?? '').toString();
         final netto = (safe['netto'] ?? '').toString();
-        final afterCut = (safe['nettoAfterCut'] ?? safe['netto'] ?? '').toString();
+        final afterCut =
+            (safe['nettoAfterCut'] ?? safe['netto'] ?? '').toString();
         final notes = (safe['additionalInformation'] ?? '').toString();
 
         return Dialog(
@@ -284,7 +338,9 @@ class _TransactionState extends State<Transaction> {
                 decoration: BoxDecoration(
                   color: _cardBg,
                   borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: _textGrey.withAlpha((0.12 * 255).round())),
+                  border: Border.all(
+                    color: _textGrey.withAlpha((0.12 * 255).round()),
+                  ),
                 ),
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
@@ -295,7 +351,11 @@ class _TransactionState extends State<Transaction> {
                       children: [
                         Text(
                           ticket.isNotEmpty ? 'Detail $ticket' : 'Detail',
-                          style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.w700),
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 18,
+                            fontWeight: FontWeight.w700,
+                          ),
                         ),
                         IconButton(
                           onPressed: () => Navigator.of(ctx).pop(),
@@ -329,7 +389,10 @@ class _TransactionState extends State<Transaction> {
                       alignment: Alignment.centerRight,
                       child: TextButton(
                         onPressed: () => Navigator.of(ctx).pop(),
-                        child: Text('Close', style: TextStyle(color: _textGrey)),
+                        child: Text(
+                          'Close',
+                          style: TextStyle(color: _textGrey),
+                        ),
                       ),
                     ),
                   ],
@@ -344,22 +407,32 @@ class _TransactionState extends State<Transaction> {
 
   Future<void> _handlePrintMap(Map<String, Object?> item) async {
     final messenger = ScaffoldMessenger.of(context);
-    await _printService.print('Print ticket: ${item['noTicket'] ?? ''}\n${item.toString()}');
+    await _printService.print(
+      'Print ticket: ${item['noTicket'] ?? ''}\n${item.toString()}',
+    );
     if (!mounted) return;
-    messenger.showSnackBar(const SnackBar(content: Text('Print diproses (stub)')));
+    messenger.showSnackBar(
+      const SnackBar(content: Text('Print diproses (stub)')),
+    );
   }
 
   Future<void> _handleExportPdfMap(Map<String, Object?> item) async {
     final messenger = ScaffoldMessenger.of(context);
-    await _printService.print('Export PDF ticket: ${item['noTicket'] ?? ''}\n${item.toString()}');
+    await _printService.print(
+      'Export PDF ticket: ${item['noTicket'] ?? ''}\n${item.toString()}',
+    );
     if (!mounted) return;
-    messenger.showSnackBar(const SnackBar(content: Text('Export PDF diproses (stub)')));
+    messenger.showSnackBar(
+      const SnackBar(content: Text('Export PDF diproses (stub)')),
+    );
   }
 
   Future<void> _handleContinueAuto(ListTransactionJson tx) async {
     if (!mounted) return;
     final messenger = ScaffoldMessenger.of(context);
-    messenger.showSnackBar(SnackBar(content: Text('Lanjutkan transaksi ${tx.noTicket}')));
+    messenger.showSnackBar(
+      SnackBar(content: Text('Lanjutkan transaksi ${tx.noTicket}')),
+    );
   }
 
   void _handleLoadDraft(ListTransactionJson tx) {
@@ -381,7 +454,9 @@ class _TransactionState extends State<Transaction> {
     });
     if (!mounted) return;
     final messenger = ScaffoldMessenger.of(context);
-    messenger.showSnackBar(SnackBar(content: Text('Draft ${tx.noTicket} dimuat'))) ;
+    messenger.showSnackBar(
+      SnackBar(content: Text('Draft ${tx.noTicket} dimuat')),
+    );
   }
 
   Future<void> _handleCopy(String text) async {
@@ -411,6 +486,9 @@ class _TransactionState extends State<Transaction> {
       setState(() => _isLoaded = true);
     });
     _loadRecentTransactions();
+
+    /// Load Role
+    _loadRole();
   }
 
   @override
@@ -433,6 +511,7 @@ class _TransactionState extends State<Transaction> {
     _brutoController.dispose();
     _tareController.dispose();
     _nettoController.dispose();
+    _tokenController.dispose();
 
     // /// Serial Close Connection
     // SerialService().disconnect();
@@ -467,17 +546,29 @@ class _TransactionState extends State<Transaction> {
             const SizedBox(height: 20),
             Row(
               children: [
-                Expanded(
-                  flex: 3,
-                  child: WeightMonitorCard(
-                    isWeighIn: _isWeightIn,
-                    cardBg: _cardBg,
-                    primaryCyan: _primaryCyan,
-                    textGrey: _textGrey,
-                    textWhite: _textWhite,
-                    onCaptured: _onWeightCaptured,
-                  ),
-                ),
+                _isSupervisor
+                    ? Expanded(
+                      flex: 3,
+                      child: WeightMonitorManualCard(
+                        isWeighIn: _isWeightIn,
+                        cardBg: _cardBg,
+                        primaryCyan: _primaryCyan,
+                        textGrey: _textGrey,
+                        textWhite: _textWhite,
+                        onCaptured: _onWeightCaptured,
+                      ),
+                    )
+                    : Expanded(
+                      flex: 3,
+                      child: WeightMonitorCard(
+                        isWeighIn: _isWeightIn,
+                        cardBg: _cardBg,
+                        primaryCyan: _primaryCyan,
+                        textGrey: _textGrey,
+                        textWhite: _textWhite,
+                        onCaptured: _onWeightCaptured,
+                      ),
+                    ),
                 const SizedBox(width: 20),
                 Expanded(
                   flex: 2,
@@ -498,6 +589,7 @@ class _TransactionState extends State<Transaction> {
                 _isWeightIn
                     ? Expanded(
                       child: TransactionFormCard(
+                        isSupervisor: _isSupervisor,
                         platnomorController: _platNomorController,
                         poController: _noDoController,
                         namasupirController: _namaSupirController,
@@ -507,6 +599,7 @@ class _TransactionState extends State<Transaction> {
                         suhuController: _suhuController,
                         hargaController: _hargaController,
                         keteranganController: _keteranganController,
+                        tokenController: _tokenController,
                         focusPlatnomor: _focusPlatNomor,
                         focusPO: _focusNoDo,
                         focusSupir: _focusSupir,
@@ -516,6 +609,7 @@ class _TransactionState extends State<Transaction> {
                         focusSuhu: _focusSuhu,
                         focusHarga: _focusHarga,
                         focusKeterangan: _focusKeterangan,
+                        focusToken: _focusToken,
                         suppliers: _suppliers,
                         customers: _customers,
                         products: _products,

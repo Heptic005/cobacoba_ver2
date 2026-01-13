@@ -14,6 +14,7 @@ class TransactionFormCard extends StatelessWidget {
   final TextEditingController suhuController;
   final TextEditingController hargaController;
   final TextEditingController keteranganController;
+  final TextEditingController tokenController;
 
   final FocusNode focusPlatnomor;
   final FocusNode focusPO;
@@ -24,6 +25,7 @@ class TransactionFormCard extends StatelessWidget {
   final FocusNode focusSuhu;
   final FocusNode focusHarga;
   final FocusNode focusKeterangan;
+  final FocusNode focusToken;
 
   final List<ListSupplierJson> suppliers;
   final List<ListCustomerJson> customers;
@@ -32,6 +34,7 @@ class TransactionFormCard extends StatelessWidget {
   final int? selectedCustomer;
   final int? selectedProduct;
   final double? bruto;
+  final bool isSupervisor;
 
   final Color cardBg;
   final Color primaryCyan;
@@ -80,6 +83,9 @@ class TransactionFormCard extends StatelessWidget {
     required this.onSavePressed,
     required this.isFormValid,
     this.bruto = 0,
+    required this.isSupervisor,
+    required this.tokenController,
+    required this.focusToken,
   });
 
   Widget _buildTextInput({
@@ -231,6 +237,24 @@ class TransactionFormCard extends StatelessWidget {
                   padding: const EdgeInsets.only(bottom: 12.0),
                   child: Row(children: [const SizedBox(width: 12)]),
                 ),
+                isSupervisor
+                    ? Row(
+                      children: [
+                        Expanded(
+                          child: _buildTextInput(
+                            controller: tokenController,
+                            label: 'Manual Weight Token',
+                            hint: 'TOKEN',
+                            focus: focusToken,
+                            nextFocus: focusPlatnomor,
+                            textCapital: TextCapitalization.characters,
+                            prefixIcon: Icons.generating_tokens,
+                          ),
+                        ),
+                      ],
+                    )
+                    : const SizedBox(),
+                const SizedBox(height: 16),
                 Row(
                   children: [
                     Expanded(

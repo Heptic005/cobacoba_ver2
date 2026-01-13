@@ -41,7 +41,7 @@ class _LoginPageState extends State<LoginPage> {
       final newAccount = ListAccountJson(
         accountUsername: username,
         accountPassword: authService.hashPassword(password),
-        accountPosition: 'operator',
+        accountPosition: 'supervisor',
       );
       await DbHelper.instance.addUser(newAccount);
       if (!mounted) return;
