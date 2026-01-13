@@ -62,7 +62,7 @@ class _SearchTicketFieldState extends State<SearchTicketField> {
             return ListTile(
               tileColor: Colors.black,
               title: Text(
-                transaction.noTicket,
+                '${transaction.driverName} - ${transaction.noTicket}',
                 style: TextStyle(
                   color: Colors.white,
                   fontWeight: FontWeight.bold,
