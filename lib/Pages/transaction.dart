@@ -350,10 +350,14 @@ class _TransactionState extends State<Transaction> {
   }
 
   Future<void> _handleExportPdfMap(Map<String, Object?> item) async {
-    final messenger = ScaffoldMessenger.of(context);
-    await _printService.print('Export PDF ticket: ${item['noTicket'] ?? ''}\n${item.toString()}');
-    if (!mounted) return;
-    messenger.showSnackBar(const SnackBar(content: Text('Export PDF diproses (stub)')));
+    // Show interactive PDF preview to the user (builds PDF from the provided map only)
+    try {
+      await showPdfPreview(context, item);
+    } catch (e) {
+      if (!mounted) return;
+      final messenger = ScaffoldMessenger.of(context);
+      messenger.showSnackBar(SnackBar(content: Text('Preview gagal: $e')));
+    }
   }
 
   Future<void> _handleContinueAuto(ListTransactionJson tx) async {

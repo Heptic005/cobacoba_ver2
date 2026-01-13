@@ -92,17 +92,18 @@ class _ReportDataTableState extends State<ReportDataTable> {
                     child: Text('Menampilkan ${list.length} hasil', style: const TextStyle(color: kTextGrey, fontSize: 13)),
                   ),
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                    height: 72,
+                    padding: const EdgeInsets.symmetric(horizontal: 12),
                     decoration: BoxDecoration(color: kInputBg, borderRadius: BorderRadius.circular(8)),
-                    child: Row(children: const [
-                      _TableHeader('Nomor Tiket', flex: 2),
-                      _TableHeader('Plat Nomor', flex: 2),
+                    child: Row(crossAxisAlignment: CrossAxisAlignment.center, children: const [
+                      _TableHeader('No. Tiket', flex: 2),
+                      _TableHeader('Plat', flex: 2),
                       _TableHeader('Produk', flex: 1),
-                      _TableHeader('Supplier', flex: 2),
-                      _TableHeader('Customer', flex: 2),
-                      _TableHeader('Bruto', flex: 1, align: TextAlign.right),
-                      _TableHeader('Tara', flex: 1, align: TextAlign.right),
-                      _TableHeader('Setelah Potongan', flex: 1, align: TextAlign.right),
+                      _TableHeader('Supplier', flex: 3),
+                      _TableHeader('Customer', flex: 3),
+                      _TableHeader('Bruto (kg)', flex: 1, align: TextAlign.right),
+                      _TableHeader('Tara (kg)', flex: 1, align: TextAlign.right),
+                      _TableHeader('Netto (kg)', flex: 1, align: TextAlign.right),
                       _TableHeader('Total', flex: 1, align: TextAlign.right),
                       _TableHeader('Status', flex: 2, align: TextAlign.center),
                       _TableHeader('Aksi', flex: 1, align: TextAlign.center),
@@ -177,10 +178,11 @@ class _TableHeader extends StatelessWidget {
       flex: flex,
       child: Text(
         text,
-        style: const TextStyle(
-          color: kTextGrey,
-          fontSize: 12,
-          fontWeight: FontWeight.w500,
+        style: TextStyle(
+          color: kTextGrey.withOpacity(0.9),
+          fontSize: 13,
+          fontWeight: FontWeight.w600,
+          letterSpacing: 0.2,
         ),
         textAlign: align,
       ),
@@ -213,24 +215,59 @@ class ReportRowWidget extends StatelessWidget {
           Expanded(flex: 2, child: _ColTitle(row.noTicket, row.formattedDate)),
           Expanded(flex: 2, child: _ColSub(row.vehiclePlate, row.driverName)),
           Expanded(flex: 1, child: Text(row.productName, style: const TextStyle(color: kTextWhite, fontSize: 13))),
-          Expanded(flex: 2, child: Text(row.supplierName, style: const TextStyle(color: kTextWhite, fontSize: 13))),
-          Expanded(flex: 2, child: Text(row.customerName, style: const TextStyle(color: kTextWhite, fontSize: 13))),
+          Expanded(flex: 3, child: Text(row.supplierName, style: const TextStyle(color: kTextWhite, fontSize: 13))),
+          Expanded(flex: 3, child: Text(row.customerName, style: const TextStyle(color: kTextWhite, fontSize: 13))),
           Expanded(flex: 1, child: Text(row.formattedBruto, style: const TextStyle(color: kTextWhite, fontSize: 13), textAlign: TextAlign.right)),
           Expanded(flex: 1, child: Text(row.formattedTare, style: const TextStyle(color: kTextWhite, fontSize: 13), textAlign: TextAlign.right)),
           Expanded(flex: 1, child: Text(row.formattedNetto, style: const TextStyle(color: kTextWhite, fontSize: 13), textAlign: TextAlign.right)),
           Expanded(flex: 1, child: Text(row.formattedTotal, style: const TextStyle(color: kPrimaryCyan, fontWeight: FontWeight.w600, fontSize: 13), textAlign: TextAlign.right)),
           Expanded(flex: 2, child: Center(child: StatusBadge(text: statusText, color: statusColor))),
-          Expanded(flex: 1, child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-            SizedBox(width: 32, height: 32, child: IconButton(icon: const Icon(Icons.visibility, size: 16, color: kTextGrey), padding: EdgeInsets.zero, constraints: const BoxConstraints(), onPressed: () => showTransactionDetailDialog(context, src, (id) => row.supplierName, (id) => row.productName), tooltip: 'Lihat')),
-            const SizedBox(width: 4),
-            SizedBox(width: 32, height: 32, child: PopupMenuButton<String>(icon: const Icon(Icons.more_vert, size: 16, color: kTextGrey), padding: EdgeInsets.zero, iconSize: 16, color: kCardBg, onSelected: (v) {
-              if (v == 'copy_ticket') { clipboard.copy(src.noTicket); onSnack('No. Tiket disalin'); }
-              if (v == 'copy_plate') { clipboard.copy(src.vehiclePlate); onSnack('Plat disalin'); }
-            }, itemBuilder: (_) => [
-              const PopupMenuItem(value: 'copy_ticket', child: Text('Salin No. Tiket', style: TextStyle(color: kTextWhite))),
-              const PopupMenuItem(value: 'copy_plate', child: Text('Salin Plat', style: TextStyle(color: kTextWhite))),
-            ])),
-          ])),
+          Expanded(
+            flex: 1,
+            child: Center(
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  SizedBox(
+                    width: 30,
+                    height: 30,
+                    child: IconButton(
+                      icon: const Icon(Icons.visibility, size: 16, color: kTextGrey),
+                      padding: EdgeInsets.zero,
+                      constraints: const BoxConstraints(),
+                      onPressed: () => showTransactionDetailDialog(context, src, (id) => row.supplierName, (id) => row.productName),
+                      tooltip: 'Lihat',
+                    ),
+                  ),
+                  const SizedBox(width: 2),
+                  SizedBox(
+                    width: 30,
+                    height: 30,
+                    child: PopupMenuButton<String>(
+                      icon: const Icon(Icons.more_vert, size: 16, color: kTextGrey),
+                      padding: EdgeInsets.zero,
+                      iconSize: 16,
+                      color: kCardBg,
+                      onSelected: (v) {
+                        if (v == 'copy_ticket') {
+                          clipboard.copy(src.noTicket);
+                          onSnack('No. Tiket disalin');
+                        }
+                        if (v == 'copy_plate') {
+                          clipboard.copy(src.vehiclePlate);
+                          onSnack('Plat disalin');
+                        }
+                      },
+                      itemBuilder: (_) => [
+                        const PopupMenuItem(value: 'copy_ticket', child: Text('Salin No. Tiket', style: TextStyle(color: kTextWhite))),
+                        const PopupMenuItem(value: 'copy_plate', child: Text('Salin Plat', style: TextStyle(color: kTextWhite))),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
         ]),
       ),
     );
