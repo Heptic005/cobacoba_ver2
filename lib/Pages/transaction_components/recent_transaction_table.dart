@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:dakara_weighbridge/Json/listtransaction_json.dart';
@@ -6,7 +7,7 @@ import 'package:dakara_weighbridge/Json/listcustomer_json.dart';
 import 'package:dakara_weighbridge/Json/listsupplier_json.dart';
 
 /// Compact recent transactions table with PDF/Print actions.
-class RecentTransactionTable extends StatelessWidget {
+class RecentTransactionTable extends StatefulWidget {
   final TextEditingController searchController;
   final bool sortDesc;
   final Set<String> draftTickets;
@@ -25,39 +26,6 @@ class RecentTransactionTable extends StatelessWidget {
   final Future<void> Function(ListTransactionJson tx) onContinueAuto;
   final void Function(ListTransactionJson tx) onLoadDraft;
   final void Function(String text) onCopyToClipboard;
-
-  static final ListTransactionJson _staticSample = ListTransactionJson(
-    transactionId: 9999,
-    vehiclePlate: 'B 1234 XX',
-    driverName: 'Static Driver',
-    supplierId: 0,
-    customerId: 0,
-    productId: 0,
-    cut: 0,
-    kubikasi: 0,
-    noDO: 'DO-001',
-    noContainer: 0,
-    temperature: 0,
-    price: 0,
-    additionalInformation: 'Sample data',
-    noTicket: 'SAMPLE-RECENT',
-    inTime: DateTime.now().subtract(const Duration(hours: 3)),
-    outTime: DateTime.now().subtract(const Duration(hours: 2, minutes: 15)),
-    totalPrice: 0,
-    bruto: 18000,
-    tare: 7000,
-    netto: 11000,
-    nettoAfterCut: 11000,
-    driverLabel: 0,
-    operatorLabel: 0,
-    managerLabel: 0,
-    headWarehouseLabel: 0,
-    isDrafted: 0,
-    isManual: 0,
-    supplierName: 'Sample Supplier',
-    customerName: 'Sample Customer',
-    productName: 'Sample Product',
-  );
 
   const RecentTransactionTable({
     super.key,
@@ -80,11 +48,21 @@ class RecentTransactionTable extends StatelessWidget {
     required this.onCopyToClipboard,
   });
 
+  @override
+  State<RecentTransactionTable> createState() => _RecentTransactionTableState();
+}
+
+class _RecentTransactionTableState extends State<RecentTransactionTable> {
+  static const int _pageSize = 8;
+  int _visibleCount = _pageSize;
+  bool _isSearching = false;
+  Timer? _debounce;
+
   String _fmt(DateTime? d) => d == null ? '' : DateFormat('dd MMM HH:mm').format(d);
 
   String _productName(ListTransactionJson tx) {
     if (tx.productName != null && tx.productName!.isNotEmpty) return tx.productName!;
-    final found = products.firstWhere(
+    final found = widget.products.firstWhere(
       (p) => p.productId == tx.productId,
       orElse: () => ListProductJson(productId: 0, productName: '', productCode: ''),
     );
@@ -93,7 +71,7 @@ class RecentTransactionTable extends StatelessWidget {
 
   String _supplierName(ListTransactionJson tx) {
     if (tx.supplierName != null && tx.supplierName!.isNotEmpty) return tx.supplierName!;
-    final found = suppliers.firstWhere(
+    final found = widget.suppliers.firstWhere(
       (s) => s.supplierId == tx.supplierId,
       orElse: () => ListSupplierJson(
         supplierName: '',
@@ -108,7 +86,7 @@ class RecentTransactionTable extends StatelessWidget {
 
   String _customerName(ListTransactionJson tx) {
     if (tx.customerName != null && tx.customerName!.isNotEmpty) return tx.customerName!;
-    final found = customers.firstWhere(
+    final found = widget.customers.firstWhere(
       (c) => c.customerId == tx.customerId,
       orElse: () => ListCustomerJson(
         customerName: '',
@@ -128,12 +106,35 @@ class RecentTransactionTable extends StatelessWidget {
   }
 
   @override
-  Widget build(BuildContext context) {
-    final List<ListTransactionJson> combined = List.of(transactions);
-    final hasStatic = combined.any((e) => e.noTicket == _staticSample.noTicket);
-    if (!hasStatic) combined.add(_staticSample);
+  void initState() {
+    super.initState();
+    widget.searchController.addListener(_onSearchChanged);
+  }
 
-    final query = searchController.text.trim().toLowerCase();
+  @override
+  void dispose() {
+    _debounce?.cancel();
+    widget.searchController.removeListener(_onSearchChanged);
+    super.dispose();
+  }
+
+  void _onSearchChanged() {
+    _debounce?.cancel();
+    setState(() => _isSearching = true);
+    _debounce = Timer(const Duration(milliseconds: 400), () {
+      if (!mounted) return;
+      setState(() {
+        _visibleCount = _pageSize;
+        _isSearching = false;
+      });
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final List<ListTransactionJson> combined = List.of(widget.transactions);
+
+    final query = widget.searchController.text.trim().toLowerCase();
     final filtered = combined.where((tx) {
       if (tx.outTime == null) return false;
       if (!tx.outTime!.isAfter(tx.inTime)) return false;
@@ -143,9 +144,14 @@ class RecentTransactionTable extends StatelessWidget {
       return ticket.contains(query) || plate.contains(query);
     }).toList();
 
-    filtered.sort(
-      (a, b) => sortDesc ? b.inTime.compareTo(a.inTime) : a.inTime.compareTo(b.inTime),
-    );
+    filtered.sort((a, b) => widget.sortDesc ? b.inTime.compareTo(a.inTime) : a.inTime.compareTo(b.inTime));
+
+    final showing = filtered.take(_visibleCount).toList();
+
+    final cardBg = widget.cardBg;
+    final textGrey = widget.textGrey;
+    final inputBg = widget.inputBg;
+    final primaryCyan = widget.primaryCyan;
 
     return Container(
       width: double.infinity,
@@ -167,7 +173,7 @@ class RecentTransactionTable extends StatelessWidget {
             children: [
               Expanded(
                 child: TextField(
-                  controller: searchController,
+                  controller: widget.searchController,
                   style: const TextStyle(color: Colors.white),
                   decoration: InputDecoration(
                     hintText: 'Search ticket or plate',
@@ -180,7 +186,6 @@ class RecentTransactionTable extends StatelessWidget {
                       borderSide: BorderSide.none,
                     ),
                   ),
-                  onChanged: (_) => (context as Element).markNeedsBuild(),
                 ),
               ),
               const SizedBox(width: 8),
@@ -188,195 +193,233 @@ class RecentTransactionTable extends StatelessWidget {
                 message: 'Sort by time',
                 child: IconButton(
                   onPressed: () {},
-                  icon: Icon(sortDesc ? Icons.arrow_downward : Icons.arrow_upward, color: textGrey),
+                  icon: Icon(widget.sortDesc ? Icons.arrow_downward : Icons.arrow_upward, color: textGrey),
                 ),
               ),
             ],
           ),
           const SizedBox(height: 12),
-          if (filtered.isEmpty)
+          if (_isSearching)
+            // simple skeletons
+            Column(
+              children: List.generate(
+                4,
+                (i) => Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 8.0),
+                  child: Row(children: [
+                    Expanded(
+                      child: Container(height: 56, decoration: BoxDecoration(color: Colors.grey.shade800, borderRadius: BorderRadius.circular(8))),
+                    ),
+                  ]),
+                ),
+              ),
+            )
+          else if (filtered.isEmpty)
             Padding(
               padding: const EdgeInsets.all(12.0),
               child: Text('No matching completed transactions', style: TextStyle(color: textGrey)),
             )
           else
-            ListView.separated(
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              itemCount: filtered.length,
-              separatorBuilder: (_, __) => Divider(color: textGrey.withAlpha((0.12 * 255).round())),
-              itemBuilder: (ctx, i) {
-                final tx = filtered[i];
-                final isDraft = tx.isDrafted == 1;
-                final inTime = _fmt(tx.inTime);
-                final outTime = _fmt(tx.outTime);
-                final prodName = _productName(tx);
-                final supName = _supplierName(tx);
-                final custName = _customerName(tx);
+            Column(
+              children: [
+                ListView.separated(
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  itemCount: showing.length,
+                  separatorBuilder: (_, __) => Divider(color: textGrey.withAlpha((0.12 * 255).round())),
+                  itemBuilder: (ctx, i) {
+                    final tx = showing[i];
+                    final isDraft = tx.isDrafted == 1;
+                    final inTime = _fmt(tx.inTime);
+                    final outTime = _fmt(tx.outTime);
+                    final prodName = _productName(tx);
+                    final supName = _supplierName(tx);
+                    final custName = _customerName(tx);
 
-                return ExpansionTile(
-                  key: PageStorageKey<String>('recent-${tx.noTicket}'),
-                  tilePadding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
-                  collapsedIconColor: textGrey,
-                  iconColor: textGrey,
-                  initiallyExpanded: false,
-                  maintainState: false,
-                  title: Row(
-                    children: [
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Row(
+                    return ExpansionTile(
+                      key: PageStorageKey<String>('recent-${tx.noTicket}'),
+                      tilePadding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
+                      collapsedIconColor: textGrey,
+                      iconColor: textGrey,
+                      initiallyExpanded: false,
+                      maintainState: false,
+                      title: Row(
+                        children: [
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Text(
-                                  tx.noTicket,
-                                  style: TextStyle(color: primaryCyan, fontWeight: FontWeight.w700),
+                                Row(
+                                  children: [
+                                    Text(
+                                      tx.noTicket,
+                                      style: TextStyle(color: primaryCyan, fontWeight: FontWeight.w700),
+                                    ),
+                                    const SizedBox(width: 8),
+                                    isDraft
+                                        ? Container(
+                                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                            decoration: BoxDecoration(
+                                              color: primaryCyan,
+                                              borderRadius: BorderRadius.circular(12),
+                                            ),
+                                            child: const Text(
+                                              'DRAFT',
+                                              style: TextStyle(color: Colors.black, fontSize: 11, fontWeight: FontWeight.w700),
+                                            ),
+                                          )
+                                        : Container(
+                                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                            decoration: BoxDecoration(
+                                              color: Colors.greenAccent,
+                                              borderRadius: BorderRadius.circular(12),
+                                            ),
+                                            child: const Text(
+                                              'FINISHED',
+                                              style: TextStyle(color: Colors.black, fontSize: 11, fontWeight: FontWeight.w700),
+                                            ),
+                                          ),
+                                  ],
                                 ),
-                                const SizedBox(width: 8),
-                                isDraft
-                                    ? Container(
-                                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                                        decoration: BoxDecoration(
-                                          color: primaryCyan,
-                                          borderRadius: BorderRadius.circular(12),
-                                        ),
-                                        child: const Text(
-                                          'DRAFT',
-                                          style: TextStyle(color: Colors.black, fontSize: 11, fontWeight: FontWeight.w700),
-                                        ),
-                                      )
-                                    : Container(
-                                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                                        decoration: BoxDecoration(
-                                          color: Colors.greenAccent,
-                                          borderRadius: BorderRadius.circular(12),
-                                        ),
-                                        child: const Text(
-                                          'FINISHED',
-                                          style: TextStyle(color: Colors.black, fontSize: 11, fontWeight: FontWeight.w700),
-                                        ),
-                                      ),
+                                const SizedBox(height: 6),
+                                Text(
+                                  tx.vehiclePlate,
+                                  style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                                ),
+                                const SizedBox(height: 4),
+                                Text(
+                                  '${tx.driverName} - $prodName',
+                                  style: TextStyle(color: textGrey, fontSize: 12),
+                                ),
+                                const SizedBox(height: 4),
+                                Text(
+                                  '$inTime - $outTime',
+                                  style: TextStyle(color: textGrey.withAlpha((0.85 * 255).round()), fontSize: 11),
+                                ),
                               ],
                             ),
-                            const SizedBox(height: 6),
-                            Text(
-                              tx.vehiclePlate,
-                              style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-                            ),
-                            const SizedBox(height: 4),
-                            Text(
-                              '${tx.driverName} - $prodName',
-                              style: TextStyle(color: textGrey, fontSize: 12),
-                            ),
-                            const SizedBox(height: 4),
-                            Text(
-                              '$inTime - $outTime',
-                              style: TextStyle(color: textGrey.withAlpha((0.85 * 255).round()), fontSize: 11),
-                            ),
-                          ],
+                          ),
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.end,
+                            children: [
+                              Text('${tx.bruto.toStringAsFixed(0)} kg', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                              const SizedBox(height: 2),
+                              Text('Bruto', style: TextStyle(color: textGrey.withAlpha((0.7 * 255).round()), fontSize: 10)),
+                            ],
+                          ),
+                          const SizedBox(width: 12),
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.end,
+                            children: [
+                              Text('${tx.netto.toStringAsFixed(0)} kg', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                              const SizedBox(height: 2),
+                              Text('Netto', style: TextStyle(color: textGrey.withAlpha((0.7 * 255).round()), fontSize: 10)),
+                            ],
+                          ),
+                          const SizedBox(width: 12),
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.end,
+                            children: [
+                              Text('${tx.nettoAfterCut.toStringAsFixed(0)} kg', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                              const SizedBox(height: 2),
+                              Text('After cut', style: TextStyle(color: textGrey.withAlpha((0.7 * 255).round()), fontSize: 10)),
+                            ],
+                          ),
+                          PopupMenuButton<String>(
+                            color: cardBg,
+                            icon: Icon(Icons.more_vert, color: textGrey),
+                            onSelected: (value) async {
+                              final map = _asMap(tx);
+                              if (value == 'copy') {
+                                widget.onCopyToClipboard(tx.noTicket);
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(content: Text('Ticket copied')),
+                                );
+                              } else if (value == 'detail') {
+                                await widget.onShowDetailMap(map);
+                              } else if (value == 'print') {
+                                await widget.onPrintMap(map);
+                              } else if (value == 'pdf') {
+                                await widget.onExportPdfMap(map);
+                              } else if (value == 'continue') {
+                                await widget.onContinueAuto(tx);
+                              } else if (value == 'loadDraft') {
+                                widget.onLoadDraft(tx);
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(content: Text('Draft loaded')),
+                                );
+                              }
+                            },
+                            itemBuilder: (_) => [
+                              PopupMenuItem(
+                                value: 'pdf',
+                                child: Text('PDF', style: TextStyle(color: textGrey.withAlpha((0.9 * 255).round()))),
+                              ),
+                              PopupMenuItem(
+                                value: 'print',
+                                child: Text('Print', style: TextStyle(color: textGrey.withAlpha((0.9 * 255).round()))),
+                              ),
+                              PopupMenuItem(
+                                value: 'copy',
+                                child: Text('Copy ticket', style: TextStyle(color: textGrey.withAlpha((0.9 * 255).round()))),
+                              ),
+                              PopupMenuItem(
+                                value: 'detail',
+                                child: Text('Detail', style: TextStyle(color: textGrey.withAlpha((0.9 * 255).round()))),
+                              ),
+                              if (isDraft)
+                                PopupMenuItem(
+                                  value: 'continue',
+                                  child: Text('Continue Netto', style: TextStyle(color: textGrey.withAlpha((0.9 * 255).round()))),
+                                ),
+                              if (isDraft)
+                                PopupMenuItem(
+                                  value: 'loadDraft',
+                                  child: Text('Load Draft', style: TextStyle(color: textGrey.withAlpha((0.9 * 255).round()))),
+                                ),
+                            ],
+                          ),
+                        ],
+                      ),
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 8),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text('Product: $prodName', style: TextStyle(color: textGrey)),
+                              const SizedBox(height: 6),
+                              Row(
+                                children: [
+                                  Expanded(child: Text('Supplier: ${supName.isEmpty ? '-' : supName}', style: TextStyle(color: textGrey))),
+                                  const SizedBox(width: 12),
+                                  Expanded(child: Text('Customer: ${custName.isEmpty ? '-' : custName}', style: TextStyle(color: textGrey))),
+                                ],
+                              ),
+                            ],
+                          ),
                         ),
-                      ),
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.end,
-                        children: [
-                          Text('${tx.bruto.toStringAsFixed(0)} kg', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-                          const SizedBox(height: 2),
-                          Text('Bruto', style: TextStyle(color: textGrey.withAlpha((0.7 * 255).round()), fontSize: 10)),
-                        ],
-                      ),
-                      const SizedBox(width: 12),
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.end,
-                        children: [
-                          Text('${tx.netto.toStringAsFixed(0)} kg', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-                          const SizedBox(height: 2),
-                          Text('Netto', style: TextStyle(color: textGrey.withAlpha((0.7 * 255).round()), fontSize: 10)),
-                        ],
-                      ),
-                      const SizedBox(width: 12),
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.end,
-                        children: [
-                          Text('${tx.nettoAfterCut.toStringAsFixed(0)} kg', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-                          const SizedBox(height: 2),
-                          Text('After cut', style: TextStyle(color: textGrey.withAlpha((0.7 * 255).round()), fontSize: 10)),
-                        ],
-                      ),
-                      PopupMenuButton<String>(
-                        color: cardBg,
-                        icon: Icon(Icons.more_vert, color: textGrey),
-                        onSelected: (value) async {
-                          final map = _asMap(tx);
-                          if (value == 'copy') {
-                            onCopyToClipboard(tx.noTicket);
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(content: Text('Ticket copied')),
-                            );
-                          } else if (value == 'detail') {
-                            await onShowDetailMap(map);
-                          } else if (value == 'print') {
-                            await onPrintMap(map);
-                          } else if (value == 'pdf') {
-                            await onExportPdfMap(map);
-                          } else if (value == 'continue') {
-                            await onContinueAuto(tx);
-                          } else if (value == 'loadDraft') {
-                            onLoadDraft(tx);
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(content: Text('Draft loaded')),
-                            );
-                          }
+                      ],
+                    );
+                  },
+                ),
+
+                if (filtered.length > showing.length)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 12),
+                    child: SizedBox(
+                      width: double.infinity,
+                      child: OutlinedButton(
+                        onPressed: () {
+                          setState(() {
+                            _visibleCount = (_visibleCount + _pageSize).clamp(0, filtered.length);
+                          });
                         },
-                        itemBuilder: (_) => [
-                          PopupMenuItem(
-                            value: 'pdf',
-                            child: Text('PDF', style: TextStyle(color: textGrey.withAlpha((0.9 * 255).round()))),
-                          ),
-                          PopupMenuItem(
-                            value: 'print',
-                            child: Text('Print', style: TextStyle(color: textGrey.withAlpha((0.9 * 255).round()))),
-                          ),
-                          PopupMenuItem(
-                            value: 'copy',
-                            child: Text('Copy ticket', style: TextStyle(color: textGrey.withAlpha((0.9 * 255).round()))),
-                          ),
-                          PopupMenuItem(
-                            value: 'detail',
-                            child: Text('Detail', style: TextStyle(color: textGrey.withAlpha((0.9 * 255).round()))),
-                          ),
-                          if (isDraft)
-                            PopupMenuItem(
-                              value: 'continue',
-                              child: Text('Continue Netto', style: TextStyle(color: textGrey.withAlpha((0.9 * 255).round()))),
-                            ),
-                          if (isDraft)
-                            PopupMenuItem(
-                              value: 'loadDraft',
-                              child: Text('Load Draft', style: TextStyle(color: textGrey.withAlpha((0.9 * 255).round()))),
-                            ),
-                        ],
-                      ),
-                    ],
-                  ),
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.only(left: 12, right: 12, bottom: 12),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          _infoRow('Product', prodName),
-                          _infoRow('Supplier', supName),
-                          _infoRow('Customer', custName),
-                          _infoRow('In - Out', '$inTime - $outTime'),
-                          _infoRow('No. DO', tx.noDO ?? '-'),
-                          _infoRow('Notes', tx.additionalInformation ?? '-'),
-                        ],
+                        child: const Text('Load more'),
                       ),
                     ),
-                  ],
-                );
-              },
+                  ),
+              ],
             ),
         ],
       ),
@@ -393,7 +436,7 @@ class RecentTransactionTable extends StatelessWidget {
             width: 90,
             child: Text(
               label,
-              style: TextStyle(color: textGrey.withAlpha((0.75 * 255).round()), fontSize: 12),
+              style: TextStyle(color: widget.textGrey.withAlpha((0.75 * 255).round()), fontSize: 12),
             ),
           ),
           Expanded(

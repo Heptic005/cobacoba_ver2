@@ -1,9 +1,6 @@
 import 'dart:async';
 import 'package:dakara_weighbridge/Entities/Operator/operator.dart';
-import 'package:dakara_weighbridge/Entities/Supervisor/supervisor.dart';
-import 'package:dakara_weighbridge/Exception/auth_exception.dart';
 import 'package:dakara_weighbridge/Pages/transaction_components/add_netto_transaction_form.dart';
-import 'package:dakara_weighbridge/Pages/transaction_components/manual_weight_monitor.dart';
 import 'package:dakara_weighbridge/SQLite/db_helper.dart';
 import 'package:dakara_weighbridge/Services/serial_service.dart';
 import 'package:flutter/material.dart';
@@ -22,7 +19,6 @@ import 'package:dakara_weighbridge/Pages/transaction_components/header.dart';
 import 'package:dakara_weighbridge/Pages/transaction_components/weight_details.dart';
 import 'package:dakara_weighbridge/Pages/transaction_components/main_actions.dart';
 import 'package:dakara_weighbridge/Pages/transaction_components/transaction_detail_dialog.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 /// Transaction page — thin UI wrapper around TransactionController.
 /// All business logic lives in the controller; this widget only renders layout and wires events.
@@ -70,7 +66,6 @@ class _TransactionState extends State<Transaction> {
   final _brutoController = TextEditingController();
   final _tareController = TextEditingController();
   final _nettoController = TextEditingController();
-  final _tokenController = TextEditingController();
 
   /// Focus Node
   final _focusPlatNomor = FocusNode();
@@ -82,7 +77,6 @@ class _TransactionState extends State<Transaction> {
   final _focusSuhu = FocusNode();
   final _focusHarga = FocusNode();
   final _focusKeterangan = FocusNode();
-  final _focusToken = FocusNode();
 
   /// U-I Needs
   int? _selectedSupplierId;
@@ -103,18 +97,6 @@ class _TransactionState extends State<Transaction> {
   List<ListSupplierJson> _suppliers = [];
   List<ListProductJson> _products = [];
   List<ListCustomerJson> _customers = [];
-
-  /// Load Role For Authorization
-  bool _isSupervisor = false;
-
-  Future<void> _loadRole() async {
-    final prefs = await SharedPreferences.getInstance();
-    final role = prefs.getString('role');
-
-    setState(() {
-      _isSupervisor = role == 'supervisor';
-    });
-  }
 
   /// Weight From Serial
   double? _capturedWeight;
@@ -152,7 +134,6 @@ class _TransactionState extends State<Transaction> {
   /// Save Transaction
   Future<void> _handleSavePressed() async {
     final operator = Operator();
-    final supervisor = Supervisor();
     final messenger = ScaffoldMessenger.of(context);
 
     try {
@@ -179,26 +160,7 @@ class _TransactionState extends State<Transaction> {
       final bruto = double.tryParse(_capturedWeight!.toStringAsFixed(2));
       final tare = double.tryParse(_capturedWeight!.toStringAsFixed(2));
 
-      if (_isSupervisor && _isWeightIn) {
-        print(_tokenController.text);
-        await supervisor.validateToken(_tokenController.text);
-
-        supervisor.addEmergencyTransaction(
-          vehiclePlate: _platNomorController.text,
-          driverName: _namaSupirController.text,
-          supplierId: _selectedSupplierId!,
-          customerId: _selectedCustomerId!,
-          productId: _selectedProductId!,
-          cut: cut!,
-          bruto: bruto!,
-          kubikasi: kubikasi,
-          noDo: _noDoController.text,
-          noContainer: noContainer,
-          temperature: suhu,
-          price: price,
-          additionalInformation: _keteranganController.text,
-        );
-      } else if (_isWeightIn) {
+      if (_isWeightIn) {
         operator.addBrutoTransaction(
           vehiclePlate: _platNomorController.text,
           driverName: _namaSupirController.text,
@@ -257,7 +219,6 @@ class _TransactionState extends State<Transaction> {
       _brutoController.clear();
       _tareController.clear();
       _nettoController.clear();
-      _tokenController.clear();
 
       // Reset selections
       _selectedSupplierId = null;
@@ -417,6 +378,14 @@ class _TransactionState extends State<Transaction> {
   }
 
   Future<void> _handleExportPdfMap(Map<String, Object?> item) async {
+    // Show interactive PDF preview to the user (builds PDF from the provided map only)
+    try {
+      await showPdfPreview(context, item);
+    } catch (e) {
+      if (!mounted) return;
+      final messenger = ScaffoldMessenger.of(context);
+      messenger.showSnackBar(SnackBar(content: Text('Preview gagal: $e')));
+    }
     final messenger = ScaffoldMessenger.of(context);
     await _printService.print(
       'Export PDF ticket: ${item['noTicket'] ?? ''}\n${item.toString()}',
@@ -486,9 +455,6 @@ class _TransactionState extends State<Transaction> {
       setState(() => _isLoaded = true);
     });
     _loadRecentTransactions();
-
-    /// Load Role
-    _loadRole();
   }
 
   @override
@@ -511,7 +477,6 @@ class _TransactionState extends State<Transaction> {
     _brutoController.dispose();
     _tareController.dispose();
     _nettoController.dispose();
-    _tokenController.dispose();
 
     // /// Serial Close Connection
     // SerialService().disconnect();
@@ -546,29 +511,17 @@ class _TransactionState extends State<Transaction> {
             const SizedBox(height: 20),
             Row(
               children: [
-                _isSupervisor
-                    ? Expanded(
-                      flex: 3,
-                      child: WeightMonitorManualCard(
-                        isWeighIn: _isWeightIn,
-                        cardBg: _cardBg,
-                        primaryCyan: _primaryCyan,
-                        textGrey: _textGrey,
-                        textWhite: _textWhite,
-                        onCaptured: _onWeightCaptured,
-                      ),
-                    )
-                    : Expanded(
-                      flex: 3,
-                      child: WeightMonitorCard(
-                        isWeighIn: _isWeightIn,
-                        cardBg: _cardBg,
-                        primaryCyan: _primaryCyan,
-                        textGrey: _textGrey,
-                        textWhite: _textWhite,
-                        onCaptured: _onWeightCaptured,
-                      ),
-                    ),
+                Expanded(
+                  flex: 3,
+                  child: WeightMonitorCard(
+                    isWeighIn: _isWeightIn,
+                    cardBg: _cardBg,
+                    primaryCyan: _primaryCyan,
+                    textGrey: _textGrey,
+                    textWhite: _textWhite,
+                    onCaptured: _onWeightCaptured,
+                  ),
+                ),
                 const SizedBox(width: 20),
                 Expanded(
                   flex: 2,
@@ -589,7 +542,6 @@ class _TransactionState extends State<Transaction> {
                 _isWeightIn
                     ? Expanded(
                       child: TransactionFormCard(
-                        isSupervisor: _isSupervisor,
                         platnomorController: _platNomorController,
                         poController: _noDoController,
                         namasupirController: _namaSupirController,
@@ -599,7 +551,6 @@ class _TransactionState extends State<Transaction> {
                         suhuController: _suhuController,
                         hargaController: _hargaController,
                         keteranganController: _keteranganController,
-                        tokenController: _tokenController,
                         focusPlatnomor: _focusPlatNomor,
                         focusPO: _focusNoDo,
                         focusSupir: _focusSupir,
@@ -609,7 +560,6 @@ class _TransactionState extends State<Transaction> {
                         focusSuhu: _focusSuhu,
                         focusHarga: _focusHarga,
                         focusKeterangan: _focusKeterangan,
-                        focusToken: _focusToken,
                         suppliers: _suppliers,
                         customers: _customers,
                         products: _products,
