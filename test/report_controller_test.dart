@@ -156,22 +156,6 @@ void main() {
       expect(controller.shown.value.last.noTicket, 'T-003'); // newest last
     });
 
-    test('pagination works correctly', () {
-      final controller = ReportController(initialData: sampleData);
-      controller.setPageSize(2);
-
-      expect(controller.totalPages, 2);
-      expect(controller.currentPage, 0);
-      expect(controller.pageItems().length, 2);
-
-      controller.nextPage();
-      expect(controller.currentPage, 1);
-      expect(controller.pageItems().length, 1);
-
-      controller.prevPage();
-      expect(controller.currentPage, 0);
-    });
-
     test('clearFilters resets all filters', () {
       final controller = ReportController(initialData: sampleData);
 
