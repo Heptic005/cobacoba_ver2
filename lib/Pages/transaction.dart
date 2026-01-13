@@ -22,6 +22,7 @@ import 'package:dakara_weighbridge/Pages/transaction_components/transaction_deta
 
 /// Transaction page — thin UI wrapper around TransactionController.
 /// All business logic lives in the controller; this widget only renders layout and wires events.
+/// TODO : Make Weight Detail and Recent Transaction
 class Transaction extends StatefulWidget {
   const Transaction({super.key});
 
@@ -62,6 +63,9 @@ class _TransactionState extends State<Transaction> {
   final _customerController = TextEditingController();
   final _productController = TextEditingController();
   final _transactionIdController = TextEditingController();
+  final _brutoController = TextEditingController();
+  final _tareController = TextEditingController();
+  final _nettoController = TextEditingController();
 
   /// Focus Node
   final _focusPlatNomor = FocusNode();
@@ -153,6 +157,7 @@ class _TransactionState extends State<Transaction> {
               ? int.tryParse(_noContainerController.text)
               : 0;
       final bruto = double.tryParse(_capturedWeight!.toStringAsFixed(2));
+      final tare = double.tryParse(_capturedWeight!.toStringAsFixed(2));
 
       if (_isWeightIn) {
         operator.addBrutoTransaction(
@@ -173,7 +178,7 @@ class _TransactionState extends State<Transaction> {
       } else {
         operator.addNettoTransaction(
           transactionId: int.tryParse(_transactionIdController.text)!,
-          tare: _capturedWeight!,
+          tare: tare!,
         );
       }
 
@@ -192,6 +197,9 @@ class _TransactionState extends State<Transaction> {
   /// Reset All Form
   void _resetForm() {
     setState(() {
+      /// clear Weight
+      _capturedWeight = null;
+
       // Clear all form fields
       _platNomorController.clear();
       _noDoController.clear();
@@ -205,6 +213,9 @@ class _TransactionState extends State<Transaction> {
       _supplierController.clear();
       _customerController.clear();
       _productController.clear();
+      _brutoController.clear();
+      _tareController.clear();
+      _nettoController.clear();
 
       // Reset selections
       _selectedSupplierId = null;
@@ -414,6 +425,9 @@ class _TransactionState extends State<Transaction> {
     _productController.dispose();
     _recentSearchController.dispose();
     _transactionIdController.dispose();
+    _brutoController.dispose();
+    _tareController.dispose();
+    _nettoController.dispose();
 
     _timer.cancel();
     _timeNotifier.dispose();
@@ -448,7 +462,7 @@ class _TransactionState extends State<Transaction> {
                 Expanded(
                   flex: 3,
                   child: WeightMonitorCard(
-                    isWeighIn: false,
+                    isWeighIn: _isWeightIn,
                     cardBg: _cardBg,
                     primaryCyan: _primaryCyan,
                     textGrey: _textGrey,
@@ -475,7 +489,6 @@ class _TransactionState extends State<Transaction> {
               children: [
                 _isWeightIn
                     ? Expanded(
-                      flex: 3,
                       child: TransactionFormCard(
                         platnomorController: _platNomorController,
                         poController: _noDoController,
@@ -519,10 +532,10 @@ class _TransactionState extends State<Transaction> {
                             }),
                         onSavePressed: _handleSavePressed,
                         isFormValid: isFormValid,
+                        bruto: _capturedWeight,
                       ),
                     )
                     : Expanded(
-                      flex: 3,
                       child: AddNettoTransactionFormCard(
                         platnomorController: _platNomorController,
                         poController: _noDoController,
@@ -550,10 +563,13 @@ class _TransactionState extends State<Transaction> {
                         inputBg: _inputBg,
                         onSavePressed: _handleSavePressed,
                         isFormValid: isFormValid,
+                        brutoController: _brutoController,
+                        tareController: _tareController,
+                        nettoController: _nettoController,
+                        tare: _capturedWeight,
                       ),
                     ),
                 const SizedBox(width: 20),
-                Expanded(flex: 2, child: SizedBox()),
               ],
             ),
             // Recent Transactions

@@ -1,3 +1,4 @@
+import 'package:dakara_weighbridge/Pages/transaction_components/weight_details.dart';
 import 'package:flutter/material.dart';
 import 'package:dakara_weighbridge/Json/listcustomer_json.dart';
 import 'package:dakara_weighbridge/Json/listproduct_json.dart';
@@ -30,6 +31,7 @@ class TransactionFormCard extends StatelessWidget {
   final int? selectedSupplier;
   final int? selectedCustomer;
   final int? selectedProduct;
+  final double? bruto;
 
   final Color cardBg;
   final Color primaryCyan;
@@ -77,6 +79,7 @@ class TransactionFormCard extends StatelessWidget {
     required this.onSelectProduct,
     required this.onSavePressed,
     required this.isFormValid,
+    this.bruto = 0,
   });
 
   Widget _buildTextInput({
@@ -206,212 +209,232 @@ class TransactionFormCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(24),
-      decoration: BoxDecoration(
-        color: cardBg,
-        borderRadius: BorderRadius.circular(24),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withAlpha((0.2 * 255).round()),
-            blurRadius: 8,
-          ),
-        ],
-      ),
-      child: Column(
-        children: [
-          Padding(
-            padding: const EdgeInsets.only(bottom: 12.0),
-            child: Row(children: [const SizedBox(width: 12)]),
-          ),
-          Row(
-            children: [
-              Expanded(
-                child: _buildTextInput(
-                  controller: platnomorController,
-                  label: 'Plat Nomor',
-                  hint: 'B 1234 ABC',
-                  focus: focusPlatnomor,
-                  nextFocus: focusSupir,
-                  textCapital: TextCapitalization.characters,
-                  prefixIcon: Icons.local_shipping_outlined,
+    return Row(
+      children: [
+        Expanded(
+          flex: 3,
+          child: Container(
+            padding: const EdgeInsets.all(24),
+            decoration: BoxDecoration(
+              color: cardBg,
+              borderRadius: BorderRadius.circular(24),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withAlpha((0.2 * 255).round()),
+                  blurRadius: 8,
                 ),
-              ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: _buildTextInput(
-                  controller: namasupirController,
-                  label: 'Nama Supir',
-                  focus: focusSupir,
-                  nextFocus: focusPotongan,
-                  prefixIcon: Icons.person_outline,
+              ],
+            ),
+            child: Column(
+              children: [
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 12.0),
+                  child: Row(children: [const SizedBox(width: 12)]),
                 ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 16),
-          Row(
-            children: [
-              Expanded(
-                child: _buildDropdown<ListSupplierJson>(
-                  label: 'Supplier',
-                  items: suppliers,
-                  onChanged: onSelectSupplier,
-                  initialValue: selectedSupplier,
-                  prefixIcon: Icons.store_mall_directory_outlined,
+                Row(
+                  children: [
+                    Expanded(
+                      child: _buildTextInput(
+                        controller: platnomorController,
+                        label: 'Plat Nomor',
+                        hint: 'B 1234 ABC',
+                        focus: focusPlatnomor,
+                        nextFocus: focusSupir,
+                        textCapital: TextCapitalization.characters,
+                        prefixIcon: Icons.local_shipping_outlined,
+                      ),
+                    ),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: _buildTextInput(
+                        controller: namasupirController,
+                        label: 'Nama Supir',
+                        focus: focusSupir,
+                        nextFocus: focusPotongan,
+                        prefixIcon: Icons.person_outline,
+                      ),
+                    ),
+                  ],
                 ),
-              ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: _buildDropdown<ListCustomerJson>(
-                  label: 'Customer',
-                  items: customers,
-                  onChanged: onSelectCustomer,
-                  initialValue: selectedCustomer,
-                  prefixIcon: Icons.business_outlined,
+                const SizedBox(height: 16),
+                Row(
+                  children: [
+                    Expanded(
+                      child: _buildDropdown<ListSupplierJson>(
+                        label: 'Supplier',
+                        items: suppliers,
+                        onChanged: onSelectSupplier,
+                        initialValue: selectedSupplier,
+                        prefixIcon: Icons.store_mall_directory_outlined,
+                      ),
+                    ),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: _buildDropdown<ListCustomerJson>(
+                        label: 'Customer',
+                        items: customers,
+                        onChanged: onSelectCustomer,
+                        initialValue: selectedCustomer,
+                        prefixIcon: Icons.business_outlined,
+                      ),
+                    ),
+                  ],
                 ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 16),
-          Row(
-            children: [
-              Expanded(
-                child: _buildDropdown<ListProductJson>(
-                  label: 'Barang',
-                  items: products,
-                  onChanged: onSelectProduct,
-                  initialValue: selectedProduct,
-                  prefixIcon: Icons.category_outlined,
+                const SizedBox(height: 16),
+                Row(
+                  children: [
+                    Expanded(
+                      child: _buildDropdown<ListProductJson>(
+                        label: 'Barang',
+                        items: products,
+                        onChanged: onSelectProduct,
+                        initialValue: selectedProduct,
+                        prefixIcon: Icons.category_outlined,
+                      ),
+                    ),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: _buildTextInput(
+                        controller: poController,
+                        label: 'Nomor DO / PO',
+                        focus: focusPO,
+                        nextFocus: focusNoContainer,
+                        prefixIcon: Icons.description_outlined,
+                      ),
+                    ),
+                  ],
                 ),
-              ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: _buildTextInput(
-                  controller: poController,
-                  label: 'Nomor DO / PO',
-                  focus: focusPO,
-                  nextFocus: focusNoContainer,
-                  prefixIcon: Icons.description_outlined,
+                const SizedBox(height: 16),
+                Row(
+                  children: [
+                    Expanded(
+                      child: _buildTextInput(
+                        controller: potonganController,
+                        label: 'Potongan (%)',
+                        hint: '0',
+                        focus: focusPotongan,
+                        nextFocus: focusKubikasi,
+                        keyboardType: TextInputType.number,
+                        prefixIcon: Icons.percent,
+                      ),
+                    ),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: _buildTextInput(
+                        controller: kubikasiController,
+                        label: 'Kubikasi (opt)',
+                        hint: '0',
+                        focus: focusKubikasi,
+                        nextFocus: focusPO,
+                        keyboardType: TextInputType.number,
+                        prefixIcon: Icons.numbers,
+                      ),
+                    ),
+                  ],
                 ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 16),
-          Row(
-            children: [
-              Expanded(
-                child: _buildTextInput(
-                  controller: potonganController,
-                  label: 'Potongan (%)',
-                  hint: '0',
-                  focus: focusPotongan,
-                  nextFocus: focusKubikasi,
-                  keyboardType: TextInputType.number,
-                  prefixIcon: Icons.percent,
+                const SizedBox(height: 16),
+                Row(
+                  children: [
+                    Expanded(
+                      child: _buildTextInput(
+                        controller: nocontainerController,
+                        label: 'No Container (opt)',
+                        hint: 'max 20 chars',
+                        focus: focusNoContainer,
+                        nextFocus: focusSuhu,
+                        maxLength: 20,
+                        prefixIcon: Icons.inventory_2_outlined,
+                      ),
+                    ),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: _buildTextInput(
+                        controller: suhuController,
+                        label: 'Suhu (opt)',
+                        hint: '°C',
+                        focus: focusSuhu,
+                        nextFocus: focusHarga,
+                        keyboardType: TextInputType.number,
+                        prefixIcon: Icons.thermostat_outlined,
+                      ),
+                    ),
+                  ],
                 ),
-              ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: _buildTextInput(
-                  controller: kubikasiController,
-                  label: 'Kubikasi (opt)',
-                  hint: '0',
-                  focus: focusKubikasi,
-                  nextFocus: focusPO,
-                  keyboardType: TextInputType.number,
-                  prefixIcon: Icons.numbers,
+                const SizedBox(height: 16),
+                Row(
+                  children: [
+                    Expanded(
+                      child: _buildTextInput(
+                        controller: hargaController,
+                        label: 'Harga / kg (opt)',
+                        hint: '0',
+                        focus: focusHarga,
+                        nextFocus: focusKeterangan,
+                        keyboardType: TextInputType.number,
+                        prefixIcon: Icons.attach_money,
+                      ),
+                    ),
+                    const SizedBox(width: 16),
+                    const Expanded(child: SizedBox()),
+                  ],
                 ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 16),
-          Row(
-            children: [
-              Expanded(
-                child: _buildTextInput(
-                  controller: nocontainerController,
-                  label: 'No Container (opt)',
-                  hint: 'max 20 chars',
-                  focus: focusNoContainer,
-                  nextFocus: focusSuhu,
-                  maxLength: 20,
-                  prefixIcon: Icons.inventory_2_outlined,
+                const SizedBox(height: 16),
+                _buildTextInput(
+                  controller: keteranganController,
+                  label: 'Keterangan (Manual) (opt)',
+                  hint: 'Catatan...',
+                  focus: focusKeterangan,
+                  maxLength: 500,
+                  prefixIcon: Icons.note_outlined,
                 ),
-              ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: _buildTextInput(
-                  controller: suhuController,
-                  label: 'Suhu (opt)',
-                  hint: '°C',
-                  focus: focusSuhu,
-                  nextFocus: focusHarga,
-                  keyboardType: TextInputType.number,
-                  prefixIcon: Icons.thermostat_outlined,
+                const SizedBox(height: 32),
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    onPressed: isFormValid ? () => onSavePressed() : null,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: primaryCyan,
+                      foregroundColor: Colors.black,
+                      padding: const EdgeInsets.symmetric(vertical: 22),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(50),
+                      ),
+                      textStyle: const TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        letterSpacing: 1,
+                      ),
+                    ),
+                    child: const Text('SIMPAN'),
+                  ),
                 ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 16),
-          Row(
-            children: [
-              Expanded(
-                child: _buildTextInput(
-                  controller: hargaController,
-                  label: 'Harga / kg (opt)',
-                  hint: '0',
-                  focus: focusHarga,
-                  nextFocus: focusKeterangan,
-                  keyboardType: TextInputType.number,
-                  prefixIcon: Icons.attach_money,
-                ),
-              ),
-              const SizedBox(width: 16),
-              const Expanded(child: SizedBox()),
-            ],
-          ),
-          const SizedBox(height: 16),
-          _buildTextInput(
-            controller: keteranganController,
-            label: 'Keterangan (Manual) (opt)',
-            hint: 'Catatan...',
-            focus: focusKeterangan,
-            maxLength: 500,
-            prefixIcon: Icons.note_outlined,
-          ),
-          const SizedBox(height: 32),
-          SizedBox(
-            width: double.infinity,
-            child: ElevatedButton(
-              onPressed: isFormValid ? () => onSavePressed() : null,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: primaryCyan,
-                foregroundColor: Colors.black,
-                padding: const EdgeInsets.symmetric(vertical: 22),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(50),
-                ),
-                textStyle: const TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  letterSpacing: 1,
-                ),
-              ),
-              child: const Text('SIMPAN'),
+                const SizedBox(height: 8),
+                if (!isFormValid)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 4.0),
+                    child: Text(
+                      'Lengkapi: Supplier, Customer, Barang, Plat Nomor, Nama Supir, dan Simpan Berat',
+                      style: TextStyle(color: textGrey, fontSize: 12),
+                    ),
+                  ),
+              ],
             ),
           ),
-          const SizedBox(height: 8),
-          if (!isFormValid)
-            Padding(
-              padding: const EdgeInsets.only(top: 4.0),
-              child: Text(
-                'Lengkapi: Supplier, Customer, Barang, Plat Nomor, Nama Supir, dan Simpan Berat',
-                style: TextStyle(color: textGrey, fontSize: 12),
-              ),
-            ),
-        ],
-      ),
+        ),
+        const SizedBox(width: 20),
+        Expanded(
+          flex: 2,
+          child: WeightDetails(
+            bruto: bruto?.toStringAsFixed(2) ?? '0',
+            tare: '0',
+            netto: '0',
+            afterCut: '0',
+            totalPrice: '0',
+            textGrey: textGrey,
+            cardBg: cardBg,
+          ),
+        ),
+      ],
     );
   }
 }
