@@ -19,6 +19,7 @@ import 'package:dakara_weighbridge/Pages/transaction_components/header.dart';
 import 'package:dakara_weighbridge/Pages/transaction_components/weight_details.dart';
 import 'package:dakara_weighbridge/Pages/transaction_components/main_actions.dart';
 import 'package:dakara_weighbridge/Pages/transaction_components/transaction_detail_dialog.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 /// Transaction page — thin UI wrapper around TransactionController.
 /// All business logic lives in the controller; this widget only renders layout and wires events.
@@ -66,6 +67,7 @@ class _TransactionState extends State<Transaction> {
   final _brutoController = TextEditingController();
   final _tareController = TextEditingController();
   final _nettoController = TextEditingController();
+  final _tokenController = TextEditingController();
 
   /// Focus Node
   final _focusPlatNomor = FocusNode();
@@ -77,11 +79,15 @@ class _TransactionState extends State<Transaction> {
   final _focusSuhu = FocusNode();
   final _focusHarga = FocusNode();
   final _focusKeterangan = FocusNode();
+  final _focusToken = FocusNode();
 
   /// U-I Needs
   int? _selectedSupplierId;
   int? _selectedProductId;
   int? _selectedCustomerId;
+
+  /// Load Role
+  bool _isSupervisor = false;
 
   /// Recent transactions
   final TextEditingController _recentSearchController = TextEditingController();
@@ -112,6 +118,14 @@ class _TransactionState extends State<Transaction> {
   void _onWeightCaptured(double weight) {
     setState(() {
       _capturedWeight = weight;
+    });
+  }
+
+  /// Load Role
+  void _loadRole() async {
+    final prefs = await SharedPreferences.getInstance();
+    setState(() {
+      _isSupervisor = prefs.getString('role') == 'supervisor';
     });
   }
 
@@ -448,6 +462,9 @@ class _TransactionState extends State<Transaction> {
       _timeNotifier.value = DateFormat('HH:mm:ss').format(DateTime.now());
     });
 
+    /// Load Role
+    _loadRole();
+
     _recentSearchController.addListener(() => setState(() {}));
 
     /// Load Data before Widget Building
@@ -585,6 +602,9 @@ class _TransactionState extends State<Transaction> {
                         onSavePressed: _handleSavePressed,
                         isFormValid: isFormValid,
                         bruto: _capturedWeight,
+                        isSupervisor: _isSupervisor,
+                        tokenController: _tokenController,
+                        focusToken: _focusToken,
                       ),
                     )
                     : Expanded(
