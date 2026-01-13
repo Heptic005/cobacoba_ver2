@@ -18,7 +18,8 @@ class _DashboardState extends State<Dashboard> {
   final menu = MenuItems();
   final PageController pageController = PageController();
   List<String> menuItems = ["Transaction", "Report", "Data"];
-  int value = 0;
+  // Use ValueNotifier to avoid rebuilding the whole scaffold when toggling
+  final ValueNotifier<int> selectedIndex = ValueNotifier<int>(0);
   Color bgGrey = const Color.fromARGB(255, 228, 230, 232);
   Color royalGrey = const Color.fromARGB(255, 86, 105, 113);
   // Color limeGreen = const Color.fromARGB(255, 124, 233, 0);
@@ -61,13 +62,20 @@ class _DashboardState extends State<Dashboard> {
                 PageView.builder(
                   controller: pageController,
                   itemCount: menu.items.length,
-                  itemBuilder: (context, index) => menu.items[index].page,
+                  itemBuilder: (context, index) => PageStorage( // keep page state alive per tab
+                    bucket: PageStorageBucket(),
+                    child: KeyedSubtree(
+                      key: PageStorageKey('page_$index'),
+                      child: menu.items[index].page,
+                    ),
+                  ),
                 ),
 
                 // Top Bar
                 ClipRect(
                   child: BackdropFilter(
-                    filter: ImageFilter.blur(sigmaX: 6.0, sigmaY: 6.0),
+                    // Lower blur sigma to reduce GPU cost on low-end devices
+                    filter: ImageFilter.blur(sigmaX: 2.0, sigmaY: 2.0),
                     child: Container(
                       padding: const EdgeInsets.fromLTRB(30, 20, 30, 15),
                       decoration: BoxDecoration(
@@ -77,63 +85,62 @@ class _DashboardState extends State<Dashboard> {
                         alignment: Alignment.center,
                         children: [
                           // Menu Bar
-                          AnimatedToggleSwitch<int>.custom(
-                            textDirection: TextDirection.ltr,
-                            padding: EdgeInsets.symmetric(
-                              horizontal: 4,
-                              vertical: 3,
-                            ),
-                            current: value,
-                            values: const [0, 1, 2],
-                            iconOpacity: 0.7,
-                            height: 45,
-                            indicatorSize: const Size.fromWidth(90),
-                            animatedIconBuilder: (context, local, global) {
-                              return Row(
-                                spacing: 7,
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  // alternativeIconBuilder(
-                                  //   context,
-                                  //   local,
-                                  //   global,
-                                  //   value,
-                                  // ),
-                                  Text(
-                                    menuItems[local.value],
-                                    style: TextStyle(
-                                      color: Colors.black,
-                                      fontWeight: FontWeight.w500,
+                          // RepaintBoundary isolates top bar from page repaint
+                          RepaintBoundary(
+                            child: ValueListenableBuilder<int>(
+                              valueListenable: selectedIndex,
+                              builder: (_, current, __) {
+                                return AnimatedToggleSwitch<int>.custom(
+                                  textDirection: TextDirection.ltr,
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 4,
+                                    vertical: 3,
+                                  ),
+                                  current: current,
+                                  values: const [0, 1, 2],
+                                  iconOpacity: 0.7,
+                                  height: 45,
+                                  indicatorSize: const Size.fromWidth(90),
+                                  animatedIconBuilder: (context, local, global) {
+                                    return Row(
+                                      spacing: 7,
+                                      mainAxisAlignment: MainAxisAlignment.center,
+                                      children: [
+                                        Text(
+                                          menuItems[local.value],
+                                          style: const TextStyle(
+                                            color: Colors.black,
+                                            fontWeight: FontWeight.w500,
+                                          ),
+                                        ),
+                                      ],
+                                    );
+                                  },
+                                  style: const ToggleStyle(
+                                    borderColor: Colors.transparent,
+                                  ),
+                                  styleBuilder: (i) => const ToggleStyle(
+                                    indicatorGradient: LinearGradient(
+                                      begin: Alignment.centerLeft,
+                                      end: Alignment.centerRight,
+                                      colors: [
+                                        Color(0xFF0080FF),
+                                        Color(0xFF00E5FF),
+                                      ],
                                     ),
                                   ),
-                                ],
-                              );
-                            },
-                            style: const ToggleStyle(
-                              borderColor: Colors.transparent,
+                                  onChanged: (i) {
+                                    selectedIndex.value = i;
+                                    pageController.animateToPage(
+                                      i,
+                                      // shorten duration to reduce jank
+                                      duration: const Duration(milliseconds: 300),
+                                      curve: Curves.easeInOut,
+                                    );
+                                  },
+                                );
+                              },
                             ),
-                            // styleBuilder:
-                            //     (i) => ToggleStyle(indicatorColor: limeGreen),
-                            styleBuilder:
-                                (i) => ToggleStyle(
-                                  indicatorGradient: LinearGradient(
-                                    begin: Alignment.centerLeft,
-                                    end: Alignment.centerRight,
-                                    colors: [
-                                      Color(0xFF0080FF),
-                                      Color(0xFF00E5FF),
-                                    ],
-                                  ),
-                                ),
-                            onChanged:
-                                (i) => setState(() {
-                                  value = i;
-                                  pageController.animateToPage(
-                                    i,
-                                    duration: Duration(seconds: 1),
-                                    curve: Curves.easeInOut,
-                                  );
-                                }),
                           ),
 
                           Row(

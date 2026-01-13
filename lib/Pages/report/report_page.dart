@@ -169,55 +169,58 @@ class _ReportPageState extends State<ReportPage> {
       body: SafeArea(
         child: ValueListenableBuilder<bool>(
           valueListenable: controller.loading,
-          builder:
-              (_, loading, __) =>
-                  loading
-                      ? const Center(
-                        child: CircularProgressIndicator(color: kPrimaryCyan),
-                      )
-                      : SingleChildScrollView(
-                        padding: EdgeInsets.fromLTRB(
-                          24,
-                          MediaQuery.of(context).padding.top +
-                              kToolbarHeight +
-                              24,
-                          24,
-                          24,
-                        ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            _buildHeader(),
-                            const SizedBox(height: 24),
-                            _buildSummaryCards(),
-                            const SizedBox(height: 24),
-                            ReportControls(
-                              controller: controller,
-                              searchController: searchController,
-                              onPickStartDate: () => _pickDate(true),
-                              onPickEndDate: () => _pickDate(false),
-                              onShowFilter: _showFilterSheet,
-                              onExport: _onExport,
-                              onPrint:
-                                  () => _snack('Fitur cetak belum tersedia'),
-                            ),
-                            const SizedBox(height: 16),
-                            ReportDataTable(
-                              controller: controller,
-                              clipboard: clipboard,
-                              getSupplierName: _getSupplierName,
-                              getProductName: _getProductName,
-                              getCustomerName: _getCustomerName,
-                              onSnack: _snack,
-                            ),
-                            const SizedBox(height: 16),
-                            ReportPagination(
-                              controller: controller,
-                              onUpdate: () => setState(() {}),
-                            ),
-                          ],
-                        ),
+          builder: (_, loading, __) {
+            return Stack(
+              children: [
+                // Main content kept mounted to avoid header jumping
+                SingleChildScrollView(
+                  padding: EdgeInsets.fromLTRB(
+                    24,
+                    MediaQuery.of(context).padding.top + kToolbarHeight + 24,
+                    24,
+                    24,
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      _buildHeader(),
+                      const SizedBox(height: 24),
+                      _buildSummaryCards(),
+                      const SizedBox(height: 24),
+                      ReportControls(
+                        controller: controller,
+                        searchController: searchController,
+                        onPickStartDate: () => _pickDate(true),
+                        onPickEndDate: () => _pickDate(false),
+                        onShowFilter: _showFilterSheet,
+                        onExport: _onExport,
+                        onPrint: () => _snack('Fitur cetak belum tersedia'),
                       ),
+                      const SizedBox(height: 16),
+                      ReportDataTable(
+                        controller: controller,
+                        clipboard: clipboard,
+                        getSupplierName: _getSupplierName,
+                        getProductName: _getProductName,
+                        getCustomerName: _getCustomerName,
+                        onSnack: _snack,
+                      ),
+                      const SizedBox(height: 8),
+                    ],
+                  ),
+                ),
+                if (loading)
+                  Positioned.fill(
+                    child: Container(
+                      color: Colors.black.withOpacity(0.2),
+                      child: const Center(
+                        child: CircularProgressIndicator(color: kPrimaryCyan),
+                      ),
+                    ),
+                  ),
+              ],
+            );
+          },
         ),
       ),
     );
@@ -237,7 +240,7 @@ class _ReportPageState extends State<ReportPage> {
         maxLines: 1,
         overflow: TextOverflow.ellipsis,
       ),
-      const SizedBox(height: 4),
+      const SizedBox(height: 5),
       const Text(
         'Semua Transaksi',
         style: TextStyle(fontSize: 14, color: kTextGrey),

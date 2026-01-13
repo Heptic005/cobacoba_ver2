@@ -12,7 +12,9 @@ import 'package:dakara_weighbridge/Json/listtransaction_json.dart';
 import 'package:dakara_weighbridge/Pages/transaction_controller.dart';
 import 'package:dakara_weighbridge/Pages/transaction_components/weight_monitor.dart';
 import 'package:dakara_weighbridge/Pages/transaction_components/add_bruto_transaction_form_card.dart';
-import 'package:dakara_weighbridge/Pages/transaction_components/recent_transactions.dart';
+import 'package:dakara_weighbridge/Pages/transaction_components/recent_transaction_table.dart';
+import 'package:dakara_weighbridge/features/transaction/services/clipboard_service.dart';
+import 'package:dakara_weighbridge/features/transaction/services/print_service.dart';
 import 'package:dakara_weighbridge/Pages/transaction_components/header.dart';
 import 'package:dakara_weighbridge/Pages/transaction_components/weight_details.dart';
 import 'package:dakara_weighbridge/Pages/transaction_components/main_actions.dart';
@@ -81,6 +83,16 @@ class _TransactionState extends State<Transaction> {
   int? _selectedProductId;
   int? _selectedCustomerId;
 
+  /// Recent transactions
+  final TextEditingController _recentSearchController = TextEditingController();
+  bool _recentSortDesc = true;
+  Set<String> _draftTickets = {};
+  List<ListTransactionJson> _recentTransactions = [];
+
+  /// Services
+  final PrintService _printService = PrintServiceStub();
+  final ClipboardService _clipboardService = ClipboardServiceImpl();
+
   /// Data
   List<ListSupplierJson> _suppliers = [];
   List<ListProductJson> _products = [];
@@ -108,6 +120,14 @@ class _TransactionState extends State<Transaction> {
     _suppliers = await DbHelper.instance.getListSupplier();
     _products = await DbHelper.instance.getListProducts();
     _customers = await DbHelper.instance.getListCustomers();
+  }
+
+  Future<void> _loadRecentTransactions() async {
+    final items = await DbHelper.instance.getListTransaction();
+    setState(() {
+      _recentTransactions = items.where((e) => e.isDrafted == 0).toList();
+      _draftTickets = items.where((e) => e.isDrafted == 1).map((e) => e.noTicket).toSet();
+    });
   }
 
   /// Save Transaction
@@ -206,6 +226,171 @@ class _TransactionState extends State<Transaction> {
     });
   }
 
+  Future<void> _handleShowDetailMap(Map<String, Object?> item) async {
+    if (!mounted) return;
+    final Map<String, Object?> safe = Map<String, Object?>.from(item);
+    await showDialog(
+      context: context,
+      builder: (ctx) {
+        String fmtDate(String? raw) {
+          if (raw == null || raw.isEmpty) return '-';
+          final dt = DateTime.tryParse(raw);
+          if (dt == null) return raw;
+          return DateFormat('dd MMM yyyy HH:mm').format(dt);
+        }
+
+        Widget info(String label, String value) {
+          return Padding(
+            padding: const EdgeInsets.symmetric(vertical: 6),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                SizedBox(
+                  width: 120,
+                  child: Text(label, style: TextStyle(color: _textGrey.withAlpha((0.8 * 255).round()), fontSize: 13)),
+                ),
+                Expanded(
+                  child: Text(
+                    value.isEmpty ? '-' : value,
+                    style: const TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.w600),
+                  ),
+                ),
+              ],
+            ),
+          );
+        }
+
+        final ticket = (safe['noTicket'] ?? '').toString();
+        final plate = (safe['vehiclePlate'] ?? '-').toString();
+        final driver = (safe['driverName'] ?? '-').toString();
+        final productName = (safe['productName'] ?? safe['ProductName'] ?? '').toString();
+        final supplierName = (safe['supplierName'] ?? safe['SupplierName'] ?? '').toString();
+        final customerName = (safe['customerName'] ?? safe['CustomerName'] ?? '').toString();
+        final inTime = safe['inTime']?.toString();
+        final outTime = safe['outTime']?.toString();
+        final bruto = (safe['bruto'] ?? '').toString();
+        final tare = (safe['tare'] ?? '').toString();
+        final netto = (safe['netto'] ?? '').toString();
+        final afterCut = (safe['nettoAfterCut'] ?? safe['netto'] ?? '').toString();
+        final notes = (safe['additionalInformation'] ?? '').toString();
+
+        return Dialog(
+          backgroundColor: Colors.transparent,
+          child: Center(
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 880),
+              child: Container(
+                padding: const EdgeInsets.all(24),
+                decoration: BoxDecoration(
+                  color: _cardBg,
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: _textGrey.withAlpha((0.12 * 255).round())),
+                ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          ticket.isNotEmpty ? 'Detail $ticket' : 'Detail',
+                          style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.w700),
+                        ),
+                        IconButton(
+                          onPressed: () => Navigator.of(ctx).pop(),
+                          icon: Icon(Icons.close, color: _textGrey),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 12),
+                    Divider(color: _textGrey.withAlpha((0.12 * 255).round())),
+                    const SizedBox(height: 12),
+                    Wrap(
+                      runSpacing: 8,
+                      spacing: 32,
+                      children: [
+                        info('Plate', plate),
+                        info('Driver', driver),
+                        info('Product', productName),
+                        info('Supplier', supplierName),
+                        info('Customer', customerName),
+                        info('In Time', fmtDate(inTime)),
+                        info('Out Time', fmtDate(outTime)),
+                        info('Bruto (kg)', bruto),
+                        info('Tare (kg)', tare),
+                        info('Netto (kg)', netto),
+                        info('After Cut (kg)', afterCut),
+                        if (notes.isNotEmpty) info('Notes', notes),
+                      ],
+                    ),
+                    const SizedBox(height: 16),
+                    Align(
+                      alignment: Alignment.centerRight,
+                      child: TextButton(
+                        onPressed: () => Navigator.of(ctx).pop(),
+                        child: Text('Close', style: TextStyle(color: _textGrey)),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Future<void> _handlePrintMap(Map<String, Object?> item) async {
+    final messenger = ScaffoldMessenger.of(context);
+    await _printService.print('Print ticket: ${item['noTicket'] ?? ''}\n${item.toString()}');
+    if (!mounted) return;
+    messenger.showSnackBar(const SnackBar(content: Text('Print diproses (stub)')));
+  }
+
+  Future<void> _handleExportPdfMap(Map<String, Object?> item) async {
+    final messenger = ScaffoldMessenger.of(context);
+    await _printService.print('Export PDF ticket: ${item['noTicket'] ?? ''}\n${item.toString()}');
+    if (!mounted) return;
+    messenger.showSnackBar(const SnackBar(content: Text('Export PDF diproses (stub)')));
+  }
+
+  Future<void> _handleContinueAuto(ListTransactionJson tx) async {
+    if (!mounted) return;
+    final messenger = ScaffoldMessenger.of(context);
+    messenger.showSnackBar(SnackBar(content: Text('Lanjutkan transaksi ${tx.noTicket}')));
+  }
+
+  void _handleLoadDraft(ListTransactionJson tx) {
+    setState(() {
+      _isWeightIn = false;
+      _platNomorController.text = tx.vehiclePlate;
+      _noDoController.text = tx.noDO ?? '';
+      _namaSupirController.text = tx.driverName;
+      _potonganController.text = tx.cut.toString();
+      _kubikasiController.text = (tx.kubikasi ?? 0).toString();
+      _noContainerController.text = (tx.noContainer ?? 0).toString();
+      _suhuController.text = (tx.temperature ?? 0).toString();
+      _hargaController.text = (tx.price ?? 0).toString();
+      _keteranganController.text = tx.additionalInformation ?? '';
+      _selectedSupplierId = tx.supplierId;
+      _selectedCustomerId = tx.customerId;
+      _selectedProductId = tx.productId;
+      _transactionIdController.text = tx.transactionId.toString();
+    });
+    if (!mounted) return;
+    final messenger = ScaffoldMessenger.of(context);
+    messenger.showSnackBar(SnackBar(content: Text('Draft ${tx.noTicket} dimuat'))) ;
+  }
+
+  Future<void> _handleCopy(String text) async {
+    await _clipboardService.copy(text);
+    if (!mounted) return;
+    final messenger = ScaffoldMessenger.of(context);
+    messenger.showSnackBar(const SnackBar(content: Text('Ticket disalin')));
+  }
+
   @override
   void initState() {
     super.initState();
@@ -219,10 +404,13 @@ class _TransactionState extends State<Transaction> {
       _timeNotifier.value = DateFormat('HH:mm:ss').format(DateTime.now());
     });
 
+    _recentSearchController.addListener(() => setState(() {}));
+
     /// Load Data before Widget Building
     _loadSupplierProductCustomerData().then((_) {
       setState(() => _isLoaded = true);
     });
+    _loadRecentTransactions();
   }
 
   @override
@@ -240,6 +428,7 @@ class _TransactionState extends State<Transaction> {
     _supplierController.dispose();
     _customerController.dispose();
     _productController.dispose();
+    _recentSearchController.dispose();
     _transactionIdController.dispose();
     _brutoController.dispose();
     _tareController.dispose();
@@ -392,6 +581,26 @@ class _TransactionState extends State<Transaction> {
               ],
             ),
             // Recent Transactions
+            const SizedBox(height: 20),
+            RecentTransactionTable(
+              searchController: _recentSearchController,
+              sortDesc: _recentSortDesc,
+              draftTickets: _draftTickets,
+              transactions: _recentTransactions,
+              suppliers: _suppliers,
+              customers: _customers,
+              products: _products,
+              cardBg: _cardBg,
+              textGrey: _textGrey,
+              primaryCyan: _primaryCyan,
+              inputBg: _inputBg,
+              onShowDetailMap: _handleShowDetailMap,
+              onPrintMap: _handlePrintMap,
+              onExportPdfMap: _handleExportPdfMap,
+              onContinueAuto: _handleContinueAuto,
+              onLoadDraft: _handleLoadDraft,
+              onCopyToClipboard: _handleCopy,
+            ),
           ],
         ),
       ),
