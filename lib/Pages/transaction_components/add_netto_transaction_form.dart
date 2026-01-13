@@ -432,6 +432,8 @@ class _TransactionFormCardState extends State<AddNettoTransactionFormCard> {
         const SizedBox(width: 20),
         Expanded(
           flex: 2,
+
+          /// TODO : MAKE SURE THE CALCULATION IS CORRECT
           child: WeightDetails(
             bruto:
                 widget.brutoController.text.isEmpty
@@ -441,8 +443,22 @@ class _TransactionFormCardState extends State<AddNettoTransactionFormCard> {
             netto: ((double.tryParse(widget.brutoController.text) ?? 0) -
                     (widget.tare?.toDouble() ?? 0))
                 .toStringAsFixed(2),
-            afterCut: '1',
-            totalPrice: '1',
+            afterCut: (((double.tryParse(widget.brutoController.text) ?? 0) -
+                        (widget.tare?.toDouble() ?? 0)) -
+                    (((double.tryParse(widget.brutoController.text) ?? 0) -
+                            (widget.tare?.toDouble() ?? 0)) *
+                        (double.tryParse(widget.potonganController.text) ?? 0) /
+                        100))
+                .toStringAsFixed(2),
+            totalPrice: ((((double.tryParse(widget.brutoController.text) ?? 0) -
+                            (widget.tare?.toDouble() ?? 0)) -
+                        (((double.tryParse(widget.brutoController.text) ?? 0) -
+                                (widget.tare?.toDouble() ?? 0)) *
+                            (double.tryParse(widget.potonganController.text) ??
+                                0) /
+                            100)) *
+                    (double.tryParse(widget.hargaController.text) ?? 0))
+                .toStringAsFixed(2),
             textGrey: widget.textGrey,
             cardBg: widget.cardBg,
           ),

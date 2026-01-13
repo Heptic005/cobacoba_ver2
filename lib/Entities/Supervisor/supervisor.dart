@@ -28,4 +28,23 @@ class Supervisor implements AbstractSupervisor {
       throw AuthorizationException();
     }
   }
+
+  @override
+  Future<bool> validateToken(String inputToken) async {
+    final token = await DbHelper.instance.getToken(inputToken);
+
+    if (token == null) return false;
+    if (token.isUsed == '1') return false;
+    if (token.isExpired) return false;
+
+    // tandai sudah dipakai
+    await DbHelper.instance.markTokenUsed(inputToken);
+    return true;
+  }
+
+  // @override
+  // Future<void> addEmergencyTransaction() {
+  //   // TODO: implement addEmergencyTransaction
+  //   throw UnimplementedError();
+  // }
 }

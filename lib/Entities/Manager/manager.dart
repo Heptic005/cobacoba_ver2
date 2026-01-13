@@ -1,4 +1,11 @@
 import 'package:dakara_weighbridge/Entities/Manager/abstract_manager.dart';
+import 'package:dakara_weighbridge/Json/listaccount_json.dart';
+import 'package:dakara_weighbridge/Json/listtoken_json.dart';
+import 'package:dakara_weighbridge/SQLite/db_helper.dart';
+import 'package:dakara_weighbridge/Services/token_service.dart';
+import 'package:intl/intl.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'dart:convert';
 
 /// TODO : Need To Implements all Methods
 class Manager implements AbstractManager {
@@ -7,27 +14,29 @@ class Manager implements AbstractManager {
     required String username,
     required String password,
     required String role,
-  }) {
-    // TODO: implement createSupervisorAndOperator
-    throw UnimplementedError();
+  }) async {
+    final newAccount = ListAccountJson(
+      accountUsername: username,
+      accountPassword: password,
+      accountPosition: role,
+    );
+    await DbHelper.instance.addUser(newAccount);
   }
 
   @override
-  Future<void> createTokenForManualWeight() {
-    // TODO: implement createTokenForManualWeight
-    throw UnimplementedError();
+  Future<void> createTokenForManualWeight() async {
+    /// TODO : Finishing create Token for Manual Weight
+    await TokenService.createToken();
   }
 
   @override
-  Future<void> deleteSupervisorAndOperator({required int id}) {
-    // TODO: implement deleteSupervisorAndOperator
-    throw UnimplementedError();
+  Future<void> deleteSupervisorAndOperator({required int id}) async {
+    await DbHelper.instance.deleteUser(id: id);
   }
 
   @override
-  Future<void> deleteTransaction({required int transactionId}) {
-    // TODO: implement deleteTransaction
-    throw UnimplementedError();
+  Future<void> deleteTransaction({required int transactionId}) async {
+    await DbHelper.instance.deleteTransaction(id: transactionId);
   }
 
   @override
@@ -42,8 +51,13 @@ class Manager implements AbstractManager {
     required String username,
     required String password,
     required String role,
-  }) {
-    // TODO: implement updateSupervisorAndOperator
-    throw UnimplementedError();
+  }) async {
+    final updatedAccount = ListAccountJson(
+      accountID: id,
+      accountUsername: username,
+      accountPassword: password,
+      accountPosition: role,
+    );
+    await DbHelper.instance.updateUser(updatedAccount);
   }
 }

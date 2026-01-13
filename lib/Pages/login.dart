@@ -1,4 +1,5 @@
 import 'package:dakara_weighbridge/Services/auth_service.dart';
+import 'package:dakara_weighbridge/Services/token_service.dart';
 import 'package:flutter/material.dart';
 import 'package:dakara_weighbridge/dashboard.dart';
 import 'package:dakara_weighbridge/Exception/auth_exception.dart';
@@ -279,7 +280,12 @@ class _LoginPageState extends State<LoginPage> {
                                 ),
                                 const SizedBox(height: 18),
                                 TextButton(
-                                  onPressed: () {},
+                                  onPressed: () async {
+                                    final token =
+                                        await TokenService.createToken();
+                                    print(token.createdBy);
+                                    print(token.tokenCode);
+                                  },
                                   child: const Text(
                                     'Need help? Contact Customer Services',
                                     style: TextStyle(
