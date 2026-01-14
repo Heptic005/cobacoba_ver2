@@ -3,15 +3,19 @@ import 'dart:ui';
 import 'package:animated_toggle_switch/animated_toggle_switch.dart';
 import 'package:bitsdojo_window/bitsdojo_window.dart';
 import 'package:dakara_weighbridge/Menu/menu_items.dart';
-import 'package:dakara_weighbridge/Pages/mgr_pages/placeholder.dart';
-import 'package:dakara_weighbridge/Pages/opt_pages/dashboard.dart';
+// HAPUS IMPORT LAMA (placeholder)
+// GANTI DENGAN IMPORT BARU INI:
+import 'package:dakara_weighbridge/Pages/mgr_pages/manager_dashboard.dart'; 
+
+// Import halaman role lain (biarkan tetap ada)
+import 'package:dakara_weighbridge/Pages/opt_pages/dashboard.dart'; // (Self import, bisa dihapus tapi dibiarkan aman)
 import 'package:dakara_weighbridge/Pages/opt_pages/techician_page.dart';
 import 'package:dakara_weighbridge/Pages/spv_pages/placeholder.dart';
 import 'package:dakara_weighbridge/Themes/app_themes.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-import 'Pages/login.dart';
+import '../../Pages/login.dart'; // Sesuaikan path login jika perlu
 
 class Dashboard extends StatefulWidget {
   const Dashboard({super.key});
@@ -24,11 +28,10 @@ class _DashboardState extends State<Dashboard> {
   final menu = MenuItems();
   final PageController pageController = PageController();
   List<String> menuItems = ["Transaction", "Report", "Data"];
-  // Use ValueNotifier to avoid rebuilding the whole scaffold when toggling
+  
   final ValueNotifier<int> selectedIndex = ValueNotifier<int>(0);
   Color bgGrey = const Color.fromARGB(255, 228, 230, 232);
   Color royalGrey = const Color.fromARGB(255, 86, 105, 113);
-  // Color limeGreen = const Color.fromARGB(255, 124, 233, 0);
   Color limeGreen = const Color.fromARGB(255, 151, 255, 33);
 
   /// Role
@@ -45,10 +48,8 @@ class _DashboardState extends State<Dashboard> {
   void initState() {
     super.initState();
     _loadRole();
-    // xAlign = transactionAlign;
   }
 
-  // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -70,8 +71,6 @@ class _DashboardState extends State<Dashboard> {
                 stops: [0, 0.7, 0.9, 1],
                 begin: Alignment.topCenter,
                 end: Alignment.bottomCenter,
-                // begin: Alignment(-0.0, -1.3),
-                // end: Alignment(-0.0, 1),
               ),
             ),
             child: _buildHome(),
@@ -87,10 +86,17 @@ class _DashboardState extends State<Dashboard> {
         return const SupervisorTemporaryDashboard();
       case 'operator':
         return const OperatorDashboard();
+      
+      // --- PERBAIKAN UTAMA ADA DI SINI ---
       case 'manager':
-        return const ManagerTemporaryDashboard();
+        // Dulu: return const ManagerTemporaryDashboard();
+        return const ManagerDashboard(); // Sekarang mengarah ke file baru
+      // -----------------------------------
+
       default:
-        return const LoginPage();
+        // Pastikan Anda memiliki LoginPage yang bisa diimport
+        // Jika masih merah di sini, pastikan import 'Pages/login.dart' di atas benar path-nya
+        return const LoginPage(); 
     }
   }
 
@@ -118,7 +124,6 @@ class _DashboardState extends State<Dashboard> {
     return Icon(
       data,
       size: 20,
-      // color: select == local.value ? Colors.black : Colors.transparent,
     );
   }
 }

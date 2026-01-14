@@ -300,7 +300,7 @@ class _LoginPageState extends State<LoginPage> {
                           // version text bottom-left
                           Text(
                             'Version 1.0.0',
-                            style: TextStyle(color: textGrey, fontSize: 12),
+                            style: TextStyle(color: const Color.fromARGB(255, 65, 82, 105), fontSize: 12),
                           ),
                         ],
                       ),

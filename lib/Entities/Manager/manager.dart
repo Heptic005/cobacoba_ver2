@@ -1,14 +1,15 @@
-import 'package:dakara_weighbridge/Entities/Manager/abstract_manager.dart';
+import 'dart:math';
+// PERBAIKAN IMPORT: Menambahkan 'Entities' ke dalam path
+import 'package:dakara_weighbridge/Entities/Manager/abstract_manager.dart'; 
 import 'package:dakara_weighbridge/Json/listaccount_json.dart';
 import 'package:dakara_weighbridge/Json/listtoken_json.dart';
+import 'package:dakara_weighbridge/Json/listtransaction_json.dart';
 import 'package:dakara_weighbridge/SQLite/db_helper.dart';
-import 'package:dakara_weighbridge/Services/token_service.dart';
-import 'package:intl/intl.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import 'dart:convert';
 
 class Manager implements AbstractManager {
-  /// Manager Creating Account For Supervisor And Operator
+  
+  // --- USER MANAGEMENT ---
+
   @override
   Future<void> createSupervisorAndOperator({
     required String username,
@@ -16,6 +17,7 @@ class Manager implements AbstractManager {
     required String role,
   }) async {
     final newAccount = ListAccountJson(
+      accountID: 0, 
       accountUsername: username,
       accountPassword: password,
       accountPosition: role,
@@ -23,33 +25,11 @@ class Manager implements AbstractManager {
     await DbHelper.instance.addUser(newAccount);
   }
 
-  /// Manager Creating Token For Supervisor To Be Able To Special Transaction
   @override
-  Future<void> createTokenForManualWeight() async {
-    /// TODO : Finishing create Token for Manual Weight
-    await TokenService.createToken();
+  Future<List<ListAccountJson>> getSupervisorAndOperator() async {
+    return await DbHelper.instance.getAllUser();
   }
 
-  /// Manager Deleting Specific Supervisor or Operator by Id
-  @override
-  Future<void> deleteSupervisorAndOperator({required int id}) async {
-    await DbHelper.instance.deleteUser(id: id);
-  }
-
-  /// Manager Deleting Specific Transaction by Id
-  @override
-  Future<void> deleteTransaction({required int transactionId}) async {
-    await DbHelper.instance.deleteTransaction(id: transactionId);
-  }
-
-  /// get List Supervisor and Operator
-  @override
-  Future<void> getSupervisorAndOperator() {
-    // TODO: implement getSupervisorAndOperator
-    throw UnimplementedError();
-  }
-
-  /// Update Specific Supervisor and Operator
   @override
   Future<void> updateSupervisorAndOperator({
     required int id,
@@ -64,5 +44,49 @@ class Manager implements AbstractManager {
       accountPosition: role,
     );
     await DbHelper.instance.updateUser(updatedAccount);
+  }
+
+  @override
+  Future<void> deleteSupervisorAndOperator({required int id}) async {
+    await DbHelper.instance.deleteUser(id: id);
+  }
+
+  // --- TRANSACTION MANAGEMENT ---
+
+  @override
+  Future<List<ListTransactionJson>> getAllTransactions() async {
+    return await DbHelper.instance.getListTransaction();
+  }
+
+  @override
+  Future<void> deleteTransaction({required int transactionId}) async {
+    await DbHelper.instance.deleteTransaction(id: transactionId);
+  }
+
+  // --- TOKEN MANAGEMENT ---
+
+  @override
+  Future<String> createTokenForManualWeight(int managerId) async {
+    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+    Random rnd = Random();
+    String tokenCode = String.fromCharCodes(Iterable.generate(
+        6, (_) => chars.codeUnitAt(rnd.nextInt(chars.length))));
+
+    // PERBAIKAN TIPE DATA: Menghapus .toString() karena model minta DateTime
+    final newToken = ListTokenJson(
+      tokenId: 0, 
+      tokenCode: tokenCode,
+      // Hapus .toString() di bawah ini
+      expiresAt: DateTime.now().add(const Duration(hours: 24)), 
+      isUsed: 0,
+      createdBy: managerId,
+      usedAt: null,
+      // Hapus .toString() di bawah ini juga
+      createdAt: DateTime.now(), 
+    );
+
+    await DbHelper.instance.createTokenForManualWeight(newToken);
+    
+    return tokenCode;
   }
 }
