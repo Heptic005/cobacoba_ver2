@@ -49,6 +49,8 @@ class ReportController {
   DateTime? _endDate;
   int? _supplierId;
   int? _productId;
+  int? _customerId;
+  String? _plate;
   bool _sortDesc = true;
 
   // Batching state (default small for low-end devices)
@@ -64,6 +66,8 @@ class ReportController {
   DateTime? get endDate => _endDate;
   int? get supplierId => _supplierId;
   int? get productId => _productId;
+  int? get customerId => _customerId;
+  String? get plate => _plate;
   bool get sortDesc => _sortDesc;
   int get pageSize => _pageSize;
   int get currentPage => _currentPage;
@@ -162,6 +166,17 @@ class ReportController {
     _applyFilters();
   }
 
+  void setCustomer(int? id){
+    _customerId = id;
+    _applyFilters();
+  }
+
+  /// Set vehicle plate filter (partial match)
+  void setPlate(String? plate) {
+    _plate = plate == null || plate.trim().isEmpty ? null : plate.trim();
+    _applyFilters();
+  }
+
   /// Toggle sort order (asc/desc by inTime)
   void toggleSort() {
     _sortDesc = !_sortDesc;
@@ -254,6 +269,10 @@ class ReportController {
           final matchSupplier =
               _supplierId == null || t.supplierId == _supplierId;
           final matchProduct = _productId == null || t.productId == _productId;
+          final matchCustomer = _customerId == null || t.customerId == _customerId;
+            final matchPlate =
+              _plate == null || _plate!.isEmpty ||
+              (t.vehiclePlate ?? '').toLowerCase().contains(_plate!.toLowerCase());
           final inTime = t.inTime;
           final matchStart =
               _startDate == null ||
@@ -267,6 +286,8 @@ class ReportController {
           return matchSearch &&
               matchSupplier &&
               matchProduct &&
+              matchCustomer &&
+              matchPlate &&
               matchStart &&
               matchEnd;
         }).toList();
@@ -411,6 +432,8 @@ class ReportController {
     _endDate = null;
     _supplierId = null;
     _productId = null;
+    _customerId = null;
+    _plate = null;
     _sortDesc = true;
     _nextIndex = 0;
     _applyFilters();

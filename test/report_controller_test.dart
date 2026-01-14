@@ -2,7 +2,7 @@
 /// Verifikasi: filter, search, sort, pagination, aggregate
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:dakara_weighbridge/Pages/report/report_controller.dart';
+import 'package:dakara_weighbridge/Pages/opt_pages/report/report_controller.dart';
 import 'package:dakara_weighbridge/Json/listtransaction_json.dart';
 
 void main() {
