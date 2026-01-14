@@ -13,7 +13,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:dakara_weighbridge/Pages/opt_pages//data/data_controller.dart';
+import 'package:dakara_weighbridge/Pages/opt_pages/data/data_controller.dart';
 import 'package:dakara_weighbridge/Pages/opt_pages/data/widgets/add_entity_dialog.dart';
 import 'package:dakara_weighbridge/Pages/opt_pages/data/widgets/supplier_list.dart';
 import 'package:dakara_weighbridge/Pages/opt_pages/data/widgets/customer_list.dart';
