@@ -227,8 +227,8 @@ class _SearchActionBar extends StatelessWidget {
     return Consumer<DataController>(
       builder: (context, controller, _) {
         // Tentukan apakah tombol tambah harus ditampilkan
-        // Product tidak bisa ditambah
-        final showAddButton = controller.activeTab != DataTab.product;
+        // Tampilkan juga untuk Product sekarang
+        final showAddButton = true;
 
         return Row(
           children: [
@@ -286,9 +286,10 @@ class _SearchActionBar extends StatelessWidget {
 
   /// Handle tombol tambah baru
   void _handleAddNew(BuildContext context, DataController controller) {
-    final entityType =
-        controller.activeTab == DataTab.supplier
-            ? EntityType.supplier
+    final entityType = controller.activeTab == DataTab.supplier
+        ? EntityType.supplier
+        : controller.activeTab == DataTab.product
+            ? EntityType.product
             : EntityType.customer;
 
     AddEntityDialog.show(

@@ -12,7 +12,7 @@ import 'package:flutter/services.dart';
 import 'package:dakara_weighbridge/Pages/opt_pages/data/data_controller.dart';
 
 /// Enum untuk tipe entity yang akan ditambahkan
-enum EntityType { supplier, customer }
+enum EntityType { supplier, customer, product }
 
 /// Dialog untuk menambahkan Supplier atau Customer baru
 class AddEntityDialog extends StatefulWidget {
@@ -52,6 +52,7 @@ class _AddEntityDialogState extends State<AddEntityDialog> {
 
   // Form controllers
   final _nameController = TextEditingController();
+  final _codeController = TextEditingController();
   final _addressController = TextEditingController();
   final _phoneController = TextEditingController();
   final _cityController = TextEditingController();
@@ -64,6 +65,7 @@ class _AddEntityDialogState extends State<AddEntityDialog> {
   @override
   void dispose() {
     _nameController.dispose();
+    _codeController.dispose();
     _addressController.dispose();
     _phoneController.dispose();
     _cityController.dispose();
@@ -74,10 +76,15 @@ class _AddEntityDialogState extends State<AddEntityDialog> {
 
   /// Cek apakah form ini untuk Supplier
   bool get isSupplier => widget.entityType == EntityType.supplier;
+  bool get isProduct => widget.entityType == EntityType.product;
 
   /// Judul dialog berdasarkan tipe entity
   String get dialogTitle =>
-      isSupplier ? 'Tambah Supplier Baru' : 'Tambah Customer Baru';
+      isProduct
+        ? 'Tambah Barang Baru'
+        : isSupplier
+          ? 'Tambah Supplier Baru'
+          : 'Tambah Customer Baru';
 
   @override
   Widget build(BuildContext context) {
@@ -120,7 +127,11 @@ class _AddEntityDialogState extends State<AddEntityDialog> {
     return Row(
       children: [
         Icon(
-          isSupplier ? Icons.business : Icons.people,
+          isProduct
+              ? Icons.inventory_2_outlined
+              : isSupplier
+                  ? Icons.business
+                  : Icons.people,
           color: const Color(0xFF00BCD4),
           size: 28,
         ),
@@ -166,6 +177,25 @@ class _AddEntityDialogState extends State<AddEntityDialog> {
   }
 
   Widget _buildFormFields() {
+    if (isProduct) {
+      return Column(
+        children: [
+          _buildTextField(
+            controller: _nameController,
+            label: 'Nama Barang',
+            hint: 'Masukkan nama barang',
+            validator: _validateRequired,
+          ),
+          const SizedBox(height: 16),
+          _buildTextField(
+            controller: _codeController,
+            label: 'Kode Barang',
+            hint: 'Contoh: PRD-001',
+            validator: _validateProductCode,
+          ),
+        ],
+      );
+    }
     if (isSupplier) {
       return Column(
         children: [
@@ -251,6 +281,15 @@ class _AddEntityDialogState extends State<AddEntityDialog> {
         ],
       );
     }
+  }
+
+  String? _validateProductCode(String? value) {
+    if (value == null || value.trim().isEmpty) return 'Kode barang wajib diisi';
+    if (value.trim().length < 2) return 'Kode minimal 2 karakter';
+    if (value.trim().length > 50) return 'Kode maksimal 50 karakter';
+    // Basic disallow of angle brackets/control chars
+    if (RegExp(r'[<>\x00-\x1F]').hasMatch(value)) return 'Kode tidak valid';
+    return null;
   }
 
   Widget _buildTextField({
@@ -400,6 +439,11 @@ class _AddEntityDialogState extends State<AddEntityDialog> {
           subdistrict: _subdistrictController.text,
           postCode: _postCodeController.text,
         );
+      } else if (isProduct) {
+        success = await widget.controller.addProduct(
+          name: _nameController.text,
+          code: _codeController.text,
+        );
       } else {
         success = await widget.controller.addCustomer(
           name: _nameController.text,
@@ -414,9 +458,11 @@ class _AddEntityDialogState extends State<AddEntityDialog> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
-              isSupplier
-                  ? 'Supplier berhasil ditambahkan'
-                  : 'Customer berhasil ditambahkan',
+              isProduct
+                  ? 'Barang berhasil ditambahkan'
+                  : isSupplier
+                      ? 'Supplier berhasil ditambahkan'
+                      : 'Customer berhasil ditambahkan',
             ),
             backgroundColor: Colors.green,
             behavior: SnackBarBehavior.floating,

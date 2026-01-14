@@ -269,6 +269,36 @@ class DataController extends ChangeNotifier {
   }
 
   // ============================================================================
+  // PRODUCT INSERTION (baru ditambahkan)
+  // ============================================================================
+
+  /// Menambahkan product baru
+  Future<bool> addProduct({
+    required String name,
+    required String code,
+  }) async {
+    final validationError = _validateProductInput(name: name, code: code);
+    if (validationError != null) {
+      throw Exception(validationError);
+    }
+
+    final product = ListProductJson(
+      productName: _sanitizeInput(name),
+      productCode: _sanitizeInput(code),
+    );
+
+    try {
+      await _repository.addProduct(product);
+      // Refresh product list setelah insert
+      _products = await _repository.getProducts();
+      notifyListeners();
+      return true;
+    } on DataRepositoryException catch (e) {
+      throw Exception(e.message);
+    }
+  }
+
+  // ============================================================================
   // INPUT VALIDATION
   // ============================================================================
 
@@ -316,6 +346,32 @@ class DataController extends ChangeNotifier {
     if (phone.trim().isEmpty) return 'Nomor telepon harus diisi';
     final phoneError = _validatePhoneNumber(phone);
     if (phoneError != null) return phoneError;
+
+    return null;
+  }
+
+  /// Validasi input product (nama dan kode)
+  String? _validateProductInput({
+    required String name,
+    required String code,
+  }) {
+    if (name.trim().isEmpty) return 'Nama barang harus diisi';
+    if (name.trim().length < 2) return 'Nama barang minimal 2 karakter';
+    if (name.trim().length > 150) return 'Nama barang maksimal 150 karakter';
+
+    if (code.trim().isEmpty) return 'Kode barang harus diisi';
+    if (code.trim().length < 2) return 'Kode barang minimal 2 karakter';
+    if (code.trim().length > 50) return 'Kode barang maksimal 50 karakter';
+
+    // Cek duplikasi kode (case-insensitive)
+    if (_products.any((p) => p.productCode.toLowerCase() == code.trim().toLowerCase())) {
+      return 'Kode barang sudah ada';
+    }
+
+    // Tolak karakter kontrol dan angle brackets untuk keamanan
+    if (RegExp(r'[<>\x00-\x1F]').hasMatch(code)) {
+      return 'Kode barang mengandung karakter tidak valid';
+    }
 
     return null;
   }

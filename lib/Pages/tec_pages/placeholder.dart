@@ -6,7 +6,7 @@ class TechnicianTemporaryDashboard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Manager Temporary Dashboard ')),
+      appBar: AppBar(title: const Text('Techinician Temporary Dashboard ')),
     );
   }
 }

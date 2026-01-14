@@ -13,9 +13,9 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:dakara_weighbridge/Json/listcustomer_json.dart';
 import 'package:dakara_weighbridge/Json/listproduct_json.dart';
 import 'package:dakara_weighbridge/Json/listsupplier_json.dart';
-import 'package:dakara_weighbridge/Pages/data/data_controller.dart';
-import 'package:dakara_weighbridge/Pages/data/data_repository.dart';
-
+import 'package:dakara_weighbridge/Pages/opt_pages/data/data_controller.dart';
+import 'package:dakara_weighbridge/Pages/opt_pages/data/data_repository.dart';
+  
 // ============================================================================
 // MOCK CLASSES
 // ============================================================================

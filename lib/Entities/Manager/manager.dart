@@ -1,11 +1,10 @@
 import 'package:dakara_weighbridge/Entities/Manager/abstract_manager.dart';
+import 'package:dakara_weighbridge/Exception/token_exception.dart';
+import 'package:dakara_weighbridge/Exception/transaction_exception.dart';
+import 'package:dakara_weighbridge/Exception/user_exception.dart';
 import 'package:dakara_weighbridge/Json/listaccount_json.dart';
-import 'package:dakara_weighbridge/Json/listtoken_json.dart';
 import 'package:dakara_weighbridge/SQLite/db_helper.dart';
 import 'package:dakara_weighbridge/Services/token_service.dart';
-import 'package:intl/intl.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import 'dart:convert';
 
 class Manager implements AbstractManager {
   /// Manager Creating Account For Supervisor And Operator
@@ -15,38 +14,63 @@ class Manager implements AbstractManager {
     required String password,
     required String role,
   }) async {
-    final newAccount = ListAccountJson(
-      accountUsername: username,
-      accountPassword: password,
-      accountPosition: role,
-    );
-    await DbHelper.instance.addUser(newAccount);
+    try {
+      final newAccount = ListAccountJson(
+        accountUsername: username,
+        accountPassword: password,
+        accountPosition: role,
+      );
+      await DbHelper.instance.addUser(newAccount);
+    } catch (_) {
+      throw UserCreationFailedException(
+        'Failed To Create New Supervisor or Operator',
+      );
+    }
   }
 
   /// Manager Creating Token For Supervisor To Be Able To Special Transaction
   @override
   Future<void> createTokenForManualWeight() async {
-    /// TODO : Finishing create Token for Manual Weight
-    await TokenService.createToken();
+    try {
+      await TokenService.createToken();
+    } catch (_) {
+      throw TokenCreationException(
+        'Failed to Create Token for Special Transaction',
+      );
+    }
   }
 
   /// Manager Deleting Specific Supervisor or Operator by Id
   @override
   Future<void> deleteSupervisorAndOperator({required int id}) async {
-    await DbHelper.instance.deleteUser(id: id);
+    try {
+      await DbHelper.instance.deleteUser(id: id);
+    } catch (_) {
+      throw UserDeleteFailedException(
+        'Failed to Delete Supervisor or Operator',
+      );
+    }
   }
 
   /// Manager Deleting Specific Transaction by Id
   @override
   Future<void> deleteTransaction({required int transactionId}) async {
-    await DbHelper.instance.deleteTransaction(id: transactionId);
+    try {
+      await DbHelper.instance.deleteTransaction(id: transactionId);
+    } catch (_) {
+      throw TransactionDeleteFailedException('Failed to Delete Transaction');
+    }
   }
 
   /// get List Supervisor and Operator
   @override
-  Future<void> getSupervisorAndOperator() {
-    // TODO: implement getSupervisorAndOperator
-    throw UnimplementedError();
+  Future<List<ListAccountJson>> getSupervisorAndOperator() async {
+    try {
+      final account = await DbHelper.instance.getSupervisorAndOperatorAccount();
+      return account;
+    } catch (_) {
+      throw UserGetFailedException('Failed to Get User Data');
+    }
   }
 
   /// Update Specific Supervisor and Operator
@@ -57,12 +81,16 @@ class Manager implements AbstractManager {
     required String password,
     required String role,
   }) async {
-    final updatedAccount = ListAccountJson(
-      accountID: id,
-      accountUsername: username,
-      accountPassword: password,
-      accountPosition: role,
-    );
-    await DbHelper.instance.updateUser(updatedAccount);
+    try {
+      final updatedAccount = ListAccountJson(
+        accountID: id,
+        accountUsername: username,
+        accountPassword: password,
+        accountPosition: role,
+      );
+      await DbHelper.instance.updateUser(updatedAccount);
+    } catch (_) {
+      throw UserUpdateFailedException('Failed to Update User Data');
+    }
   }
 }
