@@ -22,6 +22,7 @@ class SerialService {
 
   List<String> get availablePorts => SerialPort.availablePorts;
 
+  /// Connecting to Specific Port
   bool connect(String portName, int baudRate) {
     disconnect();
 

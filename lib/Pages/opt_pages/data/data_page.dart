@@ -8,16 +8,16 @@
 ///            - Search bar untuk filtering data
 ///            - Tombol "Tambah Baru" untuk Supplier dan Customer
 ///            - List/Table data sesuai tab yang aktif
-///            
+///
 /// ============================================================================
 
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:dakara_weighbridge/Pages/data/data_controller.dart';
-import 'package:dakara_weighbridge/Pages/data/widgets/add_entity_dialog.dart';
-import 'package:dakara_weighbridge/Pages/data/widgets/supplier_list.dart';
-import 'package:dakara_weighbridge/Pages/data/widgets/customer_list.dart';
-import 'package:dakara_weighbridge/Pages/data/widgets/product_list.dart';
+import 'package:dakara_weighbridge/Pages/opt_pages//data/data_controller.dart';
+import 'package:dakara_weighbridge/Pages/opt_pages/data/widgets/add_entity_dialog.dart';
+import 'package:dakara_weighbridge/Pages/opt_pages/data/widgets/supplier_list.dart';
+import 'package:dakara_weighbridge/Pages/opt_pages/data/widgets/customer_list.dart';
+import 'package:dakara_weighbridge/Pages/opt_pages/data/widgets/product_list.dart';
 
 // Palet warna diselaraskan dengan halaman Transaction/Report
 const Color _bgDark = Color(0xFF17181A);
@@ -58,15 +58,15 @@ class _DataPageContent extends StatelessWidget {
             // Header Section
             const _HeaderSection(),
             const SizedBox(height: 24),
-            
+
             // Tab Buttons
             const _TabButtons(),
             const SizedBox(height: 24),
-            
+
             // Search & Action Bar
             const _SearchActionBar(),
             const SizedBox(height: 8),
-            
+
             // Data Container
             Container(
               constraints: const BoxConstraints(minHeight: 400),
@@ -105,10 +105,7 @@ class _HeaderSection extends StatelessWidget {
         const SizedBox(height: 8),
         Text(
           'Kelola supplier, customer, dan barang',
-          style: TextStyle(
-            fontSize: 14,
-            color: _textGrey,
-          ),
+          style: TextStyle(fontSize: 14, color: _textGrey),
         ),
       ],
     );
@@ -184,11 +181,7 @@ class _TabButton extends StatelessWidget {
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(
-                icon,
-                size: 18,
-                color: isActive ? _textWhite : _textGrey,
-              ),
+              Icon(icon, size: 18, color: isActive ? _textWhite : _textGrey),
               const SizedBox(width: 8),
               Text(
                 label,
@@ -202,9 +195,10 @@ class _TabButton extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                 decoration: BoxDecoration(
-                  color: isActive 
-                      ? _textWhite.withOpacity(0.2) 
-                      : Colors.grey.withOpacity(0.3),
+                  color:
+                      isActive
+                          ? _textWhite.withOpacity(0.2)
+                          : Colors.grey.withOpacity(0.3),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Text(
@@ -235,7 +229,7 @@ class _SearchActionBar extends StatelessWidget {
         // Tentukan apakah tombol tambah harus ditampilkan
         // Product tidak bisa ditambah
         final showAddButton = controller.activeTab != DataTab.product;
-        
+
         return Row(
           children: [
             // Search Box
@@ -263,9 +257,9 @@ class _SearchActionBar extends StatelessWidget {
                 ),
               ),
             ),
-            
+
             const Spacer(flex: 3),
-            
+
             // Add Button (hanya untuk Supplier dan Customer)
             if (showAddButton)
               ElevatedButton.icon(
@@ -292,9 +286,10 @@ class _SearchActionBar extends StatelessWidget {
 
   /// Handle tombol tambah baru
   void _handleAddNew(BuildContext context, DataController controller) {
-    final entityType = controller.activeTab == DataTab.supplier
-        ? EntityType.supplier
-        : EntityType.customer;
+    final entityType =
+        controller.activeTab == DataTab.supplier
+            ? EntityType.supplier
+            : EntityType.customer;
 
     AddEntityDialog.show(
       context: context,
@@ -322,7 +317,7 @@ class _DataContent extends StatelessWidget {
 
         // Count info
         final countText = _getCountText(controller);
-        
+
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -331,18 +326,12 @@ class _DataContent extends StatelessWidget {
               padding: const EdgeInsets.all(24),
               child: Text(
                 countText,
-                style: TextStyle(
-                  fontSize: 13,
-                  color: _textGrey,
-                ),
+                style: TextStyle(fontSize: 13, color: _textGrey),
               ),
             ),
-            
+
             // Data list berdasarkan tab aktif
-            SizedBox(
-              height: 400,
-              child: _buildActiveTabContent(controller),
-            ),
+            SizedBox(height: 400, child: _buildActiveTabContent(controller)),
           ],
         );
       },
@@ -386,10 +375,7 @@ class _ErrorWidget extends StatelessWidget {
   final String message;
   final VoidCallback onRetry;
 
-  const _ErrorWidget({
-    required this.message,
-    required this.onRetry,
-  });
+  const _ErrorWidget({required this.message, required this.onRetry});
 
   @override
   Widget build(BuildContext context) {
@@ -399,19 +385,12 @@ class _ErrorWidget extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(
-              Icons.error_outline,
-              size: 64,
-              color: Colors.red[300],
-            ),
+            Icon(Icons.error_outline, size: 64, color: Colors.red[300]),
             const SizedBox(height: 16),
             Text(
               message,
               textAlign: TextAlign.center,
-              style: TextStyle(
-                fontSize: 14,
-                color: Colors.grey[400],
-              ),
+              style: TextStyle(fontSize: 14, color: Colors.grey[400]),
             ),
             const SizedBox(height: 24),
             ElevatedButton.icon(

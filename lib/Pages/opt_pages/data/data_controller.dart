@@ -6,13 +6,13 @@
 ///            - Implementasi fitur search/filter lokal
 ///            - Validasi dan sanitasi input sebelum dikirim ke repository
 ///            - Expose data ke UI melalui Future/Stream
-/// 
+///
 
 import 'package:flutter/foundation.dart';
 import 'package:dakara_weighbridge/Json/listcustomer_json.dart';
 import 'package:dakara_weighbridge/Json/listproduct_json.dart';
 import 'package:dakara_weighbridge/Json/listsupplier_json.dart';
-import 'package:dakara_weighbridge/Pages/data/data_repository.dart';
+import 'package:dakara_weighbridge/Pages/opt_pages//data/data_repository.dart';
 
 /// Enum untuk merepresentasikan tab yang aktif
 enum DataTab { supplier, customer, product }
@@ -24,7 +24,7 @@ class DataController extends ChangeNotifier {
   // ============================================================================
   // STATE VARIABLES
   // ============================================================================
-  
+
   /// Tab yang sedang aktif
   DataTab _activeTab = DataTab.supplier;
   DataTab get activeTab => _activeTab;
@@ -61,7 +61,7 @@ class DataController extends ChangeNotifier {
   // ============================================================================
 
   DataController({DataRepository? repository})
-      : _repository = repository ?? DataRepository();
+    : _repository = repository ?? DataRepository();
 
   // ============================================================================
   // TAB MANAGEMENT
@@ -286,16 +286,17 @@ class DataController extends ChangeNotifier {
     if (name.trim().length > 100) return 'Nama supplier maksimal 100 karakter';
     final addressError = _validateAddress(address);
     if (addressError != null) return addressError;
-    
+
     if (city.trim().isEmpty) return 'Kota harus diisi';
     if (city.trim().length > 50) return 'Kota maksimal 50 karakter';
-    
+
     if (subdistrict.trim().isEmpty) return 'Kecamatan harus diisi';
     if (subdistrict.trim().length > 50) return 'Kecamatan maksimal 50 karakter';
-    
+
     if (postCode.trim().isEmpty) return 'Kode pos harus diisi';
-    if (!_isValidPostCode(postCode)) return 'Format kode pos tidak valid (5 digit angka)';
-    
+    if (!_isValidPostCode(postCode))
+      return 'Format kode pos tidak valid (5 digit angka)';
+
     return null;
   }
 
@@ -311,11 +312,11 @@ class DataController extends ChangeNotifier {
     if (name.trim().length > 100) return 'Nama customer maksimal 100 karakter';
     final addressError = _validateAddress(address);
     if (addressError != null) return addressError;
-    
+
     if (phone.trim().isEmpty) return 'Nomor telepon harus diisi';
     final phoneError = _validatePhoneNumber(phone);
     if (phoneError != null) return phoneError;
-    
+
     return null;
   }
 
@@ -353,9 +354,10 @@ class DataController extends ChangeNotifier {
     }
 
     // Ambil bagian setelah prefix untuk pengecekan panjang digit
-    final subscriber = normalized.startsWith('+62')
-        ? normalized.substring(3)
-        : normalized.startsWith('62')
+    final subscriber =
+        normalized.startsWith('+62')
+            ? normalized.substring(3)
+            : normalized.startsWith('62')
             ? normalized.substring(2)
             : normalized.substring(1);
 
@@ -409,7 +411,10 @@ class DataController extends ChangeNotifier {
   String _sanitizeInput(String input) {
     // Hilangkan whitespace berlebih & karakter kontrol, cegah script tag sederhana
     final trimmed = input.trim();
-    final noCtrl = trimmed.replaceAll(RegExp(r'[\x00-\x08\x0B\x0C\x0E-\x1F]'), '');
+    final noCtrl = trimmed.replaceAll(
+      RegExp(r'[\x00-\x08\x0B\x0C\x0E-\x1F]'),
+      '',
+    );
     return noCtrl;
   }
 

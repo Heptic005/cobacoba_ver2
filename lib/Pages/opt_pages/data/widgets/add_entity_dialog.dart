@@ -4,12 +4,12 @@
 ///            - Tampilan berbeda untuk Supplier vs Customer
 ///            - Loading state saat submit
 ///            - Error handling dengan feedback ke user
-///            
+///
 /// ============================================================================
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:dakara_weighbridge/Pages/data/data_controller.dart';
+import 'package:dakara_weighbridge/Pages/opt_pages/data/data_controller.dart';
 
 /// Enum untuk tipe entity yang akan ditambahkan
 enum EntityType { supplier, customer }
@@ -18,7 +18,7 @@ enum EntityType { supplier, customer }
 class AddEntityDialog extends StatefulWidget {
   /// Tipe entity (supplier/customer)
   final EntityType entityType;
-  
+
   /// Controller untuk handle insert data
   final DataController controller;
 
@@ -37,10 +37,9 @@ class AddEntityDialog extends StatefulWidget {
     return showDialog<bool>(
       context: context,
       barrierDismissible: false,
-      builder: (context) => AddEntityDialog(
-        entityType: entityType,
-        controller: controller,
-      ),
+      builder:
+          (context) =>
+              AddEntityDialog(entityType: entityType, controller: controller),
     );
   }
 
@@ -50,7 +49,7 @@ class AddEntityDialog extends StatefulWidget {
 
 class _AddEntityDialogState extends State<AddEntityDialog> {
   final _formKey = GlobalKey<FormState>();
-  
+
   // Form controllers
   final _nameController = TextEditingController();
   final _addressController = TextEditingController();
@@ -77,15 +76,14 @@ class _AddEntityDialogState extends State<AddEntityDialog> {
   bool get isSupplier => widget.entityType == EntityType.supplier;
 
   /// Judul dialog berdasarkan tipe entity
-  String get dialogTitle => isSupplier ? 'Tambah Supplier Baru' : 'Tambah Customer Baru';
+  String get dialogTitle =>
+      isSupplier ? 'Tambah Supplier Baru' : 'Tambah Customer Baru';
 
   @override
   Widget build(BuildContext context) {
     return Dialog(
       backgroundColor: const Color(0xFF1E1E1E),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
-      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       child: Container(
         width: 500,
         padding: const EdgeInsets.all(24),
@@ -98,17 +96,17 @@ class _AddEntityDialogState extends State<AddEntityDialog> {
               // Header
               _buildHeader(),
               const SizedBox(height: 24),
-              
+
               // Error message
               if (_errorMessage != null) ...[
                 _buildErrorBanner(),
                 const SizedBox(height: 16),
               ],
-              
+
               // Form fields
               _buildFormFields(),
               const SizedBox(height: 24),
-              
+
               // Action buttons
               _buildActionButtons(),
             ],
@@ -295,7 +293,10 @@ class _AddEntityDialogState extends State<AddEntityDialog> {
           borderRadius: BorderRadius.circular(10),
           borderSide: const BorderSide(color: Colors.red, width: 1.5),
         ),
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 16,
+          vertical: 14,
+        ),
       ),
       style: const TextStyle(color: Colors.white),
       keyboardType: keyboardType,
@@ -312,10 +313,7 @@ class _AddEntityDialogState extends State<AddEntityDialog> {
       children: [
         TextButton(
           onPressed: _isSubmitting ? null : () => Navigator.pop(context, false),
-          child: Text(
-            'Batal',
-            style: TextStyle(color: Colors.grey[400]),
-          ),
+          child: Text('Batal', style: TextStyle(color: Colors.grey[400])),
         ),
         const SizedBox(width: 12),
         ElevatedButton(
@@ -328,16 +326,17 @@ class _AddEntityDialogState extends State<AddEntityDialog> {
               borderRadius: BorderRadius.circular(10),
             ),
           ),
-          child: _isSubmitting
-              ? const SizedBox(
-                  width: 20,
-                  height: 20,
-                  child: CircularProgressIndicator(
-                    strokeWidth: 2,
-                    color: Colors.white,
-                  ),
-                )
-              : const Text('Simpan'),
+          child:
+              _isSubmitting
+                  ? const SizedBox(
+                    width: 20,
+                    height: 20,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      color: Colors.white,
+                    ),
+                  )
+                  : const Text('Simpan'),
         ),
       ],
     );
@@ -392,7 +391,7 @@ class _AddEntityDialogState extends State<AddEntityDialog> {
 
     try {
       bool success;
-      
+
       if (isSupplier) {
         success = await widget.controller.addSupplier(
           name: _nameController.text,
@@ -415,8 +414,8 @@ class _AddEntityDialogState extends State<AddEntityDialog> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
-              isSupplier 
-                  ? 'Supplier berhasil ditambahkan' 
+              isSupplier
+                  ? 'Supplier berhasil ditambahkan'
                   : 'Customer berhasil ditambahkan',
             ),
             backgroundColor: Colors.green,

@@ -2,8 +2,8 @@
 /// Komponen kontrol untuk halaman Report (search, filter, date picker, export)
 
 import 'package:flutter/material.dart';
-import 'package:dakara_weighbridge/Pages/report/report_controller.dart';
-import 'package:dakara_weighbridge/Pages/report/report_widgets.dart';
+import 'package:dakara_weighbridge/Pages/opt_pages/report/report_controller.dart';
+import 'package:dakara_weighbridge/Pages/opt_pages/report/report_widgets.dart';
 
 /// Widget utama untuk Controls bar (search, date, filter, export)
 class ReportControls extends StatelessWidget {

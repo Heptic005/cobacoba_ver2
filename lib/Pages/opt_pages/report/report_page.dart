@@ -7,16 +7,16 @@
 /// - Fitur ekspor saat ini masih placeholder.
 
 import 'package:flutter/material.dart';
-import 'package:dakara_weighbridge/Pages/report/report_controller.dart';
-import 'package:dakara_weighbridge/Pages/report/report_widgets.dart';
-import 'package:dakara_weighbridge/Pages/report/report_filter_bar.dart';
-import 'package:dakara_weighbridge/Pages/report/report_table.dart';
+import 'package:dakara_weighbridge/Pages/opt_pages/report/report_controller.dart';
+import 'package:dakara_weighbridge/Pages/opt_pages/report/report_widgets.dart';
+import 'package:dakara_weighbridge/Pages/opt_pages/report/report_filter_bar.dart';
+import 'package:dakara_weighbridge/Pages/opt_pages/report/report_table.dart';
 import 'package:dakara_weighbridge/Json/listsupplier_json.dart';
 import 'package:dakara_weighbridge/Json/listproduct_json.dart';
 import 'package:dakara_weighbridge/Json/listcustomer_json.dart';
 import 'package:dakara_weighbridge/features/transaction/services/clipboard_service.dart';
 import 'package:dakara_weighbridge/features/report/report_export_service.dart';
-import 'package:dakara_weighbridge/Pages/report/report_models.dart';
+import 'package:dakara_weighbridge/Pages/opt_pages/report/report_models.dart';
 
 class ReportPage extends StatefulWidget {
   const ReportPage({super.key});
@@ -81,38 +81,68 @@ class _ReportPageState extends State<ReportPage> {
     await showModalBottomSheet(
       context: context,
       backgroundColor: kCardBg,
-      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(16))),
-      builder: (_) => SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(12),
-          child: Column(mainAxisSize: MainAxisSize.min, children: [
-            ListTile(
-              leading: const Icon(Icons.picture_as_pdf, color: kPrimaryCyan),
-              title: const Text('Export PDF', style: TextStyle(color: kTextWhite)),
-              onTap: () async {
-                Navigator.of(context).pop();
-                await ReportExportService.instance.previewReportPdf(context, rows, meta: _meta());
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.table_chart, color: kPrimaryCyan),
-              title: const Text('Export Excel (.xlsx)', style: TextStyle(color: kTextWhite)),
-              onTap: () async {
-                Navigator.of(context).pop();
-                await ReportExportService.instance.previewExcel(context, rows, meta: _meta());
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.grid_on, color: kPrimaryCyan),
-              title: const Text('Export CSV', style: TextStyle(color: kTextWhite)),
-              onTap: () async {
-                Navigator.of(context).pop();
-                await ReportExportService.instance.previewCsv(context, rows, meta: _meta());
-              },
-            ),
-          ]),
-        ),
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
       ),
+      builder:
+          (_) => SafeArea(
+            child: Padding(
+              padding: const EdgeInsets.all(12),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  ListTile(
+                    leading: const Icon(
+                      Icons.picture_as_pdf,
+                      color: kPrimaryCyan,
+                    ),
+                    title: const Text(
+                      'Export PDF',
+                      style: TextStyle(color: kTextWhite),
+                    ),
+                    onTap: () async {
+                      Navigator.of(context).pop();
+                      await ReportExportService.instance.previewReportPdf(
+                        context,
+                        rows,
+                        meta: _meta(),
+                      );
+                    },
+                  ),
+                  ListTile(
+                    leading: const Icon(Icons.table_chart, color: kPrimaryCyan),
+                    title: const Text(
+                      'Export Excel (.xlsx)',
+                      style: TextStyle(color: kTextWhite),
+                    ),
+                    onTap: () async {
+                      Navigator.of(context).pop();
+                      await ReportExportService.instance.previewExcel(
+                        context,
+                        rows,
+                        meta: _meta(),
+                      );
+                    },
+                  ),
+                  ListTile(
+                    leading: const Icon(Icons.grid_on, color: kPrimaryCyan),
+                    title: const Text(
+                      'Export CSV',
+                      style: TextStyle(color: kTextWhite),
+                    ),
+                    onTap: () async {
+                      Navigator.of(context).pop();
+                      await ReportExportService.instance.previewCsv(
+                        context,
+                        rows,
+                        meta: _meta(),
+                      );
+                    },
+                  ),
+                ],
+              ),
+            ),
+          ),
     );
   }
 
@@ -121,16 +151,35 @@ class _ReportPageState extends State<ReportPage> {
     if (rows.isEmpty) return _snack('Tidak ada data untuk dicetak');
     final confirm = await showDialog<bool>(
       context: context,
-      builder: (c) => AlertDialog(
-        backgroundColor: kCardBg,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        title: Text('Cetak Laporan', style: TextStyle(color: kTextWhite, fontWeight: FontWeight.w600, fontSize: 18)),
-        content: Text('Cetak ${rows.length} baris sesuai filter saat ini?', style: TextStyle(color: kTextGrey)),
-        actions: [
-          TextButton(onPressed: () => Navigator.of(c).pop(false), child: Text('Batal', style: TextStyle(color: kTextGrey))),
-          TextButton(onPressed: () => Navigator.of(c).pop(true), child: Text('Cetak', style: TextStyle(color: kPrimaryCyan))),
-        ],
-      ),
+      builder:
+          (c) => AlertDialog(
+            backgroundColor: kCardBg,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
+            title: Text(
+              'Cetak Laporan',
+              style: TextStyle(
+                color: kTextWhite,
+                fontWeight: FontWeight.w600,
+                fontSize: 18,
+              ),
+            ),
+            content: Text(
+              'Cetak ${rows.length} baris sesuai filter saat ini?',
+              style: TextStyle(color: kTextGrey),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(c).pop(false),
+                child: Text('Batal', style: TextStyle(color: kTextGrey)),
+              ),
+              TextButton(
+                onPressed: () => Navigator.of(c).pop(true),
+                child: Text('Cetak', style: TextStyle(color: kPrimaryCyan)),
+              ),
+            ],
+          ),
     );
     if (confirm != true) return;
     try {

@@ -1,15 +1,10 @@
-/// TODO : Create Another Form for add Netto Transaction
-
-import 'package:dakara_weighbridge/Json/listtransaction_json.dart';
-import 'package:dakara_weighbridge/Pages/transaction_components/bruto_transaction_search_bar.dart';
-import 'package:dakara_weighbridge/Pages/transaction_components/weight_details.dart';
-import 'package:dakara_weighbridge/SQLite/db_helper.dart';
+import 'package:dakara_weighbridge/Pages/opt_pages/transaction_components/weight_details.dart';
 import 'package:flutter/material.dart';
 import 'package:dakara_weighbridge/Json/listcustomer_json.dart';
 import 'package:dakara_weighbridge/Json/listproduct_json.dart';
 import 'package:dakara_weighbridge/Json/listsupplier_json.dart';
 
-class AddNettoTransactionFormCard extends StatefulWidget {
+class TransactionFormCard extends StatelessWidget {
   final TextEditingController platnomorController;
   final TextEditingController poController;
   final TextEditingController namasupirController;
@@ -19,15 +14,10 @@ class AddNettoTransactionFormCard extends StatefulWidget {
   final TextEditingController suhuController;
   final TextEditingController hargaController;
   final TextEditingController keteranganController;
-  final TextEditingController supplierController;
-  final TextEditingController customerController;
-  final TextEditingController productController;
-  final TextEditingController transactionIdController;
-  final TextEditingController brutoController;
-  final TextEditingController tareController;
-  final TextEditingController nettoController;
 
+  final FocusNode focusPlatnomor;
   final FocusNode focusPO;
+  final FocusNode focusSupir;
   final FocusNode focusPotongan;
   final FocusNode focusKubikasi;
   final FocusNode focusNoContainer;
@@ -35,16 +25,26 @@ class AddNettoTransactionFormCard extends StatefulWidget {
   final FocusNode focusHarga;
   final FocusNode focusKeterangan;
 
+  final List<ListSupplierJson> suppliers;
+  final List<ListCustomerJson> customers;
+  final List<ListProductJson> products;
+  final int? selectedSupplier;
+  final int? selectedCustomer;
+  final int? selectedProduct;
+  final double? bruto;
+
   final Color cardBg;
   final Color primaryCyan;
   final Color textGrey;
   final Color inputBg;
 
+  final void Function(int?) onSelectSupplier;
+  final void Function(int?) onSelectCustomer;
+  final void Function(int?) onSelectProduct;
   final Future<void> Function() onSavePressed;
   final bool isFormValid;
-  double? tare;
 
-  AddNettoTransactionFormCard({
+  const TransactionFormCard({
     super.key,
     required this.platnomorController,
     required this.poController,
@@ -55,93 +55,35 @@ class AddNettoTransactionFormCard extends StatefulWidget {
     required this.suhuController,
     required this.hargaController,
     required this.keteranganController,
+    required this.focusPlatnomor,
     required this.focusPO,
+    required this.focusSupir,
     required this.focusPotongan,
     required this.focusKubikasi,
     required this.focusNoContainer,
     required this.focusSuhu,
     required this.focusHarga,
     required this.focusKeterangan,
+    required this.suppliers,
+    required this.customers,
+    required this.products,
+    required this.selectedSupplier,
+    required this.selectedCustomer,
+    required this.selectedProduct,
     required this.cardBg,
     required this.primaryCyan,
     required this.textGrey,
     required this.inputBg,
+    required this.onSelectSupplier,
+    required this.onSelectCustomer,
+    required this.onSelectProduct,
     required this.onSavePressed,
     required this.isFormValid,
-    required this.supplierController,
-    required this.customerController,
-    required this.productController,
-    required this.transactionIdController,
-    required this.brutoController,
-    required this.tareController,
-    required this.nettoController,
-    this.tare,
+    this.bruto = 0,
   });
 
-  @override
-  State<AddNettoTransactionFormCard> createState() =>
-      _TransactionFormCardState();
-}
-
-class _TransactionFormCardState extends State<AddNettoTransactionFormCard> {
-  /// Make initialization for placeholder so the value doesn't null
-  ListTransactionJson _transaction = ListTransactionJson(
-    vehiclePlate: '',
-    driverName: '',
-    supplierId: 0,
-    customerId: 0,
-    productId: 0,
-    cut: 0,
-    noTicket: '',
-    inTime: DateTime.now(),
-    outTime: DateTime.now(),
-    totalPrice: 0,
-    bruto: 0,
-    tare: 0,
-    netto: 0,
-    nettoAfterCut: 0,
-    driverLabel: 0,
-    operatorLabel: 0,
-    managerLabel: 0,
-    headWarehouseLabel: 0,
-  );
-
-  /// Make Existing Data to Be Placeholder
-  void _onSelected(ListTransactionJson transaction) async {
-    print(transaction.productName);
-    print(transaction.noDO);
-    print(transaction.additionalInformation);
-    setState(() {
-      _transaction = transaction;
-      widget.brutoController.text = _transaction.bruto.toString();
-      widget.transactionIdController.text =
-          _transaction.transactionId.toString();
-      widget.supplierController.text = _transaction.supplierName!;
-      widget.customerController.text = _transaction.customerName!;
-      widget.productController.text = _transaction.productName!;
-      widget.platnomorController.text = _transaction.vehiclePlate;
-      widget.namasupirController.text = _transaction.driverName;
-      widget.poController.text = _transaction.noDO ?? '';
-      widget.potonganController.text = _transaction.cut.toString();
-      widget.kubikasiController.text =
-          _transaction.kubikasi == null ? '' : _transaction.kubikasi.toString();
-      widget.nocontainerController.text =
-          _transaction.noContainer == null
-              ? ''
-              : _transaction.noContainer.toString();
-      widget.suhuController.text =
-          _transaction.temperature == null
-              ? ''
-              : _transaction.temperature.toString();
-      widget.hargaController.text =
-          _transaction.price == null ? '' : _transaction.price.toString();
-      widget.keteranganController.text =
-          _transaction.additionalInformation ?? '';
-    });
-  }
-
   Widget _buildTextInput({
-    TextEditingController? controller,
+    required TextEditingController controller,
     required String label,
     String? hint,
     FocusNode? focus,
@@ -162,21 +104,19 @@ class _TransactionFormCardState extends State<AddNettoTransactionFormCard> {
       style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w500),
       decoration: InputDecoration(
         labelText: label,
-        labelStyle: TextStyle(color: widget.textGrey),
+        labelStyle: TextStyle(color: textGrey),
         hintText: hint,
         hintStyle: TextStyle(
           color: Colors.white.withAlpha((0.5 * 255).round()),
         ),
         filled: true,
-        fillColor: widget.inputBg,
+        fillColor: inputBg,
         contentPadding: const EdgeInsets.symmetric(
           horizontal: 20,
           vertical: 18,
         ),
         prefixIcon:
-            prefixIcon != null
-                ? Icon(prefixIcon, color: widget.textGrey)
-                : null,
+            prefixIcon != null ? Icon(prefixIcon, color: textGrey) : null,
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
           borderSide: BorderSide.none,
@@ -184,12 +124,12 @@ class _TransactionFormCardState extends State<AddNettoTransactionFormCard> {
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
           borderSide: BorderSide(
-            color: widget.textGrey.withAlpha((0.12 * 255).round()),
+            color: textGrey.withAlpha((0.12 * 255).round()),
           ),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: widget.primaryCyan, width: 1.5),
+          borderSide: BorderSide(color: primaryCyan, width: 1.5),
         ),
       ),
       onFieldSubmitted: (v) {
@@ -199,14 +139,76 @@ class _TransactionFormCardState extends State<AddNettoTransactionFormCard> {
     );
   }
 
-  @override
-  void initState() {
-    super.initState();
+  Widget _buildDropdown<T>({
+    required String label,
+    required List<T> items,
+    required void Function(int?) onChanged,
+    int? initialValue,
+    IconData? prefixIcon,
+    bool enabled = true,
+  }) {
+    return DropdownButtonFormField<int>(
+      initialValue: initialValue,
+      items:
+          items.map((item) {
+            int id = 0;
+            String labelText = item.toString();
+            if (item is ListSupplierJson) {
+              id = item.supplierId;
+              labelText = item.supplierName;
+            } else if (item is ListCustomerJson) {
+              id = item.customerId;
+              labelText = item.customerName;
+            } else if (item is ListProductJson) {
+              id = item.productId;
+              labelText = item.productName;
+            }
+            return DropdownMenuItem<int>(
+              value: id,
+              child: Text(
+                labelText,
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            );
+          }).toList(),
+      onChanged: enabled ? onChanged : null,
+      dropdownColor: inputBg,
+      style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w500),
+      decoration: InputDecoration(
+        labelText: label,
+        labelStyle: TextStyle(color: textGrey),
+        filled: true,
+        fillColor: inputBg,
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 20,
+          vertical: 18,
+        ),
+        prefixIcon:
+            prefixIcon != null ? Icon(prefixIcon, color: textGrey) : null,
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide.none,
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(
+            color: textGrey.withAlpha((0.12 * 255).round()),
+          ),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(color: primaryCyan, width: 1.5),
+        ),
+      ),
+      icon: Icon(Icons.arrow_drop_down, color: textGrey),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
-    print('build');
     return Row(
       children: [
         Expanded(
@@ -214,7 +216,7 @@ class _TransactionFormCardState extends State<AddNettoTransactionFormCard> {
           child: Container(
             padding: const EdgeInsets.all(24),
             decoration: BoxDecoration(
-              color: widget.cardBg,
+              color: cardBg,
               borderRadius: BorderRadius.circular(24),
               boxShadow: [
                 BoxShadow(
@@ -225,40 +227,30 @@ class _TransactionFormCardState extends State<AddNettoTransactionFormCard> {
             ),
             child: Column(
               children: [
-                SearchTicketField(onSelected: _onSelected),
                 Padding(
                   padding: const EdgeInsets.only(bottom: 12.0),
-                  child: Row(children: [const SizedBox(width: 12)]),
-                ),
-                Text(
-                  _transaction.noTicket,
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.only(bottom: 20.0),
                   child: Row(children: [const SizedBox(width: 12)]),
                 ),
                 Row(
                   children: [
                     Expanded(
                       child: _buildTextInput(
-                        controller: widget.platnomorController,
+                        controller: platnomorController,
                         label: 'Plat Nomor',
                         hint: 'B 1234 ABC',
+                        focus: focusPlatnomor,
+                        nextFocus: focusSupir,
                         textCapital: TextCapitalization.characters,
                         prefixIcon: Icons.local_shipping_outlined,
-                        enabled: false,
                       ),
                     ),
                     const SizedBox(width: 16),
                     Expanded(
                       child: _buildTextInput(
-                        controller: widget.namasupirController,
+                        controller: namasupirController,
                         label: 'Nama Supir',
-                        enabled: false,
+                        focus: focusSupir,
+                        nextFocus: focusPotongan,
                         prefixIcon: Icons.person_outline,
                       ),
                     ),
@@ -268,19 +260,21 @@ class _TransactionFormCardState extends State<AddNettoTransactionFormCard> {
                 Row(
                   children: [
                     Expanded(
-                      child: _buildTextInput(
-                        controller: widget.supplierController,
+                      child: _buildDropdown<ListSupplierJson>(
                         label: 'Supplier',
-                        enabled: false,
+                        items: suppliers,
+                        onChanged: onSelectSupplier,
+                        initialValue: selectedSupplier,
                         prefixIcon: Icons.store_mall_directory_outlined,
                       ),
                     ),
                     const SizedBox(width: 16),
                     Expanded(
-                      child: _buildTextInput(
-                        controller: widget.customerController,
+                      child: _buildDropdown<ListCustomerJson>(
                         label: 'Customer',
-                        enabled: false,
+                        items: customers,
+                        onChanged: onSelectCustomer,
+                        initialValue: selectedCustomer,
                         prefixIcon: Icons.business_outlined,
                       ),
                     ),
@@ -290,20 +284,21 @@ class _TransactionFormCardState extends State<AddNettoTransactionFormCard> {
                 Row(
                   children: [
                     Expanded(
-                      child: _buildTextInput(
-                        controller: widget.productController,
-                        label: 'Product',
-                        enabled: false,
+                      child: _buildDropdown<ListProductJson>(
+                        label: 'Barang',
+                        items: products,
+                        onChanged: onSelectProduct,
+                        initialValue: selectedProduct,
                         prefixIcon: Icons.category_outlined,
                       ),
                     ),
                     const SizedBox(width: 16),
                     Expanded(
                       child: _buildTextInput(
-                        controller: widget.poController,
+                        controller: poController,
                         label: 'Nomor DO / PO',
-                        focus: widget.focusPO,
-                        nextFocus: widget.focusNoContainer,
+                        focus: focusPO,
+                        nextFocus: focusNoContainer,
                         prefixIcon: Icons.description_outlined,
                       ),
                     ),
@@ -314,11 +309,11 @@ class _TransactionFormCardState extends State<AddNettoTransactionFormCard> {
                   children: [
                     Expanded(
                       child: _buildTextInput(
-                        controller: widget.potonganController,
+                        controller: potonganController,
                         label: 'Potongan (%)',
                         hint: '0',
-                        focus: widget.focusPotongan,
-                        nextFocus: widget.focusKubikasi,
+                        focus: focusPotongan,
+                        nextFocus: focusKubikasi,
                         keyboardType: TextInputType.number,
                         prefixIcon: Icons.percent,
                       ),
@@ -326,11 +321,11 @@ class _TransactionFormCardState extends State<AddNettoTransactionFormCard> {
                     const SizedBox(width: 16),
                     Expanded(
                       child: _buildTextInput(
-                        controller: widget.kubikasiController,
+                        controller: kubikasiController,
                         label: 'Kubikasi (opt)',
                         hint: '0',
-                        focus: widget.focusKubikasi,
-                        nextFocus: widget.focusPO,
+                        focus: focusKubikasi,
+                        nextFocus: focusPO,
                         keyboardType: TextInputType.number,
                         prefixIcon: Icons.numbers,
                       ),
@@ -342,11 +337,11 @@ class _TransactionFormCardState extends State<AddNettoTransactionFormCard> {
                   children: [
                     Expanded(
                       child: _buildTextInput(
-                        controller: widget.nocontainerController,
+                        controller: nocontainerController,
                         label: 'No Container (opt)',
                         hint: 'max 20 chars',
-                        focus: widget.focusNoContainer,
-                        nextFocus: widget.focusSuhu,
+                        focus: focusNoContainer,
+                        nextFocus: focusSuhu,
                         maxLength: 20,
                         prefixIcon: Icons.inventory_2_outlined,
                       ),
@@ -354,11 +349,11 @@ class _TransactionFormCardState extends State<AddNettoTransactionFormCard> {
                     const SizedBox(width: 16),
                     Expanded(
                       child: _buildTextInput(
-                        controller: widget.suhuController,
+                        controller: suhuController,
                         label: 'Suhu (opt)',
                         hint: '°C',
-                        focus: widget.focusSuhu,
-                        nextFocus: widget.focusHarga,
+                        focus: focusSuhu,
+                        nextFocus: focusHarga,
                         keyboardType: TextInputType.number,
                         prefixIcon: Icons.thermostat_outlined,
                       ),
@@ -370,11 +365,11 @@ class _TransactionFormCardState extends State<AddNettoTransactionFormCard> {
                   children: [
                     Expanded(
                       child: _buildTextInput(
-                        controller: widget.hargaController,
+                        controller: hargaController,
                         label: 'Harga / kg (opt)',
                         hint: '0',
-                        focus: widget.focusHarga,
-                        nextFocus: widget.focusKeterangan,
+                        focus: focusHarga,
+                        nextFocus: focusKeterangan,
                         keyboardType: TextInputType.number,
                         prefixIcon: Icons.attach_money,
                       ),
@@ -385,10 +380,10 @@ class _TransactionFormCardState extends State<AddNettoTransactionFormCard> {
                 ),
                 const SizedBox(height: 16),
                 _buildTextInput(
-                  controller: widget.keteranganController,
+                  controller: keteranganController,
                   label: 'Keterangan (Manual) (opt)',
                   hint: 'Catatan...',
-                  focus: widget.focusKeterangan,
+                  focus: focusKeterangan,
                   maxLength: 500,
                   prefixIcon: Icons.note_outlined,
                 ),
@@ -396,12 +391,9 @@ class _TransactionFormCardState extends State<AddNettoTransactionFormCard> {
                 SizedBox(
                   width: double.infinity,
                   child: ElevatedButton(
-                    onPressed:
-                        widget.isFormValid
-                            ? () => widget.onSavePressed()
-                            : null,
+                    onPressed: isFormValid ? () => onSavePressed() : null,
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: widget.primaryCyan,
+                      backgroundColor: primaryCyan,
                       foregroundColor: Colors.black,
                       padding: const EdgeInsets.symmetric(vertical: 22),
                       shape: RoundedRectangleBorder(
@@ -417,12 +409,12 @@ class _TransactionFormCardState extends State<AddNettoTransactionFormCard> {
                   ),
                 ),
                 const SizedBox(height: 8),
-                if (!widget.isFormValid)
+                if (!isFormValid)
                   Padding(
                     padding: const EdgeInsets.only(top: 4.0),
                     child: Text(
                       'Lengkapi: Supplier, Customer, Barang, Plat Nomor, Nama Supir, dan Simpan Berat',
-                      style: TextStyle(color: widget.textGrey, fontSize: 12),
+                      style: TextStyle(color: textGrey, fontSize: 12),
                     ),
                   ),
               ],
@@ -432,35 +424,14 @@ class _TransactionFormCardState extends State<AddNettoTransactionFormCard> {
         const SizedBox(width: 20),
         Expanded(
           flex: 2,
-
-          /// TODO : MAKE SURE THE CALCULATION IS CORRECT
           child: WeightDetails(
-            bruto:
-                widget.brutoController.text.isEmpty
-                    ? '0.00'
-                    : widget.brutoController.text,
-            tare: widget.tare?.toStringAsFixed(2) ?? '0.00',
-            netto: ((double.tryParse(widget.brutoController.text) ?? 0) -
-                    (widget.tare?.toDouble() ?? 0))
-                .toStringAsFixed(2),
-            afterCut: (((double.tryParse(widget.brutoController.text) ?? 0) -
-                        (widget.tare?.toDouble() ?? 0)) -
-                    (((double.tryParse(widget.brutoController.text) ?? 0) -
-                            (widget.tare?.toDouble() ?? 0)) *
-                        (double.tryParse(widget.potonganController.text) ?? 0) /
-                        100))
-                .toStringAsFixed(2),
-            totalPrice: ((((double.tryParse(widget.brutoController.text) ?? 0) -
-                            (widget.tare?.toDouble() ?? 0)) -
-                        (((double.tryParse(widget.brutoController.text) ?? 0) -
-                                (widget.tare?.toDouble() ?? 0)) *
-                            (double.tryParse(widget.potonganController.text) ??
-                                0) /
-                            100)) *
-                    (double.tryParse(widget.hargaController.text) ?? 0))
-                .toStringAsFixed(2),
-            textGrey: widget.textGrey,
-            cardBg: widget.cardBg,
+            bruto: bruto?.toStringAsFixed(2) ?? '0',
+            tare: '0',
+            netto: '0',
+            afterCut: '0',
+            totalPrice: '0',
+            textGrey: textGrey,
+            cardBg: cardBg,
           ),
         ),
       ],

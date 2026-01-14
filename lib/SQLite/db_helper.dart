@@ -54,7 +54,7 @@ class DbHelper {
       CREATE TABLE IF NOT EXISTS "product" (
 	    "productId"	INTEGER NOT NULL UNIQUE,
 	    "productName"	TEXT NOT NULL,
-	    "productCode"	TEXT NOT NULL,
+	    "productCode"	TEXT NOT NULL UNIQUE,
 	    PRIMARY KEY("productId" AUTOINCREMENT)
       );
       ''';
@@ -455,12 +455,12 @@ class DbHelper {
     required String password,
   }) async {
     final user = await getUserByUsername(username: username);
-    if (user.isEmpty) throw InvalidCredentialException();
+    if (user.isEmpty) throw InvalidCredentialException("Invalid Credential");
     final storedPassword = user[0].accountPassword;
     if (storedPassword == password) {
       return user[0];
     } else {
-      throw InvalidCredentialException();
+      throw InvalidCredentialException("Invalid Credential");
     }
   }
 

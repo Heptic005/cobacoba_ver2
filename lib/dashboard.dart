@@ -3,7 +3,7 @@ import 'dart:ui';
 import 'package:animated_toggle_switch/animated_toggle_switch.dart';
 import 'package:bitsdojo_window/bitsdojo_window.dart';
 import 'package:dakara_weighbridge/Menu/menu_items.dart';
-import 'package:dakara_weighbridge/Pages/techician_page.dart';
+import 'package:dakara_weighbridge/Pages/opt_pages/techician_page.dart';
 import 'package:dakara_weighbridge/Themes/app_themes.dart';
 import 'package:flutter/material.dart';
 
@@ -62,13 +62,15 @@ class _DashboardState extends State<Dashboard> {
                 PageView.builder(
                   controller: pageController,
                   itemCount: menu.items.length,
-                  itemBuilder: (context, index) => PageStorage( // keep page state alive per tab
-                    bucket: PageStorageBucket(),
-                    child: KeyedSubtree(
-                      key: PageStorageKey('page_$index'),
-                      child: menu.items[index].page,
-                    ),
-                  ),
+                  itemBuilder:
+                      (context, index) => PageStorage(
+                        // keep page state alive per tab
+                        bucket: PageStorageBucket(),
+                        child: KeyedSubtree(
+                          key: PageStorageKey('page_$index'),
+                          child: menu.items[index].page,
+                        ),
+                      ),
                 ),
 
                 // Top Bar
@@ -101,10 +103,15 @@ class _DashboardState extends State<Dashboard> {
                                   iconOpacity: 0.7,
                                   height: 45,
                                   indicatorSize: const Size.fromWidth(90),
-                                  animatedIconBuilder: (context, local, global) {
+                                  animatedIconBuilder: (
+                                    context,
+                                    local,
+                                    global,
+                                  ) {
                                     return Row(
                                       spacing: 7,
-                                      mainAxisAlignment: MainAxisAlignment.center,
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
                                       children: [
                                         Text(
                                           menuItems[local.value],
@@ -119,22 +126,25 @@ class _DashboardState extends State<Dashboard> {
                                   style: const ToggleStyle(
                                     borderColor: Colors.transparent,
                                   ),
-                                  styleBuilder: (i) => const ToggleStyle(
-                                    indicatorGradient: LinearGradient(
-                                      begin: Alignment.centerLeft,
-                                      end: Alignment.centerRight,
-                                      colors: [
-                                        Color(0xFF0080FF),
-                                        Color(0xFF00E5FF),
-                                      ],
-                                    ),
-                                  ),
+                                  styleBuilder:
+                                      (i) => const ToggleStyle(
+                                        indicatorGradient: LinearGradient(
+                                          begin: Alignment.centerLeft,
+                                          end: Alignment.centerRight,
+                                          colors: [
+                                            Color(0xFF0080FF),
+                                            Color(0xFF00E5FF),
+                                          ],
+                                        ),
+                                      ),
                                   onChanged: (i) {
                                     selectedIndex.value = i;
                                     pageController.animateToPage(
                                       i,
                                       // shorten duration to reduce jank
-                                      duration: const Duration(milliseconds: 300),
+                                      duration: const Duration(
+                                        milliseconds: 300,
+                                      ),
                                       curve: Curves.easeInOut,
                                     );
                                   },

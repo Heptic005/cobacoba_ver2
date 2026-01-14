@@ -3,14 +3,14 @@
 /// ============================================================================
 /// File: menu_items.dart
 /// Deskripsi: Konfigurasi menu items untuk navigasi halaman di dashboard.
-///            
+///
 /// UPDATED: Menggunakan DataPage dari modul data yang termodularisasi
 /// ============================================================================
 
 import 'package:dakara_weighbridge/Menu/menu_details.dart';
-import 'package:dakara_weighbridge/Pages/data/data_page.dart'; // Updated import
-import 'package:dakara_weighbridge/Pages/report.dart';
-import 'package:dakara_weighbridge/Pages/transaction.dart';
+import 'package:dakara_weighbridge/Pages/opt_pages/data/data_page.dart'; // Updated import
+import 'package:dakara_weighbridge/Pages/opt_pages/report.dart';
+import 'package:dakara_weighbridge/Pages/opt_pages/transaction.dart';
 import 'package:flutter/material.dart';
 
 class MenuItems {

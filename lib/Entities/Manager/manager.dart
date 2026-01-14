@@ -7,8 +7,8 @@ import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
 
-/// TODO : Need To Implements all Methods
 class Manager implements AbstractManager {
+  /// Manager Creating Account For Supervisor And Operator
   @override
   Future<void> createSupervisorAndOperator({
     required String username,
@@ -23,28 +23,33 @@ class Manager implements AbstractManager {
     await DbHelper.instance.addUser(newAccount);
   }
 
+  /// Manager Creating Token For Supervisor To Be Able To Special Transaction
   @override
   Future<void> createTokenForManualWeight() async {
     /// TODO : Finishing create Token for Manual Weight
     await TokenService.createToken();
   }
 
+  /// Manager Deleting Specific Supervisor or Operator by Id
   @override
   Future<void> deleteSupervisorAndOperator({required int id}) async {
     await DbHelper.instance.deleteUser(id: id);
   }
 
+  /// Manager Deleting Specific Transaction by Id
   @override
   Future<void> deleteTransaction({required int transactionId}) async {
     await DbHelper.instance.deleteTransaction(id: transactionId);
   }
 
+  /// get List Supervisor and Operator
   @override
   Future<void> getSupervisorAndOperator() {
     // TODO: implement getSupervisorAndOperator
     throw UnimplementedError();
   }
 
+  /// Update Specific Supervisor and Operator
   @override
   Future<void> updateSupervisorAndOperator({
     required int id,

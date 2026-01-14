@@ -8,31 +8,23 @@ import 'package:dakara_weighbridge/SQLite/db_helper.dart';
 import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-/// TODO : Need to add export report, emergency transaction
 class Supervisor implements AbstractSupervisor {
+  /// Creating Account For Operator
   @override
   Future<void> createOperator({
     required String username,
     required String password,
   }) async {
-    final prefs = await SharedPreferences.getInstance();
-    final isLoggedInStatus = prefs.getBool('isLoggedIn');
-    final roleStatus = prefs.getString('role');
-
-    if (isLoggedInStatus ?? false) {
-      if (roleStatus == 'supervisor') {
-        await DbHelper.instance.addUser(
-          ListAccountJson(
-            accountUsername: username,
-            accountPassword: password,
-            accountPosition: 'operator',
-          ),
-        );
-      }
-      throw AuthorizationException();
-    }
+    await DbHelper.instance.addUser(
+      ListAccountJson(
+        accountUsername: username,
+        accountPassword: password,
+        accountPosition: 'operator',
+      ),
+    );
   }
 
+  /// Validate Special Transaction Token
   @override
   Future<bool> validateToken(String inputToken) async {
     final token = await DbHelper.instance.getToken(inputToken);
@@ -48,6 +40,7 @@ class Supervisor implements AbstractSupervisor {
     return true;
   }
 
+  /// Creating Request Token
   @override
   Future<void> createRequestToken({required String reason}) async {
     // TODO: implement createRequestToken
@@ -64,8 +57,9 @@ class Supervisor implements AbstractSupervisor {
     );
   }
 
+  /// Add Special Transaction by Supervisor
   @override
-  Future<int> addEmergencyTransaction({
+  Future<void> addEmergencyTransaction({
     String? token,
     required String vehiclePlate,
     required String driverName,
@@ -81,42 +75,35 @@ class Supervisor implements AbstractSupervisor {
     double? price,
     String? additionalInformation,
   }) async {
-    final prefs = await SharedPreferences.getInstance();
-    final bool? isLoggedInStatus = prefs.getBool('isLoggedIn');
-    final String? roleStatus = prefs.getString('role');
-    if (isLoggedInStatus == true && roleStatus == 'supervisor') {
-      final id = await DbHelper.instance.addTransaction(
-        ListTransactionJson(
-          vehiclePlate: vehiclePlate,
-          driverName: driverName,
-          supplierId: supplierId,
-          customerId: customerId,
-          productId: productId,
-          cut: cut,
-          kubikasi: kubikasi,
-          noDO: noDo,
-          noContainer: noContainer,
-          temperature: temperature,
-          price: price,
-          additionalInformation: additionalInformation,
-          noTicket: 'MWB-${DateTime.now().millisecondsSinceEpoch}',
-          inTime: DateTime.now(),
-          outTime: DateTime.now(),
-          totalPrice: 0,
-          bruto: bruto,
-          tare: 0,
-          netto: 0,
-          nettoAfterCut: 0,
-          driverLabel: 0,
-          operatorLabel: 0,
-          managerLabel: 0,
-          headWarehouseLabel: 0,
-          isDrafted: 1,
-          isManual: 1,
-        ),
-      );
-      return id;
-    }
-    return -1;
+    await DbHelper.instance.addTransaction(
+      ListTransactionJson(
+        vehiclePlate: vehiclePlate,
+        driverName: driverName,
+        supplierId: supplierId,
+        customerId: customerId,
+        productId: productId,
+        cut: cut,
+        kubikasi: kubikasi,
+        noDO: noDo,
+        noContainer: noContainer,
+        temperature: temperature,
+        price: price,
+        additionalInformation: additionalInformation,
+        noTicket: 'MWB-${DateTime.now().millisecondsSinceEpoch}',
+        inTime: DateTime.now(),
+        outTime: DateTime.now(),
+        totalPrice: 0,
+        bruto: bruto,
+        tare: 0,
+        netto: 0,
+        nettoAfterCut: 0,
+        driverLabel: 0,
+        operatorLabel: 0,
+        managerLabel: 0,
+        headWarehouseLabel: 0,
+        isDrafted: 1,
+        isManual: 1,
+      ),
+    );
   }
 }

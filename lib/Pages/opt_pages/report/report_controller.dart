@@ -14,18 +14,18 @@ import 'package:dakara_weighbridge/Json/listtransaction_json.dart';
 import 'package:dakara_weighbridge/Json/listsupplier_json.dart';
 import 'package:dakara_weighbridge/Json/listproduct_json.dart';
 import 'package:dakara_weighbridge/Json/listcustomer_json.dart';
-import 'package:dakara_weighbridge/Pages/report/report_models.dart';
-import 'package:dakara_weighbridge/Pages/report/report_perf.dart';
+import 'package:dakara_weighbridge/Pages/opt_pages/report/report_models.dart';
+import 'package:dakara_weighbridge/Pages/opt_pages/report/report_perf.dart';
 
 class ReportController {
   // State notifiers untuk UI subscribe
   final ValueNotifier<bool> loading = ValueNotifier<bool>(true);
   final ValueNotifier<List<ListTransactionJson>> shown =
       ValueNotifier<List<ListTransactionJson>>([]);
-    // Visible precomputed rows for fast rendering (batched)
-    final ValueNotifier<List<ReportRowData>> visible =
+  // Visible precomputed rows for fast rendering (batched)
+  final ValueNotifier<List<ReportRowData>> visible =
       ValueNotifier<List<ReportRowData>>([]);
-    final ValueNotifier<bool> loadingMore = ValueNotifier<bool>(false);
+  final ValueNotifier<bool> loadingMore = ValueNotifier<bool>(false);
   final ValueNotifier<Map<String, num>> aggregate =
       ValueNotifier<Map<String, num>>({
         'count': 0,
@@ -208,9 +208,10 @@ class ReportController {
     loadingMore.value = true;
     final sw = Stopwatch()..start();
     // Append next batch
-    final next = (_nextIndex + _pageSize) <= _allRows.length
-        ? _allRows.sublist(_nextIndex, _nextIndex + _pageSize)
-        : _allRows.sublist(_nextIndex, _allRows.length);
+    final next =
+        (_nextIndex + _pageSize) <= _allRows.length
+            ? _allRows.sublist(_nextIndex, _nextIndex + _pageSize)
+            : _allRows.sublist(_nextIndex, _allRows.length);
     final newVisible = List<ReportRowData>.from(visible.value)..addAll(next);
     _nextIndex = _nextIndex + next.length;
     _hasMore = _nextIndex < _allRows.length;
@@ -239,30 +240,44 @@ class ReportController {
     final q = _search.trim().toLowerCase();
 
     // Filter original _all list (lightweight operations)
-    final filtered = _all.where((t) {
-      final matchSearch = q.isEmpty ||
-        t.noTicket.toLowerCase().contains(q) ||
-        t.vehiclePlate.toLowerCase().contains(q) ||
-        t.driverName.toLowerCase().contains(q) ||
-        (t.productName ?? '').toLowerCase().contains(q) ||
-        (t.supplierName ?? '').toLowerCase().contains(q) ||
-        (t.customerName ?? '').toLowerCase().contains(q);
+    final filtered =
+        _all.where((t) {
+          final matchSearch =
+              q.isEmpty ||
+              t.noTicket.toLowerCase().contains(q) ||
+              t.vehiclePlate.toLowerCase().contains(q) ||
+              t.driverName.toLowerCase().contains(q) ||
+              (t.productName ?? '').toLowerCase().contains(q) ||
+              (t.supplierName ?? '').toLowerCase().contains(q) ||
+              (t.customerName ?? '').toLowerCase().contains(q);
 
-      final matchSupplier = _supplierId == null || t.supplierId == _supplierId;
-      final matchProduct = _productId == null || t.productId == _productId;
-      final inTime = t.inTime;
-      final matchStart = _startDate == null ||
-        inTime.isAtSameMomentAs(_startDate!) ||
-        inTime.isAfter(_startDate!);
-      final matchEnd = _endDate == null ||
-        inTime.isAtSameMomentAs(_endDate!) ||
-        inTime.isBefore(_endDate!.add(const Duration(days: 1)));
+          final matchSupplier =
+              _supplierId == null || t.supplierId == _supplierId;
+          final matchProduct = _productId == null || t.productId == _productId;
+          final inTime = t.inTime;
+          final matchStart =
+              _startDate == null ||
+              inTime.isAtSameMomentAs(_startDate!) ||
+              inTime.isAfter(_startDate!);
+          final matchEnd =
+              _endDate == null ||
+              inTime.isAtSameMomentAs(_endDate!) ||
+              inTime.isBefore(_endDate!.add(const Duration(days: 1)));
 
-      return matchSearch && matchSupplier && matchProduct && matchStart && matchEnd;
-    }).toList();
+          return matchSearch &&
+              matchSupplier &&
+              matchProduct &&
+              matchStart &&
+              matchEnd;
+        }).toList();
 
     // Sort by inTime
-    filtered.sort((a, b) => _sortDesc ? b.inTime.compareTo(a.inTime) : a.inTime.compareTo(b.inTime));
+    filtered.sort(
+      (a, b) =>
+          _sortDesc
+              ? b.inTime.compareTo(a.inTime)
+              : a.inTime.compareTo(b.inTime),
+    );
 
     shown.value = filtered;
     _computeAggregate(filtered);
@@ -312,7 +327,10 @@ class ReportController {
     final formattedNetto = '${_numFmt.format(t.netto)} kg';
     final formattedBruto = '${_numFmt.format(t.bruto)} kg';
     final formattedTare = '${_numFmt.format(t.tare)} kg';
-    final formattedTotal = NumberFormat.currency(symbol: 'Rp ', decimalDigits: 0).format(t.totalPrice);
+    final formattedTotal = NumberFormat.currency(
+      symbol: 'Rp ',
+      decimalDigits: 0,
+    ).format(t.totalPrice);
 
     return ReportRowData(
       transactionId: t.transactionId,

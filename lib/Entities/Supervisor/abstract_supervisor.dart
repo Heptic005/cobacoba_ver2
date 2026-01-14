@@ -5,7 +5,7 @@ abstract class AbstractSupervisor {
   });
   Future<bool> validateToken(String inputToken);
   Future<void> createRequestToken({required String reason});
-  Future<int> addEmergencyTransaction({
+  Future<void> addEmergencyTransaction({
     String? token,
     required String vehiclePlate,
     required String driverName,
