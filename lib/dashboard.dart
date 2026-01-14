@@ -6,12 +6,15 @@ import 'package:dakara_weighbridge/Menu/menu_items.dart';
 import 'package:dakara_weighbridge/Pages/mgr_pages/placeholder.dart';
 import 'package:dakara_weighbridge/Pages/opt_pages/dashboard.dart';
 import 'package:dakara_weighbridge/Pages/opt_pages/techician_page.dart';
-import 'package:dakara_weighbridge/Pages/spv_pages/placeholder.dart';
+import 'package:dakara_weighbridge/Pages/spv_pages/dashboard.dart';
 import 'package:dakara_weighbridge/Themes/app_themes.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'Pages/login.dart';
+
+// ✅ Tambahkan import Supervisor
+import 'package:dakara_weighbridge/Entities/Supervisor/supervisor.dart';
 
 class Dashboard extends StatefulWidget {
   const Dashboard({super.key});
@@ -28,7 +31,6 @@ class _DashboardState extends State<Dashboard> {
   final ValueNotifier<int> selectedIndex = ValueNotifier<int>(0);
   Color bgGrey = const Color.fromARGB(255, 228, 230, 232);
   Color royalGrey = const Color.fromARGB(255, 86, 105, 113);
-  // Color limeGreen = const Color.fromARGB(255, 124, 233, 0);
   Color limeGreen = const Color.fromARGB(255, 151, 255, 33);
 
   /// Role
@@ -45,10 +47,8 @@ class _DashboardState extends State<Dashboard> {
   void initState() {
     super.initState();
     _loadRole();
-    // xAlign = transactionAlign;
   }
 
-  // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -62,16 +62,14 @@ class _DashboardState extends State<Dashboard> {
             decoration: BoxDecoration(
               gradient: LinearGradient(
                 colors: [
-                  Color.fromARGB(255, 54, 68, 77),
-                  Color.fromARGB(255, 22, 25, 33),
-                  Color.fromARGB(255, 22, 25, 33),
-                  Color.fromARGB(255, 38, 47, 54),
+                  const Color.fromARGB(255, 54, 68, 77),
+                  const Color.fromARGB(255, 22, 25, 33),
+                  const Color.fromARGB(255, 22, 25, 33),
+                  const Color.fromARGB(255, 38, 47, 54),
                 ],
-                stops: [0, 0.7, 0.9, 1],
+                stops: const [0, 0.7, 0.9, 1],
                 begin: Alignment.topCenter,
                 end: Alignment.bottomCenter,
-                // begin: Alignment(-0.0, -1.3),
-                // end: Alignment(-0.0, 1),
               ),
             ),
             child: _buildHome(),
@@ -84,7 +82,8 @@ class _DashboardState extends State<Dashboard> {
   Widget _buildHome() {
     switch (_role) {
       case 'supervisor':
-        return const SupervisorTemporaryDashboard();
+        // ✅ Sesuaikan pemanggilan SupervisorDashboard dengan parameter supervisor
+        return SupervisorDashboard();
       case 'operator':
         return const OperatorDashboard();
       case 'manager':
@@ -118,7 +117,6 @@ class _DashboardState extends State<Dashboard> {
     return Icon(
       data,
       size: 20,
-      // color: select == local.value ? Colors.black : Colors.transparent,
     );
   }
 }

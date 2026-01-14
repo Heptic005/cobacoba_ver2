@@ -1,3 +1,4 @@
+import 'package:dakara_weighbridge/Entities/Operator/operator.dart';
 import 'package:dakara_weighbridge/Services/auth_service.dart';
 import 'package:dakara_weighbridge/Services/token_service.dart';
 import 'package:flutter/material.dart';
@@ -9,14 +10,14 @@ import 'package:dakara_weighbridge/Entities/Supervisor/supervisor.dart';
 import 'package:dakara_weighbridge/Pages/spv_pages/dashboard.dart';
 
 
-class LoginPage extends StatefulWidget {
-  const LoginPage({super.key});
+class CreateOperatorPage extends StatefulWidget {
+  const CreateOperatorPage({super.key});
 
   @override
-  State<LoginPage> createState() => _LoginPageState();
+  State<CreateOperatorPage> createState() => _CreateOperatorPageState();
 }
 
-class _LoginPageState extends State<LoginPage> {
+class _CreateOperatorPageState extends State<CreateOperatorPage> {
   final TextEditingController _usernameController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   bool _loading = false;
@@ -104,6 +105,8 @@ class _LoginPageState extends State<LoginPage> {
     const cardBg = Color(0xFF2B2E33);
     const primaryCyan = Color(0xFF00E5FF);
     const textGrey = Color(0xFFBFC9D6);
+
+    final _supervisor = Supervisor();
 
     return Scaffold(
       backgroundColor: bgDark,
@@ -194,7 +197,7 @@ class _LoginPageState extends State<LoginPage> {
                               borderRadius: BorderRadius.circular(8),
                             ),
                             child: const Text(
-                              'Testing: please register first using "Register as Operator" to create an operator account, then sign in. This build is for testing only.',
+                              'Testing: this page allows supervisors to create new operator accounts. Fill in the username and password, then click "Add Operator" to register a new operator in the system.',
                               style: TextStyle(color: Colors.white70),
                             ),
                           ),
@@ -237,7 +240,10 @@ class _LoginPageState extends State<LoginPage> {
                                 ),
                                 const SizedBox(height: 18),
                                 ElevatedButton(
-                                  onPressed: _loading ? null : _login,
+                                  onPressed: _loading ? null : () {_supervisor.createOperator(
+                                    username: _usernameController.text,
+                                    password: _passwordController.text,
+                                  );},
                                   style: ElevatedButton.styleFrom(
                                     backgroundColor: primaryCyan,
                                     foregroundColor: Colors.black,
@@ -259,28 +265,14 @@ class _LoginPageState extends State<LoginPage> {
                                             ),
                                           )
                                           : const Text(
-                                            'Sign In',
+                                            'Add Operator',
                                             style: TextStyle(
                                               fontWeight: FontWeight.w700,
                                             ),
                                           ),
                                 ),
                                 const SizedBox(height: 10),
-                                OutlinedButton(
-                                  onPressed:
-                                      _loading ? null : _registerOperator,
-                                  style: OutlinedButton.styleFrom(
-                                    side: const BorderSide(color: primaryCyan),
-                                    foregroundColor: primaryCyan,
-                                    padding: const EdgeInsets.symmetric(
-                                      vertical: 12,
-                                    ),
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(8),
-                                    ),
-                                  ),
-                                  child: const Text('Register as Operator'),
-                                ),
+
                                 const SizedBox(height: 18),
                                 TextButton(
                                   onPressed: () async {

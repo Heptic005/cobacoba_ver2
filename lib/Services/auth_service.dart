@@ -30,7 +30,7 @@ class AuthService {
     final hashedPassword = hashPassword(password);
     final user = await DbHelper.instance.authenticateUser(
       username: username,
-      password: hashedPassword,
+      password: password
     );
     if (user == null) return null;
     final prefs = await SharedPreferences.getInstance();
