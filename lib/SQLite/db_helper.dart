@@ -72,7 +72,7 @@ class DbHelper {
       ''';
 
       const createManualTokensTable = '''
-      CREATE TABLE "manual_tokens" (
+      CREATE TABLE IF NOT EXISTS "manual_tokens" (
 	    "tokenId"	INTEGER NOT NULL UNIQUE,
 	    "tokenCode"	TEXT NOT NULL,
 	    "expiresAt"	TEXT NOT NULL,
@@ -85,7 +85,7 @@ class DbHelper {
       ''';
 
       const createTokenRequestTable = '''
-      CREATE TABLE "token_requests" (
+      CREATE TABLE IF NOT EXISTS "token_requests" (
 	    "tokenRequestId"	INTEGER NOT NULL UNIQUE,
 	    "requestedBy"	INTEGER NOT NULL,
 	    "reason"	TEXT NOT NULL,
@@ -445,6 +445,16 @@ class DbHelper {
       where: 'accountUsername = ?',
       whereArgs: [username],
       limit: 1,
+    );
+    return result.map((e) => ListAccountJson.fromJson(e)).toList();
+  }
+
+  Future<List<ListAccountJson>> getSupervisorAndOperatorAccount() async {
+    final Database db = await database;
+    List<Map<String, dynamic>> result = await db.query(
+      'account',
+      where: 'accountPosition = ? OR accountPosition = ?',
+      whereArgs: ['supervisor', 'operator'],
     );
     return result.map((e) => ListAccountJson.fromJson(e)).toList();
   }
