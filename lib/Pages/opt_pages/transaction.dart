@@ -3,23 +3,21 @@ import 'package:dakara_weighbridge/Entities/Operator/operator.dart';
 import 'package:dakara_weighbridge/Pages/opt_pages/transaction_components/add_netto_transaction_form.dart';
 import 'package:dakara_weighbridge/SQLite/db_helper.dart';
 import 'package:dakara_weighbridge/Services/serial_service.dart';
+import 'package:dakara_weighbridge/Themes/app_themes.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:dakara_weighbridge/Json/listcustomer_json.dart';
 import 'package:dakara_weighbridge/Json/listproduct_json.dart';
 import 'package:dakara_weighbridge/Json/listsupplier_json.dart';
 import 'package:dakara_weighbridge/Json/listtransaction_json.dart';
-import 'package:dakara_weighbridge/Pages/opt_pages/transaction_controller.dart';
 import 'package:dakara_weighbridge/Pages/opt_pages/transaction_components/weight_monitor.dart';
 import 'package:dakara_weighbridge/Pages/opt_pages/transaction_components/add_bruto_transaction_form_card.dart';
 import 'package:dakara_weighbridge/Pages/opt_pages/transaction_components/recent_transaction_table.dart';
 import 'package:dakara_weighbridge/features/transaction/services/clipboard_service.dart';
 import 'package:dakara_weighbridge/features/transaction/services/print_service.dart';
 import 'package:dakara_weighbridge/Pages/opt_pages/transaction_components/header.dart';
-import 'package:dakara_weighbridge/Pages/opt_pages/transaction_components/weight_details.dart';
 import 'package:dakara_weighbridge/Pages/opt_pages/transaction_components/main_actions.dart';
 import 'package:dakara_weighbridge/Pages/opt_pages/transaction_components/transaction_detail_dialog.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 /// Transaction page — thin UI wrapper around TransactionController.
 /// All business logic lives in the controller; this widget only renders layout and wires events.
@@ -32,15 +30,6 @@ class Transaction extends StatefulWidget {
 }
 
 class _TransactionState extends State<Transaction> {
-  // Styling constants
-  static const Color _bgDark = Color(0xFF17181A);
-  static const Color _cardBg = Color(0xFF23262B);
-  static const Color _inputBg = Color(0xFF191A1C);
-  static const Color _primaryCyan = Color(0xFF00E5C3);
-  static const Color _textGrey = Colors.grey;
-  static const Color _textWhite = Colors.white;
-  static const Color _limeGreen = Color(0xFF97FF21);
-
   /// Main Actions Items
   final ValueNotifier<String> _timeNotifier = ValueNotifier('');
   late Timer _timer;
@@ -99,8 +88,9 @@ class _TransactionState extends State<Transaction> {
   List<ListProductJson> _products = [];
   List<ListCustomerJson> _customers = [];
 
-  /// Weight From Serial
+  /// Weight From Serial and Status For First Weighing
   double? _capturedWeight;
+  bool _isBruto = true;
 
   void _onToggleButtonTimbang(bool mode) {
     setState(() {
@@ -110,9 +100,10 @@ class _TransactionState extends State<Transaction> {
   }
 
   /// Captured Weight If Any Data Come From Connected Serial
-  void _onWeightCaptured(double weight) {
+  void _onWeightCaptured(double weight, bool isBruto) {
     setState(() {
       _capturedWeight = weight;
+      _isBruto = isBruto;
     });
   }
 
@@ -176,8 +167,13 @@ class _TransactionState extends State<Transaction> {
           temperature: suhu,
           price: price,
           additionalInformation: _keteranganController.text,
+          isBruto: _isBruto,
         );
       } else {
+        /* TODO : 15 January : Check first Weight in DB on the add Netto Function,
+             if there's bruto then tare is the weight.
+             if there's tare then bruto is the weight
+         */
         operator.addNettoTransaction(
           transactionId: int.tryParse(_transactionIdController.text)!,
           kubikasi: kubikasi,
@@ -252,7 +248,7 @@ class _TransactionState extends State<Transaction> {
                   child: Text(
                     label,
                     style: TextStyle(
-                      color: _textGrey.withAlpha((0.8 * 255).round()),
+                      color: AppThemes.textGrey.withAlpha((0.8 * 255).round()),
                       fontSize: 13,
                     ),
                   ),
@@ -298,10 +294,10 @@ class _TransactionState extends State<Transaction> {
               child: Container(
                 padding: const EdgeInsets.all(24),
                 decoration: BoxDecoration(
-                  color: _cardBg,
+                  color: AppThemes.cardBg,
                   borderRadius: BorderRadius.circular(16),
                   border: Border.all(
-                    color: _textGrey.withAlpha((0.12 * 255).round()),
+                    color: AppThemes.textGrey.withAlpha((0.12 * 255).round()),
                   ),
                 ),
                 child: Column(
@@ -321,12 +317,14 @@ class _TransactionState extends State<Transaction> {
                         ),
                         IconButton(
                           onPressed: () => Navigator.of(ctx).pop(),
-                          icon: Icon(Icons.close, color: _textGrey),
+                          icon: Icon(Icons.close, color: AppThemes.textGrey),
                         ),
                       ],
                     ),
                     const SizedBox(height: 12),
-                    Divider(color: _textGrey.withAlpha((0.12 * 255).round())),
+                    Divider(
+                      color: AppThemes.textGrey.withAlpha((0.12 * 255).round()),
+                    ),
                     const SizedBox(height: 12),
                     Wrap(
                       runSpacing: 8,
@@ -353,7 +351,7 @@ class _TransactionState extends State<Transaction> {
                         onPressed: () => Navigator.of(ctx).pop(),
                         child: Text(
                           'Close',
-                          style: TextStyle(color: _textGrey),
+                          style: TextStyle(color: AppThemes.textGrey),
                         ),
                       ),
                     ),
@@ -502,7 +500,7 @@ class _TransactionState extends State<Transaction> {
                 _capturedWeight != null;
 
     return Scaffold(
-      backgroundColor: _bgDark,
+      backgroundColor: AppThemes.bgDark,
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(24.0),
         child: Column(
@@ -516,11 +514,12 @@ class _TransactionState extends State<Transaction> {
                   flex: 3,
                   child: WeightMonitorCard(
                     isWeighIn: _isWeightIn,
-                    cardBg: _cardBg,
-                    primaryCyan: _primaryCyan,
-                    textGrey: _textGrey,
-                    textWhite: _textWhite,
+                    cardBg: AppThemes.cardBg,
+                    primaryCyan: AppThemes.primaryCyan,
+                    textGrey: AppThemes.textGrey,
+                    textWhite: AppThemes.textWhite,
                     onCaptured: _onWeightCaptured,
+                    isBruto: _isBruto,
                   ),
                 ),
                 const SizedBox(width: 20),
@@ -528,10 +527,10 @@ class _TransactionState extends State<Transaction> {
                   flex: 2,
                   child: MainActionsCard(
                     timeNotifier: _timeNotifier,
-                    primaryCyan: _primaryCyan,
-                    textGrey: _textGrey,
-                    textWhite: _textWhite,
-                    cardBg: _cardBg,
+                    primaryCyan: AppThemes.primaryCyan,
+                    textGrey: AppThemes.textGrey,
+                    textWhite: AppThemes.textWhite,
+                    cardBg: AppThemes.cardBg,
                     onToggleButtonTimbang: _onToggleButtonTimbang,
                   ),
                 ),
@@ -567,10 +566,10 @@ class _TransactionState extends State<Transaction> {
                         selectedSupplier: _selectedSupplierId,
                         selectedCustomer: _selectedCustomerId,
                         selectedProduct: _selectedProductId,
-                        cardBg: _cardBg,
-                        primaryCyan: _primaryCyan,
-                        textGrey: _textGrey,
-                        inputBg: _inputBg,
+                        cardBg: AppThemes.cardBg,
+                        primaryCyan: AppThemes.primaryCyan,
+                        textGrey: AppThemes.textGrey,
+                        inputBg: AppThemes.inputBg,
                         onSelectSupplier:
                             (value) => setState(() {
                               _selectedSupplierId = value;
@@ -610,10 +609,10 @@ class _TransactionState extends State<Transaction> {
                         focusSuhu: _focusSuhu,
                         focusHarga: _focusHarga,
                         focusKeterangan: _focusKeterangan,
-                        cardBg: _cardBg,
-                        primaryCyan: _primaryCyan,
-                        textGrey: _textGrey,
-                        inputBg: _inputBg,
+                        cardBg: AppThemes.cardBg,
+                        primaryCyan: AppThemes.primaryCyan,
+                        textGrey: AppThemes.textGrey,
+                        inputBg: AppThemes.inputBg,
                         onSavePressed: _handleSavePressed,
                         isFormValid: isFormValid,
                         brutoController: _brutoController,
@@ -635,10 +634,10 @@ class _TransactionState extends State<Transaction> {
               suppliers: _suppliers,
               customers: _customers,
               products: _products,
-              cardBg: _cardBg,
-              textGrey: _textGrey,
-              primaryCyan: _primaryCyan,
-              inputBg: _inputBg,
+              cardBg: AppThemes.cardBg,
+              textGrey: AppThemes.textGrey,
+              primaryCyan: AppThemes.primaryCyan,
+              inputBg: AppThemes.inputBg,
               onShowDetailMap: _handleShowDetailMap,
               onPrintMap: _handlePrintMap,
               onExportPdfMap: _handleExportPdfMap,
