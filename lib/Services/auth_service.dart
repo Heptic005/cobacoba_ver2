@@ -30,8 +30,11 @@ class AuthService {
     final hashedPassword = hashPassword(password);
     final user = await DbHelper.instance.authenticateUser(
       username: username,
+<<<<<<< HEAD
       /// TODO : Delete if register feature already fix
       // password: hashedPassword,
+=======
+>>>>>>> d13ebe9be112632c95baa1247581c23105f57cbc
       password: password
     );
     if (user == null) return null;

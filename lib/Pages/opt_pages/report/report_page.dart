@@ -259,23 +259,37 @@ class _ReportPageState extends State<ReportPage> {
   void _showFilterSheet() {
     showModalBottomSheet(
       context: context,
-      backgroundColor: kCardBg,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
-      ),
-      builder:
-          (sheetContext) => FilterSheet(
-            controller: controller,
-            getSupplierName: _getSupplierName,
-            getProductName: _getProductName,
-            onClear: () {
-              controller.clearFilters();
-              searchController.clear();
-              Navigator.of(sheetContext).pop();
-              if (mounted) setState(() {});
-            },
-            onClose: () => Navigator.of(sheetContext).pop(),
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (sheetContext) {
+        return FractionallySizedBox(
+          heightFactor: 0.78,
+          child: Container(
+            decoration: const BoxDecoration(
+              color: kCardBg,
+              borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+            ),
+            child: SafeArea(
+              child: Padding(
+                padding: const EdgeInsets.all(12),
+                child: FilterSheet(
+                  controller: controller,
+                  getSupplierName: _getSupplierName,
+                  getProductName: _getProductName,
+                  getCustomerName: _getCustomerName,
+                  onClear: () {
+                    controller.clearFilters();
+                    searchController.clear();
+                    Navigator.of(sheetContext).pop();
+                    if (mounted) setState(() {});
+                  },
+                  onClose: () => Navigator.of(sheetContext).pop(),
+                ),
+              ),
+            ),
           ),
+        );
+      },
     );
   }
 
@@ -312,6 +326,10 @@ class _ReportPageState extends State<ReportPage> {
                         onShowFilter: _showFilterSheet,
                         onExport: _onExport,
                         onPrint: _onPrint,
+                        onToggleSort: () {
+                          controller.toggleSort();
+                          setState(() {});
+                        },
                       ),
                       const SizedBox(height: 16),
                       ReportDataTable(

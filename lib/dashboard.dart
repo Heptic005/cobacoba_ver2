@@ -10,12 +10,15 @@ import 'package:dakara_weighbridge/Pages/mgr_pages/manager_dashboard.dart';
 // Import halaman role lain (biarkan tetap ada)
 import 'package:dakara_weighbridge/Pages/opt_pages/dashboard.dart'; // (Self import, bisa dihapus tapi dibiarkan aman)
 import 'package:dakara_weighbridge/Pages/opt_pages/techician_page.dart';
-import 'package:dakara_weighbridge/Pages/spv_pages/placeholder.dart';
+import 'package:dakara_weighbridge/Pages/spv_pages/dashboard.dart';
 import 'package:dakara_weighbridge/Themes/app_themes.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../Pages/login.dart'; // Sesuaikan path login jika perlu
+
+// ✅ Tambahkan import Supervisor
+import 'package:dakara_weighbridge/Entities/Supervisor/supervisor.dart';
 
 class Dashboard extends StatefulWidget {
   const Dashboard({super.key});
@@ -63,12 +66,12 @@ class _DashboardState extends State<Dashboard> {
             decoration: BoxDecoration(
               gradient: LinearGradient(
                 colors: [
-                  Color.fromARGB(255, 54, 68, 77),
-                  Color.fromARGB(255, 22, 25, 33),
-                  Color.fromARGB(255, 22, 25, 33),
-                  Color.fromARGB(255, 38, 47, 54),
+                  const Color.fromARGB(255, 54, 68, 77),
+                  const Color.fromARGB(255, 22, 25, 33),
+                  const Color.fromARGB(255, 22, 25, 33),
+                  const Color.fromARGB(255, 38, 47, 54),
                 ],
-                stops: [0, 0.7, 0.9, 1],
+                stops: const [0, 0.7, 0.9, 1],
                 begin: Alignment.topCenter,
                 end: Alignment.bottomCenter,
               ),
@@ -83,7 +86,8 @@ class _DashboardState extends State<Dashboard> {
   Widget _buildHome() {
     switch (_role) {
       case 'supervisor':
-        return const SupervisorTemporaryDashboard();
+        // ✅ Sesuaikan pemanggilan SupervisorDashboard dengan parameter supervisor
+        return SupervisorDashboard();
       case 'operator':
         return const OperatorDashboard();
       

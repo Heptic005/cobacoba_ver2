@@ -1,12 +1,12 @@
 import 'package:dakara_weighbridge/Entities/Operator/abstract_operator.dart';
+import 'package:dakara_weighbridge/Exception/transaction_exception.dart';
 import 'package:dakara_weighbridge/Json/listtransaction_json.dart';
 import 'package:dakara_weighbridge/SQLite/db_helper.dart';
-import 'package:intl/intl.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 class Operator implements AbstractOperator {
   /// Operator Creating Bruto Transaction
   /// TODO : First Transaction Maybe Tare First, So Make the Conditional Statement
+  /// TODO : Change Function Name and Implementation in UI Because The Weight is Between Bruto and Tare
   @override
   Future<void> addBrutoTransaction({
     required String vehiclePlate,
@@ -16,6 +16,7 @@ class Operator implements AbstractOperator {
     required int productId,
     required int cut,
     required double bruto,
+    bool isBruto = false,
     int? kubikasi,
     String? noDo,
     int? noContainer,
@@ -23,35 +24,72 @@ class Operator implements AbstractOperator {
     double? price,
     String? additionalInformation,
   }) async {
-    await DbHelper.instance.addTransaction(
-      ListTransactionJson(
-        vehiclePlate: vehiclePlate,
-        driverName: driverName,
-        supplierId: supplierId,
-        customerId: customerId,
-        productId: productId,
-        cut: cut,
-        kubikasi: kubikasi,
-        noDO: noDo,
-        noContainer: noContainer,
-        temperature: temperature,
-        price: price,
-        additionalInformation: additionalInformation,
-        noTicket: 'WB-${DateTime.now().millisecondsSinceEpoch}',
-        inTime: DateTime.now(),
-        outTime: DateTime.now(),
-        totalPrice: 0,
-        bruto: bruto,
-        tare: 0,
-        netto: 0,
-        nettoAfterCut: 0,
-        driverLabel: 0,
-        operatorLabel: 0,
-        managerLabel: 0,
-        headWarehouseLabel: 0,
-        isDrafted: 1,
-      ),
-    );
+    try {
+      if (isBruto) {
+        await DbHelper.instance.addTransaction(
+          ListTransactionJson(
+            vehiclePlate: vehiclePlate,
+            driverName: driverName,
+            supplierId: supplierId,
+            customerId: customerId,
+            productId: productId,
+            cut: cut,
+            kubikasi: kubikasi,
+            noDO: noDo,
+            noContainer: noContainer,
+            temperature: temperature,
+            price: price,
+            additionalInformation: additionalInformation,
+            noTicket: 'WB-${DateTime.now().millisecondsSinceEpoch}',
+            inTime: DateTime.now(),
+            outTime: DateTime.now(),
+            totalPrice: 0,
+            bruto: bruto,
+            tare: 0,
+            netto: 0,
+            nettoAfterCut: 0,
+            driverLabel: 0,
+            operatorLabel: 0,
+            managerLabel: 0,
+            headWarehouseLabel: 0,
+            isDrafted: 1,
+          ),
+        );
+      } else {
+        final tare = bruto;
+        await DbHelper.instance.addTransaction(
+          ListTransactionJson(
+            vehiclePlate: vehiclePlate,
+            driverName: driverName,
+            supplierId: supplierId,
+            customerId: customerId,
+            productId: productId,
+            cut: cut,
+            kubikasi: kubikasi,
+            noDO: noDo,
+            noContainer: noContainer,
+            temperature: temperature,
+            price: price,
+            additionalInformation: additionalInformation,
+            noTicket: 'WB-${DateTime.now().millisecondsSinceEpoch}',
+            inTime: DateTime.now(),
+            outTime: DateTime.now(),
+            totalPrice: 0,
+            bruto: 0,
+            tare: tare,
+            netto: 0,
+            nettoAfterCut: 0,
+            driverLabel: 0,
+            operatorLabel: 0,
+            managerLabel: 0,
+            headWarehouseLabel: 0,
+            isDrafted: 1,
+          ),
+        );
+      }
+    } catch (_) {
+      throw TransactionCreationException('Failed to Create Transaction');
+    }
   }
 
   /*

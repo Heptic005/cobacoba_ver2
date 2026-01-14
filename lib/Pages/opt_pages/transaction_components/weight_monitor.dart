@@ -5,11 +5,12 @@ import 'package:flutter/material.dart';
 
 class WeightMonitorCard extends StatefulWidget {
   final bool isWeighIn;
+  final bool isBruto;
   final Color cardBg;
   final Color primaryCyan;
   final Color textGrey;
   final Color textWhite;
-  final void Function(double weight) onCaptured;
+  final void Function(double weight, bool isBruto) onCaptured;
 
   const WeightMonitorCard({
     super.key,
@@ -19,6 +20,7 @@ class WeightMonitorCard extends StatefulWidget {
     required this.textGrey,
     required this.textWhite,
     required this.onCaptured,
+    required this.isBruto,
   });
 
   @override
@@ -28,6 +30,8 @@ class WeightMonitorCard extends StatefulWidget {
 class _WeightMonitorCardState extends State<WeightMonitorCard> {
   double? _displayWeight;
   bool _isCaptured = false;
+  bool isWeighIn = true;
+  bool isBruto = true;
 
   @override
   void initState() {
@@ -60,17 +64,60 @@ class _WeightMonitorCardState extends State<WeightMonitorCard> {
           Row(
             children: [
               const SizedBox(width: 10),
-              Text(
-                widget.isWeighIn ? "Timbang Masuk" : "Timbang Keluar",
-                style: TextStyle(
-                  color: widget.textGrey.withAlpha((0.85 * 255).round()),
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                  shadows: const [
-                    Shadow(
-                      color: Colors.black26,
-                      offset: Offset(0, 1),
-                      blurRadius: 1,
+              Expanded(
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      widget.isWeighIn ? "Timbang Masuk" : "Timbang Keluar",
+                      style: TextStyle(
+                        color: widget.textGrey.withAlpha((0.85 * 255).round()),
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                        shadows: const [
+                          Shadow(
+                            color: Colors.black26,
+                            offset: Offset(0, 1),
+                            blurRadius: 1,
+                          ),
+                        ],
+                      ),
+                    ),
+                    ElevatedButton.icon(
+                      onPressed: () {
+                        _isCaptured
+                            ? null
+                            : setState(() {
+                              isBruto = !isBruto;
+                            });
+                      },
+                      label: isBruto ? const Text("Bruto") : const Text("Tare"),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor:
+                            isWeighIn ? widget.primaryCyan : Colors.transparent,
+                        foregroundColor:
+                            isWeighIn ? Colors.black : Colors.white,
+                        elevation: 0,
+                        side:
+                            isWeighIn
+                                ? BorderSide.none
+                                : BorderSide(
+                                  color: widget.textGrey.withAlpha(
+                                    (0.6 * 255).round(),
+                                  ),
+                                ),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 20,
+                          vertical: 16,
+                        ),
+                        textStyle: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                        ),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
                     ),
                   ],
                 ),
@@ -117,7 +164,10 @@ class _WeightMonitorCardState extends State<WeightMonitorCard> {
                                       setState(() {
                                         _isCaptured = true;
                                       });
-                                      widget.onCaptured(_displayWeight!);
+                                      widget.onCaptured(
+                                        _displayWeight!,
+                                        isBruto,
+                                      );
                                     },
                             style: ElevatedButton.styleFrom(
                               backgroundColor: widget.primaryCyan,

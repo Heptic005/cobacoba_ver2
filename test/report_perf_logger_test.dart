@@ -3,8 +3,8 @@ import 'dart:async';
 import 'dart:developer' as developer;
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:dakara_weighbridge/Pages/report/report_perf.dart';
-import 'package:dakara_weighbridge/Pages/report/report_controller.dart';
+import 'package:dakara_weighbridge/Pages/opt_pages/report/report_perf.dart';
+import 'package:dakara_weighbridge/Pages/opt_pages/report/report_controller.dart';
 import 'package:dakara_weighbridge/Json/listtransaction_json.dart';
 
 List<ListTransactionJson> _generateMock(int n) {

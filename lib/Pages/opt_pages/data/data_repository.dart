@@ -90,7 +90,27 @@ class DataRepository {
     }
   }
 
-  // product tidak bisa ditambahkan melalui halaman Data
+  /// Menambahkan product baru ke database
+  /// Returns: int - ID dari product yang baru ditambahkan
+  Future<int> addProduct(ListProductJson product) async {
+    try {
+      // db_helper.addProduct uses product.toJson() which may include
+      // productId (default 0) and cause UNIQUE constraint errors when
+      // inserting. To avoid sending productId in the INSERT, perform the
+      // insert here with an explicit map that omits productId so
+      // SQLite AUTOINCREMENT assigns it.
+      final db = await _dbHelper.database;
+      final map = <String, dynamic>{
+        'productName': product.productName,
+        'productCode': product.productCode,
+      };
+      return await db.insert('product', map);
+    } catch (e) {
+      throw DataRepositoryException('Gagal menambahkan product: $e');
+    }
+  }
+
+  // Sebelumnya product hanya read-only; sekarang mendukung insert dari UI
 }
 
 /// Custom exception untuk error di repository layer

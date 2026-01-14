@@ -13,6 +13,14 @@ class AppThemes {
   static const Color grey = Color(0xFF747474);
   static const Color blueGrey = Color(0xFFA0A5BD);
 
+  /// Operator Theme
+  static const Color bgDark = Color(0xFF17181A);
+  static const Color cardBg = Color(0xFF23262B);
+  static const Color inputBg = Color(0xFF191A1C);
+  static const Color primaryCyan = Color(0xFF00E5C3);
+  static const Color textGrey = Colors.grey;
+  static const Color textWhite = Colors.white;
+
   static const List<Color> randomColor = [
     Color(0xFF00E0D1),
     Color(0xFF00EB9C),

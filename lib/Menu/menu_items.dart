@@ -1,19 +1,14 @@
-/// ============================================================================
-/// Menu Items Configuration
-/// ============================================================================
-/// File: menu_items.dart
-/// Deskripsi: Konfigurasi menu items untuk navigasi halaman di dashboard.
-///
-/// UPDATED: Menggunakan DataPage dari modul data yang termodularisasi
-/// ============================================================================
-
 import 'package:dakara_weighbridge/Menu/menu_details.dart';
-import 'package:dakara_weighbridge/Pages/opt_pages/data/data_page.dart'; // Updated import
+import 'package:dakara_weighbridge/Pages/opt_pages/data/data_page.dart'; 
 import 'package:dakara_weighbridge/Pages/opt_pages/report.dart';
 import 'package:dakara_weighbridge/Pages/opt_pages/transaction.dart';
 import 'package:flutter/material.dart';
+import 'package:dakara_weighbridge/Entities/Supervisor/supervisor.dart';
+import 'package:dakara_weighbridge/Pages/spv_pages/create_operator_spv.dart';
+import 'package:dakara_weighbridge/Pages/spv_pages/emergency_transaksi_spv.dart';
 
 class MenuItems {
+  // Menu untuk Operator
   List<MenuDetails> items = [
     MenuDetails(
       title: "Transaction",
@@ -28,7 +23,26 @@ class MenuItems {
     MenuDetails(
       title: "Data",
       icon: Icons.view_in_ar_rounded,
-      page: DataPage(), // Updated: menggunakan DataPage yang termodularisasi
+      page: DataPage(),
     ),
   ];
+  List<MenuDetails> supervisorItems = [
+        MenuDetails(
+          title: "Buat Operator Baru",
+          icon: Icons.person_add,
+          page: CreateOperatorPage(),
+        ),
+        MenuDetails(
+          title: "Transaksi Emergency",
+          icon: Icons.warning_amber,
+          page: EmergencyTransaksiPage(),
+        ),
+        MenuDetails(
+          title: "Report",
+          icon: Icons.warning_amber,
+          page: ReportPage(),
+        ),
+      ];
+      
+      
 }
