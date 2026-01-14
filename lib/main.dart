@@ -1,7 +1,5 @@
 import 'package:bitsdojo_window/bitsdojo_window.dart';
 import 'package:dakara_weighbridge/Pages/login.dart';
-import 'package:dakara_weighbridge/Pages/spv_pages/dashboard.dart';
-import 'package:dakara_weighbridge/Entities/Supervisor/supervisor.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
@@ -17,15 +15,9 @@ Future main() async {
   appWindow.alignment = Alignment.center;
   appWindow.show();
 
-  // Buat instance Supervisor sekali di awal
-  final supervisor = Supervisor();
-
   await initializeDateFormatting('id_ID', null).then(
     (_) => runApp(
-      const MaterialApp(
-        debugShowCheckedModeBanner: false,
-        home: LoginPage(), // tetap login sebagai entry point
-      ),
+      const MaterialApp(debugShowCheckedModeBanner: false, home: LoginPage()),
     ),
   );
 

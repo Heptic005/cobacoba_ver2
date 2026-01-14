@@ -162,9 +162,6 @@ class DbHelper {
   }
 
   /// Get Customers
-  /// 
-  /// 
-  
   Future<List<ListCustomerJson>> getListCustomers() async {
     final Database db = await database;
     List<Map<String, Object?>> result = await db.query('customer', limit: 20);

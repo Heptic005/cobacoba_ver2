@@ -17,18 +17,20 @@ class _TokenGeneratorPageState extends State<TokenGeneratorPage> {
 
   Future<void> _generateToken() async {
     setState(() => _isLoading = true);
-    
+
     // Ambil ID Manager yang sedang login dari SharedPreferences
     final prefs = await SharedPreferences.getInstance();
     int managerId = prefs.getInt('id') ?? 0;
 
     try {
-      String newToken = await _manager.createTokenForManualWeight(managerId);
+      String newToken = await _manager.createTokenForManualWeight();
       setState(() {
         _generatedToken = newToken;
       });
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Gagal generate: $e")));
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text("Gagal generate: $e")));
     } finally {
       setState(() => _isLoading = false);
     }
@@ -60,7 +62,10 @@ class _TokenGeneratorPageState extends State<TokenGeneratorPage> {
               ),
               const SizedBox(height: 30),
               Container(
-                padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 40),
+                padding: const EdgeInsets.symmetric(
+                  vertical: 20,
+                  horizontal: 40,
+                ),
                 decoration: BoxDecoration(
                   color: Colors.black87,
                   borderRadius: BorderRadius.circular(10),
@@ -73,8 +78,8 @@ class _TokenGeneratorPageState extends State<TokenGeneratorPage> {
                     Text(
                       _generatedToken,
                       style: const TextStyle(
-                        fontSize: 36, 
-                        color: Colors.amber, 
+                        fontSize: 36,
+                        color: Colors.amber,
                         fontWeight: FontWeight.bold,
                         letterSpacing: 4,
                       ),
@@ -83,12 +88,12 @@ class _TokenGeneratorPageState extends State<TokenGeneratorPage> {
                     IconButton(
                       icon: const Icon(Icons.copy, color: Colors.white),
                       onPressed: () {
-                         Clipboard.setData(ClipboardData(text: _generatedToken));
-                         ScaffoldMessenger.of(context).showSnackBar(
-                           const SnackBar(content: Text("Token disalin!")),
-                         );
+                        Clipboard.setData(ClipboardData(text: _generatedToken));
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text("Token disalin!")),
+                        );
                       },
-                    )
+                    ),
                   ],
                 ),
               ),
@@ -102,7 +107,9 @@ class _TokenGeneratorPageState extends State<TokenGeneratorPage> {
                     foregroundColor: Colors.white,
                   ),
                   onPressed: _isLoading ? null : _generateToken,
-                  child: Text(_isLoading ? "Memproses..." : "GENERATE NEW TOKEN"),
+                  child: Text(
+                    _isLoading ? "Memproses..." : "GENERATE NEW TOKEN",
+                  ),
                 ),
               ),
             ],

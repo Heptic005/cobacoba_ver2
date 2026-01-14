@@ -3,22 +3,14 @@ import 'dart:ui';
 import 'package:animated_toggle_switch/animated_toggle_switch.dart';
 import 'package:bitsdojo_window/bitsdojo_window.dart';
 import 'package:dakara_weighbridge/Menu/menu_items.dart';
-// HAPUS IMPORT LAMA (placeholder)
-// GANTI DENGAN IMPORT BARU INI:
-import 'package:dakara_weighbridge/Pages/mgr_pages/manager_dashboard.dart'; 
-
-// Import halaman role lain (biarkan tetap ada)
-import 'package:dakara_weighbridge/Pages/opt_pages/dashboard.dart'; // (Self import, bisa dihapus tapi dibiarkan aman)
-import 'package:dakara_weighbridge/Pages/opt_pages/techician_page.dart';
+import 'package:dakara_weighbridge/Pages/mgr_pages/manager_dashboard.dart';
+import 'package:dakara_weighbridge/Pages/opt_pages/dashboard.dart';
 import 'package:dakara_weighbridge/Pages/spv_pages/dashboard.dart';
+import 'package:dakara_weighbridge/Pages/tec_pages/placeholder.dart';
 import 'package:dakara_weighbridge/Themes/app_themes.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-
-import '../../Pages/login.dart'; // Sesuaikan path login jika perlu
-
-// ✅ Tambahkan import Supervisor
-import 'package:dakara_weighbridge/Entities/Supervisor/supervisor.dart';
+import 'package:dakara_weighbridge/Pages/login.dart';
 
 class Dashboard extends StatefulWidget {
   const Dashboard({super.key});
@@ -31,7 +23,7 @@ class _DashboardState extends State<Dashboard> {
   final menu = MenuItems();
   final PageController pageController = PageController();
   List<String> menuItems = ["Transaction", "Report", "Data"];
-  
+
   final ValueNotifier<int> selectedIndex = ValueNotifier<int>(0);
   Color bgGrey = const Color.fromARGB(255, 228, 230, 232);
   Color royalGrey = const Color.fromARGB(255, 86, 105, 113);
@@ -86,21 +78,15 @@ class _DashboardState extends State<Dashboard> {
   Widget _buildHome() {
     switch (_role) {
       case 'supervisor':
-        // ✅ Sesuaikan pemanggilan SupervisorDashboard dengan parameter supervisor
         return SupervisorDashboard();
       case 'operator':
         return const OperatorDashboard();
-      
-      // --- PERBAIKAN UTAMA ADA DI SINI ---
       case 'manager':
-        // Dulu: return const ManagerTemporaryDashboard();
-        return const ManagerDashboard(); // Sekarang mengarah ke file baru
-      // -----------------------------------
-
+        return const ManagerDashboard();
+      case 'technician':
+        return TechnicianTemporaryDashboard();
       default:
-        // Pastikan Anda memiliki LoginPage yang bisa diimport
-        // Jika masih merah di sini, pastikan import 'Pages/login.dart' di atas benar path-nya
-        return const LoginPage(); 
+        return const LoginPage();
     }
   }
 
@@ -125,9 +111,6 @@ class _DashboardState extends State<Dashboard> {
         data = Icons.people;
         break;
     }
-    return Icon(
-      data,
-      size: 20,
-    );
+    return Icon(data, size: 20);
   }
 }

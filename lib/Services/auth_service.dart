@@ -30,19 +30,14 @@ class AuthService {
     final hashedPassword = hashPassword(password);
     final user = await DbHelper.instance.authenticateUser(
       username: username,
-<<<<<<< HEAD
+
       /// TODO : Delete if register feature already fix
       // password: hashedPassword,
-=======
->>>>>>> d13ebe9be112632c95baa1247581c23105f57cbc
-      password: password
+      password: password,
     );
     if (user == null) return null;
     final prefs = await SharedPreferences.getInstance();
     _currentUser = user;
-    // print(user.accountUsername);
-    // print(user.accountPassword);
-    // print(user.accountPosition);
     if (user.accountPosition == 'manager') {
       await prefs.setBool('isLoggedIn', true);
       await prefs.setInt('id', user.accountID);
@@ -59,15 +54,7 @@ class AuthService {
       await prefs.setString('name', user.accountUsername);
       await prefs.setString('role', user.accountPosition);
     }
-    final isLoggedIn = prefs.getBool('isLoggedIn');
-    final id = prefs.getInt('id');
-    final name = prefs.getString('name');
-    final role = prefs.getString('role');
 
-    // print(isLoggedIn);
-    // print(id);
-    // print(name);
-    // print(role);
     return user;
   }
 

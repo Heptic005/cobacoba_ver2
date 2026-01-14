@@ -43,7 +43,7 @@ class SerialService {
       _port = port;
       _connectedPortName = portName;
 
-      _startReader(); // ⬅️ PENTING
+      _startReader();
 
       return true;
     } catch (e) {
