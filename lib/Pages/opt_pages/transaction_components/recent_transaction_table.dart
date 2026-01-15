@@ -5,12 +5,17 @@ import 'package:dakara_weighbridge/Json/listtransaction_json.dart';
 import 'package:dakara_weighbridge/Json/listproduct_json.dart';
 import 'package:dakara_weighbridge/Json/listcustomer_json.dart';
 import 'package:dakara_weighbridge/Json/listsupplier_json.dart';
+import 'package:dakara_weighbridge/Themes/app_themes.dart';
+
+//TODO: Remove Load Draft Function
+
+enum TransactionStatusFilter { all, draft, finished }
 
 /// Compact recent transactions table with PDF/Print actions.
 class RecentTransactionTable extends StatefulWidget {
   final TextEditingController searchController;
   final bool sortDesc;
-  final Set<String> draftTickets;
+  final TransactionStatusFilter statusFilter;
   final List<ListTransactionJson> transactions;
   final List<ListSupplierJson> suppliers;
   final List<ListCustomerJson> customers;
@@ -19,6 +24,7 @@ class RecentTransactionTable extends StatefulWidget {
   final Color textGrey;
   final Color primaryCyan;
   final Color inputBg;
+  final ValueChanged<TransactionStatusFilter> onFilterChanged;
 
   final Future<void> Function(Map<String, Object?> item) onShowDetailMap;
   final Future<void> Function(Map<String, Object?> item) onPrintMap;
@@ -31,7 +37,7 @@ class RecentTransactionTable extends StatefulWidget {
     super.key,
     required this.searchController,
     required this.sortDesc,
-    required this.draftTickets,
+    required this.statusFilter,
     required this.transactions,
     required this.suppliers,
     required this.customers,
@@ -40,6 +46,7 @@ class RecentTransactionTable extends StatefulWidget {
     required this.textGrey,
     required this.primaryCyan,
     required this.inputBg,
+    required this.onFilterChanged,
     required this.onShowDetailMap,
     required this.onPrintMap,
     required this.onExportPdfMap,
@@ -135,9 +142,21 @@ class _RecentTransactionTableState extends State<RecentTransactionTable> {
     final List<ListTransactionJson> combined = List.of(widget.transactions);
 
     final query = widget.searchController.text.trim().toLowerCase();
-    final filtered = combined.where((tx) {
-      if (tx.outTime == null) return false;
-      if (!tx.outTime!.isAfter(tx.inTime)) return false;
+        final filtered = combined.where((tx) {
+          // Draft status only from flag to avoid misclassifying finished items.
+          final isDraft = tx.isDrafted == 1;
+
+      if (widget.statusFilter == TransactionStatusFilter.draft && !isDraft) {
+        return false;
+      }
+      if (widget.statusFilter == TransactionStatusFilter.finished && isDraft) {
+        return false;
+      }
+
+      if (!isDraft) {
+        if (tx.outTime == null) return false;
+        if (!tx.outTime!.isAfter(tx.inTime)) return false;
+      }
       if (query.isEmpty) return true;
       final ticket = tx.noTicket.toLowerCase();
       final plate = tx.vehiclePlate.toLowerCase();
@@ -168,6 +187,8 @@ class _RecentTransactionTableState extends State<RecentTransactionTable> {
             'Recent Transactions',
             style: TextStyle(fontSize: 16, color: Colors.white, fontWeight: FontWeight.w600),
           ),
+          const SizedBox(height: 8),
+          _buildStatusFilters(),
           const SizedBox(height: 12),
           Row(
             children: [
@@ -217,7 +238,7 @@ class _RecentTransactionTableState extends State<RecentTransactionTable> {
           else if (filtered.isEmpty)
             Padding(
               padding: const EdgeInsets.all(12.0),
-              child: Text('No matching completed transactions', style: TextStyle(color: textGrey)),
+              child: Text('No matching transactions', style: TextStyle(color: textGrey)),
             )
           else
             Column(
@@ -229,7 +250,7 @@ class _RecentTransactionTableState extends State<RecentTransactionTable> {
                   separatorBuilder: (_, __) => Divider(color: textGrey.withAlpha((0.12 * 255).round())),
                   itemBuilder: (ctx, i) {
                     final tx = showing[i];
-                    final isDraft = tx.isDrafted == 1;
+                        final isDraft = tx.isDrafted == 1;
                     final inTime = _fmt(tx.inTime);
                     final outTime = _fmt(tx.outTime);
                     final prodName = _productName(tx);
@@ -271,7 +292,7 @@ class _RecentTransactionTableState extends State<RecentTransactionTable> {
                                         : Container(
                                             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                                             decoration: BoxDecoration(
-                                              color: Colors.greenAccent,
+                                              color: AppThemes.statusFinished,
                                               borderRadius: BorderRadius.circular(12),
                                             ),
                                             child: const Text(
@@ -325,6 +346,27 @@ class _RecentTransactionTableState extends State<RecentTransactionTable> {
                               Text('After cut', style: TextStyle(color: textGrey.withAlpha((0.7 * 255).round()), fontSize: 10)),
                             ],
                           ),
+                          const SizedBox(width: 12),
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                            decoration: BoxDecoration(
+                              color: isDraft ? primaryCyan.withOpacity(0.2) : AppThemes.statusFinished.withOpacity(0.18),
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(
+                                color: isDraft ? primaryCyan : AppThemes.statusFinished,
+                                width: 0.8,
+                              ),
+                            ),
+                            child: Text(
+                              isDraft ? 'DRAFT' : 'FINISHED',
+                              style: TextStyle(
+                                color: isDraft ? primaryCyan : AppThemes.statusFinished,
+                                fontWeight: FontWeight.w700,
+                                fontSize: 11,
+                                letterSpacing: 0.4,
+                              ),
+                            ),
+                          ),
                           PopupMenuButton<String>(
                             color: cardBg,
                             icon: Icon(Icons.more_vert, color: textGrey),
@@ -367,16 +409,6 @@ class _RecentTransactionTableState extends State<RecentTransactionTable> {
                                 value: 'detail',
                                 child: Text('Detail', style: TextStyle(color: textGrey.withAlpha((0.9 * 255).round()))),
                               ),
-                              if (isDraft)
-                                PopupMenuItem(
-                                  value: 'continue',
-                                  child: Text('Continue Netto', style: TextStyle(color: textGrey.withAlpha((0.9 * 255).round()))),
-                                ),
-                              if (isDraft)
-                                PopupMenuItem(
-                                  value: 'loadDraft',
-                                  child: Text('Load Draft', style: TextStyle(color: textGrey.withAlpha((0.9 * 255).round()))),
-                                ),
                             ],
                           ),
                         ],
@@ -447,6 +479,38 @@ class _RecentTransactionTableState extends State<RecentTransactionTable> {
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildStatusFilters() {
+    return Wrap(
+      spacing: 8,
+      runSpacing: 4,
+      children: [
+        _statusChip(TransactionStatusFilter.all, 'All', widget.textGrey),
+        _statusChip(TransactionStatusFilter.draft, 'Draft', widget.primaryCyan),
+        _statusChip(TransactionStatusFilter.finished, 'Finished', AppThemes.statusFinished),
+      ],
+    );
+  }
+
+  Widget _statusChip(TransactionStatusFilter filter, String label, Color accent) {
+    final isSelected = widget.statusFilter == filter;
+    return ChoiceChip(
+      label: Text(
+        label,
+        style: TextStyle(
+          fontSize: 12,
+          fontWeight: FontWeight.w600,
+          color: isSelected ? Colors.black : widget.textGrey,
+        ),
+      ),
+      selected: isSelected,
+      onSelected: (_) => widget.onFilterChanged(filter),
+      selectedColor: accent.withOpacity(0.24),
+      backgroundColor: widget.inputBg,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+      side: BorderSide(color: isSelected ? accent : widget.textGrey.withAlpha((0.45 * 255).round()), width: 0.8),
     );
   }
 }

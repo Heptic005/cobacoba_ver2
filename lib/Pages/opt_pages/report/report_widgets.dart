@@ -4,17 +4,18 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:dakara_weighbridge/Json/listtransaction_json.dart';
+import 'package:dakara_weighbridge/Themes/app_themes.dart';
 
-// Warna tema (sama dengan halaman Transaction)
-const Color kBgDark = Color(0xFF17181A);
-const Color kCardBg = Color(0xFF23262B);
-const Color kInputBg = Color(0xFF191A1C);
-const Color kPrimaryCyan = Color(0xFF00E5C3);
+// Warna tema (mapping ke AppThemes agar konsisten lintas halaman)
+const Color kBgDark = AppThemes.bgDark;
+const Color kCardBg = AppThemes.cardBg;
+const Color kInputBg = AppThemes.inputBg;
+const Color kPrimaryCyan = AppThemes.primaryCyan;
 const Color kTextGrey = Color(0xFF9E9E9E);
-const Color kTextWhite = Colors.white;
-const Color kStatusSelesai = Color(0xFF00E5C3);
-const Color kStatusMenunggu = Color(0xFFFFB800);
-const Color kStatusManual = Color(0xFF42A5F5);
+const Color kTextWhite = AppThemes.textWhite;
+const Color kStatusSelesai = AppThemes.primaryCyan;
+const Color kStatusMenunggu = AppThemes.statusPending;
+const Color kStatusManual = AppThemes.statusManual;
 
 // Formatters
 final currencyFormat = NumberFormat.currency(
