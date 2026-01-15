@@ -28,38 +28,30 @@ class _LoginPageState extends State<LoginPage> {
     super.dispose();
   }
 
-  Future<void> _registerOperator() async {
-    final username = _usernameController.text.trim();
-    final password = _passwordController.text;
-    if (username.isEmpty || password.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Username dan password harus diisi')),
-      );
-      return;
-    }
-
-    setState(() => _loading = true);
-    try {
-      final authService = AuthService();
-      final newAccount = ListAccountJson(
-        accountUsername: username,
-        accountPassword: authService.hashPassword(password),
-        accountPosition: 'supervisor',
-      );
-      await DbHelper.instance.addUser(newAccount);
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Operator berhasil didaftarkan')),
-      );
-    } catch (e) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Gagal mendaftar: $e')));
-    } finally {
-      if (mounted) setState(() => _loading = false);
-    }
+  bool _isNightTime() {
+    final now = DateTime.now();
+    final hour = now.hour;
+    // Night time: 18:00 (6 PM) to 06:00 (6 AM)
+    return hour >= 18 || hour < 6;
   }
+
+  Color _getBackgroundColor(bool isDark) {
+    return isDark ? const Color(0xFF1E2126) : const Color(0xFFF5F5F5);
+  }
+
+  Color _getCardColor(bool isDark) {
+    return isDark ? const Color(0xFF2B2E33) : const Color(0xFFFFFFFF);
+  }
+
+  Color _getTextColor(bool isDark) {
+    return isDark ? const Color(0xFFBFC9D6) : const Color(0xFF383C42);
+  }
+
+  Color _getInputColor(bool isDark) {
+    return isDark ? const Color(0xFF383C42) : const Color(0xFFF0F0F0);
+  }
+
+  Color _getPrimaryCyan() => const Color(0xFF00E5FF);
 
   Future<void> _login() async {
     final username = _usernameController.text.trim();
@@ -99,14 +91,17 @@ class _LoginPageState extends State<LoginPage> {
 
   @override
   Widget build(BuildContext context) {
-    // Theme colors consistent with the app
-    const bgDark = Color(0xFF1E2126);
-    const cardBg = Color(0xFF2B2E33);
-    const primaryCyan = Color(0xFF00E5FF);
-    const textGrey = Color(0xFFBFC9D6);
+    // Determine theme based on time of day
+    final isDark = _isNightTime();
+    
+    final bgColor = _getBackgroundColor(isDark);
+    final cardBgColor = _getCardColor(isDark);
+    final textColor = _getTextColor(isDark);
+    final inputColor = _getInputColor(isDark);
+    final primaryCyan = _getPrimaryCyan();
 
     return Scaffold(
-      backgroundColor: bgDark,
+      backgroundColor: bgColor,
       body: Center(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(20),
@@ -118,19 +113,29 @@ class _LoginPageState extends State<LoginPage> {
                 gradient: LinearGradient(
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
-                  colors: [
-                    cardBg.withAlpha((0.95 * 255).round()),
-                    cardBg.withAlpha((0.6 * 255).round()),
-                    Colors.black.withAlpha((0.25 * 255).round()),
-                  ],
+                  colors: isDark
+                      ? [
+                          cardBgColor.withAlpha((0.95 * 255).round()),
+                          cardBgColor.withAlpha((0.6 * 255).round()),
+                          Colors.black.withAlpha((0.25 * 255).round()),
+                        ]
+                      : [
+                          cardBgColor.withAlpha((0.95 * 255).round()),
+                          cardBgColor.withAlpha((0.7 * 255).round()),
+                          Colors.white.withAlpha((0.1 * 255).round()),
+                        ],
                 ),
                 borderRadius: BorderRadius.circular(12),
                 border: Border.all(
-                  color: textGrey.withAlpha((0.06 * 255).round()),
+                  color: isDark
+                      ? textColor.withAlpha((0.06 * 255).round())
+                      : Colors.black.withAlpha((0.1 * 255).round()),
                 ),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withAlpha((0.65 * 255).round()),
+                    color: isDark
+                        ? Colors.black.withAlpha((0.65 * 255).round())
+                        : Colors.grey.withAlpha((0.3 * 255).round()),
                     blurRadius: 30,
                     spreadRadius: 2,
                     offset: const Offset(0, 10),
@@ -150,56 +155,62 @@ class _LoginPageState extends State<LoginPage> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          // top bar with optional language toggle
+                          // Top bar with language toggle (keep original style)
                           Row(
                             mainAxisAlignment: MainAxisAlignment.end,
                             children: [
-                              const Text(
+                              Text(
                                 'EN',
-                                style: TextStyle(color: Colors.white70),
+                                style: TextStyle(color: textColor.withAlpha((0.7 * 255).round())),
                               ),
                               const SizedBox(width: 8),
                               SizedBox(
                                 width: 44,
                                 height: 24,
-                                child: Switch(value: true, onChanged: (_) {}),
+                                child: Switch(
+                                  value: true,
+                                  onChanged: (_) {},
+                                  activeColor: const Color(0xFF00E5FF),
+                                ),
                               ),
                             ],
                           ),
                           const SizedBox(height: 8),
-                          const Text(
+                          Text(
                             'Welcome',
                             style: TextStyle(
-                              color: Colors.white70,
+                              color: textColor.withAlpha((0.7 * 255).round()),
                               fontSize: 18,
                             ),
                           ),
                           const SizedBox(height: 8),
-                          const Text(
+                          Text(
                             'Dakara Weighbridge',
                             style: TextStyle(
-                              color: Colors.white,
+                              color: isDark ? Colors.white : Colors.black,
                               fontSize: 44,
                               fontWeight: FontWeight.w700,
                             ),
                           ),
                           const SizedBox(height: 24),
-                          // instructions block
+                          // Instructions block
                           Container(
                             padding: const EdgeInsets.all(12),
                             decoration: BoxDecoration(
-                              color: Colors.black.withAlpha(
-                                (0.06 * 255).round(),
-                              ),
+                              color: isDark
+                                  ? Colors.black.withAlpha((0.06 * 255).round())
+                                  : Colors.black.withAlpha((0.03 * 255).round()),
                               borderRadius: BorderRadius.circular(8),
                             ),
-                            child: const Text(
-                              'Testing: please register first using "Register as Operator" to create an operator account, then sign in. This build is for testing only.',
-                              style: TextStyle(color: Colors.white70),
+                            child: Text(
+                              'Testing: please sign in using your operator account. This build is for testing only.',
+                              style: TextStyle(
+                                color: textColor.withAlpha((0.7 * 255).round()),
+                              ),
                             ),
                           ),
                           const SizedBox(height: 20),
-                          // form
+                          // Form
                           SizedBox(
                             width: 420,
                             child: Column(
@@ -207,12 +218,12 @@ class _LoginPageState extends State<LoginPage> {
                               children: [
                                 TextField(
                                   controller: _usernameController,
-                                  style: const TextStyle(color: Colors.white),
+                                  style: TextStyle(color: isDark ? Colors.white : Colors.black),
                                   decoration: InputDecoration(
                                     labelText: 'Username',
-                                    labelStyle: TextStyle(color: textGrey),
+                                    labelStyle: TextStyle(color: textColor),
                                     filled: true,
-                                    fillColor: const Color(0xFF383C42),
+                                    fillColor: inputColor,
                                     border: OutlineInputBorder(
                                       borderRadius: BorderRadius.circular(6),
                                       borderSide: BorderSide.none,
@@ -223,12 +234,12 @@ class _LoginPageState extends State<LoginPage> {
                                 TextField(
                                   controller: _passwordController,
                                   obscureText: true,
-                                  style: const TextStyle(color: Colors.white),
+                                  style: TextStyle(color: isDark ? Colors.white : Colors.black),
                                   decoration: InputDecoration(
                                     labelText: 'Password',
-                                    labelStyle: TextStyle(color: textGrey),
+                                    labelStyle: TextStyle(color: textColor),
                                     filled: true,
-                                    fillColor: const Color(0xFF383C42),
+                                    fillColor: inputColor,
                                     border: OutlineInputBorder(
                                       borderRadius: BorderRadius.circular(6),
                                       borderSide: BorderSide.none,
@@ -239,7 +250,7 @@ class _LoginPageState extends State<LoginPage> {
                                 ElevatedButton(
                                   onPressed: _loading ? null : _login,
                                   style: ElevatedButton.styleFrom(
-                                    backgroundColor: primaryCyan,
+                                    backgroundColor: const Color(0xFF00E5FF),
                                     foregroundColor: Colors.black,
                                     padding: const EdgeInsets.symmetric(
                                       vertical: 14,
@@ -265,22 +276,6 @@ class _LoginPageState extends State<LoginPage> {
                                             ),
                                           ),
                                 ),
-                                const SizedBox(height: 10),
-                                OutlinedButton(
-                                  onPressed:
-                                      _loading ? null : _registerOperator,
-                                  style: OutlinedButton.styleFrom(
-                                    side: const BorderSide(color: primaryCyan),
-                                    foregroundColor: primaryCyan,
-                                    padding: const EdgeInsets.symmetric(
-                                      vertical: 12,
-                                    ),
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(8),
-                                    ),
-                                  ),
-                                  child: const Text('Register as Operator'),
-                                ),
                                 const SizedBox(height: 18),
                                 TextButton(
                                   onPressed: () async {
@@ -289,10 +284,11 @@ class _LoginPageState extends State<LoginPage> {
                                     print(token.createdBy);
                                     print(token.tokenCode);
                                   },
-                                  child: const Text(
+                                  child: Text(
                                     'Need help? Contact Customer Services',
                                     style: TextStyle(
                                       decoration: TextDecoration.underline,
+                                      color: const Color(0xFF00E5FF),
                                     ),
                                   ),
                                 ),
@@ -300,20 +296,25 @@ class _LoginPageState extends State<LoginPage> {
                             ),
                           ),
                           const SizedBox(height: 12),
-                          // version text bottom-left
+                          // Version text bottom-left
                           Text(
                             'Version 1.0.0',
-                            style: TextStyle(color: const Color.fromARGB(255, 65, 82, 105), fontSize: 12),
+                            style: TextStyle(
+                              color: textColor.withAlpha((0.5 * 255).round()),
+                              fontSize: 12,
+                            ),
                           ),
                         ],
                       ),
                     ),
                   ),
 
-                  const VerticalDivider(
+                  VerticalDivider(
                     width: 1,
                     thickness: 1,
-                    color: Colors.black26,
+                    color: isDark
+                        ? Colors.black26
+                        : Colors.black.withAlpha((0.1 * 255).round()),
                   ),
 
                   // Right column: image/illustration placeholder
@@ -324,16 +325,24 @@ class _LoginPageState extends State<LoginPage> {
                         width: 260,
                         height: 260,
                         decoration: BoxDecoration(
-                          color: Colors.grey.shade700.withAlpha(
-                            (0.18 * 255).round(),
-                          ),
+                          color: isDark
+                              ? Colors.grey.shade700.withAlpha(
+                                  (0.18 * 255).round(),
+                                )
+                              : Colors.grey.shade300.withAlpha(
+                                  (0.3 * 255).round(),
+                                ),
                           borderRadius: BorderRadius.circular(20),
-                          border: Border.all(color: Colors.black12),
+                          border: Border.all(
+                            color: isDark
+                                ? Colors.black12
+                                : Colors.black.withAlpha((0.1 * 255).round()),
+                          ),
                         ),
-                        child: const Icon(
+                        child: Icon(
                           Icons.image,
                           size: 96,
-                          color: Colors.white24,
+                          color: isDark ? Colors.white24 : Colors.black26,
                         ),
                       ),
                     ),

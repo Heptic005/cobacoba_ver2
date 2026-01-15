@@ -35,6 +35,23 @@ class ReportDataTable extends StatefulWidget {
 class _ReportDataTableState extends State<ReportDataTable> {
   bool _timeout = false;
   Timer? _timer;
+  final ScrollController _scrollController = ScrollController();
+
+  List<Widget> _buildHeaders(bool compact) {
+    return [
+      const _TableHeader('No. Tiket', flex: 3),
+      const _TableHeader('Plat', flex: 1),
+      if (!compact) const _TableHeader('Produk', flex: 1),
+      const _TableHeader('Supplier', flex: 2),
+      _TableHeader('Customer', flex: compact ? 1 : 2),
+      const _TableHeader('Bruto (kg)', flex: 1, align: TextAlign.right),
+      const _TableHeader('Tara (kg)', flex: 1, align: TextAlign.right),
+      const _TableHeader('Netto (kg)', flex: 1, align: TextAlign.right),
+      const _TableHeader('Total', flex: 1, align: TextAlign.right),
+      const _TableHeader('Status', flex: 1, align: TextAlign.center),
+      const _TableHeader('Aksi', flex: 1, align: TextAlign.center),
+    ];
+  }
 
   @override
   void initState() {
@@ -53,6 +70,7 @@ class _ReportDataTableState extends State<ReportDataTable> {
   @override
   void dispose() {
     _timer?.cancel();
+    _scrollController.dispose();
     super.dispose();
   }
 
@@ -78,126 +96,136 @@ class _ReportDataTableState extends State<ReportDataTable> {
                         : 'Sedang memuat... (cek koneksi jika >2s)',
               );
             }
-            // Container selalu dirender; jika kosong, tampilkan placeholder di body
-            return Container(
-              height: 400,
-              decoration: BoxDecoration(
-                color: kCardBg,
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.all(12),
-                    child: Text(
-                      'Menampilkan ${list.length} hasil',
-                      style: const TextStyle(color: kTextGrey, fontSize: 13),
-                    ),
+
+            return LayoutBuilder(
+              builder: (context, constraints) {
+                final width = constraints.maxWidth;
+                final isCompact = width < 1000;
+                final isVeryNarrow = width < 700;
+
+                final table = Container(
+                  height: 400,
+                  decoration: BoxDecoration(
+                    color: kCardBg,
+                    borderRadius: BorderRadius.circular(12),
                   ),
-                  Container(
-                    height: 72,
-                    padding: const EdgeInsets.symmetric(horizontal: 12),
-                    decoration: BoxDecoration(
-                      color: kInputBg,
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: const [
-                        _TableHeader('No. Tiket', flex: 2),
-                        _TableHeader('Plat', flex: 2),
-                        _TableHeader('Produk', flex: 1),
-                        _TableHeader('Supplier', flex: 3),
-                        _TableHeader('Customer', flex: 3),
-                        _TableHeader(
-                          'Bruto (kg)',
-                          flex: 1,
-                          align: TextAlign.right,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.all(12),
+                        child: Text(
+                          'Menampilkan ${list.length} hasil',
+                          style: const TextStyle(color: kTextGrey, fontSize: 13),
                         ),
-                        _TableHeader(
-                          'Tara (kg)',
-                          flex: 1,
-                          align: TextAlign.right,
-                        ),
-                        _TableHeader(
-                          'Netto (kg)',
-                          flex: 1,
-                          align: TextAlign.right,
-                        ),
-                        _TableHeader('Total', flex: 1, align: TextAlign.right),
-                        _TableHeader(
-                          'Status',
-                          flex: 2,
-                          align: TextAlign.center,
-                        ),
-                        _TableHeader('Aksi', flex: 1, align: TextAlign.center),
-                      ],
-                    ),
-                  ),
-                  Expanded(
-                    child:
-                        list.isEmpty
-                            ? _StatePlaceholder(
-                              icon: Icons.inbox_outlined,
-                              text: 'Data tidak ditemukan',
-                            )
-                            : NotificationListener<ScrollNotification>(
-                              onNotification: (n) {
-                                if (n.metrics.pixels >=
-                                    (n.metrics.maxScrollExtent - 200)) {
-                                  // Near bottom: request more
-                                  widget.controller.loadMore();
-                                }
-                                return false;
-                              },
-                              child: ListView.builder(
-                                physics: const AlwaysScrollableScrollPhysics(),
-                                itemCount:
-                                    list.length +
-                                    (widget.controller.hasMore ? 1 : 0),
-                                itemExtent: 72.0,
-                                itemBuilder: (_, idx) {
-                                  if (idx >= list.length) {
-                                    // Footer loader
-                                    return ValueListenableBuilder<bool>(
-                                      valueListenable:
-                                          widget.controller.loadingMore,
-                                      builder:
-                                          (_, loadingMore, __) => Center(
-                                            child:
-                                                loadingMore
-                                                    ? const Padding(
-                                                      padding: EdgeInsets.all(
-                                                        8.0,
-                                                      ),
-                                                      child: SizedBox(
-                                                        width: 20,
-                                                        height: 20,
-                                                        child:
-                                                            CircularProgressIndicator(
-                                                              strokeWidth: 2,
-                                                            ),
-                                                      ),
-                                                    )
-                                                    : const SizedBox.shrink(),
-                                          ),
-                                    );
-                                  }
-                                  final row = list[idx];
-                                  return RepaintBoundary(
-                                    child: ReportRowWidget(
-                                      row: row,
-                                      clipboard: widget.clipboard,
-                                      onSnack: widget.onSnack,
-                                    ),
-                                  );
-                                },
-                              ),
+                      ),
+                      if (isVeryNarrow)
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 12),
+                          child: Text(
+                            'Tampilan ringkas untuk layar kecil',
+                            style: TextStyle(
+                              color: kTextGrey.withOpacity(0.7),
+                              fontSize: 12,
                             ),
+                          ),
+                        ),
+                      if (isVeryNarrow) const SizedBox(height: 8),
+                      Container(
+                        height: 72,
+                        padding: const EdgeInsets.symmetric(horizontal: 12),
+                        decoration: BoxDecoration(
+                          color: kInputBg,
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child:
+                            isVeryNarrow
+                                ? const SizedBox.shrink()
+                                : Row(
+                                  crossAxisAlignment: CrossAxisAlignment.center,
+                                  children: _buildHeaders(isCompact),
+                                ),
+                      ),
+                      Expanded(
+                        child:
+                            list.isEmpty
+                                ? _StatePlaceholder(
+                                  icon: Icons.inbox_outlined,
+                                  text: 'Data tidak ditemukan',
+                                )
+                                : NotificationListener<ScrollNotification>(
+                                  onNotification: (n) {
+                                    if (n.metrics.pixels >=
+                                        (n.metrics.maxScrollExtent - 200)) {
+                                      // Near bottom: request more
+                                      widget.controller.loadMore();
+                                    }
+                                    return false;
+                                  },
+                                  child: Scrollbar(
+                                    controller: _scrollController,
+                                    thumbVisibility: !isVeryNarrow,
+                                    child: ListView.builder(
+                                      controller: _scrollController,
+                                      physics: const AlwaysScrollableScrollPhysics(),
+                                      itemCount:
+                                          list.length +
+                                          (widget.controller.hasMore ? 1 : 0),
+                                      itemExtent: isVeryNarrow ? null : 72.0,
+                                      itemBuilder: (_, idx) {
+                                        if (idx >= list.length) {
+                                          // Footer loader
+                                          return ValueListenableBuilder<bool>(
+                                            valueListenable:
+                                                widget.controller.loadingMore,
+                                            builder:
+                                                (_, loadingMore, __) => Center(
+                                                  child:
+                                                      loadingMore
+                                                          ? const Padding(
+                                                            padding: EdgeInsets.all(
+                                                              8.0,
+                                                            ),
+                                                            child: SizedBox(
+                                                              width: 20,
+                                                              height: 20,
+                                                              child:
+                                                                  CircularProgressIndicator(
+                                                                    strokeWidth: 2,
+                                                                  ),
+                                                            ),
+                                                          )
+                                                          : const SizedBox.shrink(),
+                                                ),
+                                          );
+                                        }
+                                        final row = list[idx];
+                                        return RepaintBoundary(
+                                          child:
+                                              isVeryNarrow
+                                                  ? ReportRowCardWidget(
+                                                    row: row,
+                                                    clipboard: widget.clipboard,
+                                                    onSnack: widget.onSnack,
+                                                  )
+                                                  : ReportRowWidget(
+                                                    row: row,
+                                                    clipboard: widget.clipboard,
+                                                    onSnack: widget.onSnack,
+                                                    compact: isCompact,
+                                                  ),
+                                        );
+                                      },
+                                    ),
+                                  ),
+                                ),
+                      ),
+                    ],
                   ),
-                ],
-              ),
+                );
+
+                return table;
+              },
             );
           },
         );
@@ -227,6 +255,8 @@ class _TableHeader extends StatelessWidget {
           letterSpacing: 0.2,
         ),
         textAlign: align,
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
       ),
     );
   }
@@ -237,12 +267,14 @@ class ReportRowWidget extends StatelessWidget {
   final ReportRowData row;
   final dynamic clipboard;
   final Function(String) onSnack;
+  final bool compact;
 
   const ReportRowWidget({
     super.key,
     required this.row,
     required this.clipboard,
     required this.onSnack,
+    required this.compact,
   });
 
   @override
@@ -270,29 +302,36 @@ class ReportRowWidget extends StatelessWidget {
         child: Row(
           children: [
             Expanded(
-              flex: 2,
+              flex: 3,
               child: _ColTitle(row.noTicket, row.formattedDate),
             ),
-            Expanded(flex: 2, child: _ColSub(row.vehiclePlate, row.driverName)),
-            Expanded(
-              flex: 1,
-              child: Text(
-                row.productName,
-                style: const TextStyle(color: kTextWhite, fontSize: 13),
+            Expanded(flex: 1, child: _ColSub(row.vehiclePlate, row.driverName)),
+            if (!compact)
+              Expanded(
+                flex: 1,
+                child: Text(
+                  row.productName,
+                  style: const TextStyle(color: kTextWhite, fontSize: 13),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
               ),
-            ),
             Expanded(
-              flex: 3,
+              flex: compact ? 2 : 2,
               child: Text(
                 row.supplierName,
                 style: const TextStyle(color: kTextWhite, fontSize: 13),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
               ),
             ),
             Expanded(
-              flex: 3,
+              flex: compact ? 1 : 2,
               child: Text(
                 row.customerName,
                 style: const TextStyle(color: kTextWhite, fontSize: 13),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
               ),
             ),
             Expanded(
@@ -301,6 +340,8 @@ class ReportRowWidget extends StatelessWidget {
                 row.formattedBruto,
                 style: const TextStyle(color: kTextWhite, fontSize: 13),
                 textAlign: TextAlign.right,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
               ),
             ),
             Expanded(
@@ -309,6 +350,8 @@ class ReportRowWidget extends StatelessWidget {
                 row.formattedTare,
                 style: const TextStyle(color: kTextWhite, fontSize: 13),
                 textAlign: TextAlign.right,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
               ),
             ),
             Expanded(
@@ -317,6 +360,8 @@ class ReportRowWidget extends StatelessWidget {
                 row.formattedNetto,
                 style: const TextStyle(color: kTextWhite, fontSize: 13),
                 textAlign: TextAlign.right,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
               ),
             ),
             Expanded(
@@ -329,10 +374,12 @@ class ReportRowWidget extends StatelessWidget {
                   fontSize: 13,
                 ),
                 textAlign: TextAlign.right,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
               ),
             ),
             Expanded(
-              flex: 2,
+              flex: 1,
               child: Center(
                 child: StatusBadge(text: statusText, color: statusColor),
               ),
@@ -340,32 +387,8 @@ class ReportRowWidget extends StatelessWidget {
             Expanded(
               flex: 1,
               child: Center(
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    SizedBox(
-                      width: 30,
-                      height: 30,
-                      child: IconButton(
-                        icon: const Icon(
-                          Icons.visibility,
-                          size: 16,
-                          color: kTextGrey,
-                        ),
-                        padding: EdgeInsets.zero,
-                        constraints: const BoxConstraints(),
-                        onPressed:
-                            () => showTransactionDetailDialog(
-                              context,
-                              src,
-                              (id) => row.supplierName,
-                              (id) => row.productName,
-                            ),
-                        tooltip: 'Lihat',
-                      ),
-                    ),
-                    const SizedBox(width: 2),
-                    SizedBox(
+                child: compact
+                    ? SizedBox(
                       width: 30,
                       height: 30,
                       child: PopupMenuButton<String>(
@@ -405,14 +428,251 @@ class ReportRowWidget extends StatelessWidget {
                               ),
                             ],
                       ),
+                    )
+                    : Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        SizedBox(
+                          width: 30,
+                          height: 30,
+                          child: IconButton(
+                            icon: const Icon(
+                              Icons.visibility,
+                              size: 16,
+                              color: kTextGrey,
+                            ),
+                            padding: EdgeInsets.zero,
+                            constraints: const BoxConstraints(),
+                            onPressed:
+                                () => showTransactionDetailDialog(
+                                  context,
+                                  src,
+                                  (id) => row.supplierName,
+                                  (id) => row.productName,
+                                ),
+                            tooltip: 'Lihat',
+                          ),
+                        ),
+                        const SizedBox(width: 2),
+                        SizedBox(
+                          width: 30,
+                          height: 30,
+                          child: PopupMenuButton<String>(
+                            icon: const Icon(
+                              Icons.more_vert,
+                              size: 16,
+                              color: kTextGrey,
+                            ),
+                            padding: EdgeInsets.zero,
+                            iconSize: 16,
+                            color: kCardBg,
+                            onSelected: (v) {
+                              if (v == 'copy_ticket') {
+                                clipboard.copy(src.noTicket);
+                                onSnack('No. Tiket disalin');
+                              }
+                              if (v == 'copy_plate') {
+                                clipboard.copy(src.vehiclePlate);
+                                onSnack('Plat disalin');
+                              }
+                            },
+                            itemBuilder:
+                                (_) => [
+                                  const PopupMenuItem(
+                                    value: 'copy_ticket',
+                                    child: Text(
+                                      'Salin No. Tiket',
+                                      style: TextStyle(color: kTextWhite),
+                                    ),
+                                  ),
+                                  const PopupMenuItem(
+                                    value: 'copy_plate',
+                                    child: Text(
+                                      'Salin Plat',
+                                      style: TextStyle(color: kTextWhite),
+                                    ),
+                                  ),
+                                ],
+                          ),
+                        ),
+                      ],
                     ),
-                  ],
-                ),
               ),
             ),
           ],
         ),
       ),
+    );
+  }
+}
+
+/// Card-style row for very narrow screens.
+class ReportRowCardWidget extends StatelessWidget {
+  final ReportRowData row;
+  final dynamic clipboard;
+  final Function(String) onSnack;
+
+  const ReportRowCardWidget({
+    super.key,
+    required this.row,
+    required this.clipboard,
+    required this.onSnack,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final src = row.source;
+    final isManual = src.isManual == 1;
+    final isDraft = src.isDrafted == 1;
+    final statusText = isManual ? 'Manual' : (isDraft ? 'Menunggu' : 'Selesai');
+    final statusColor =
+        isManual ? kStatusManual : (isDraft ? kStatusMenunggu : kStatusSelesai);
+
+    return InkWell(
+      onTap:
+          () => showTransactionDetailDialog(
+            context,
+            src,
+            (id) => row.supplierName,
+            (id) => row.productName,
+          ),
+      child: Container(
+        margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: kInputBg,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: kCardBg, width: 1),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Expanded(
+                  child: _ColTitle(row.noTicket, row.formattedDate),
+                ),
+                const SizedBox(width: 8),
+                StatusBadge(text: statusText, color: statusColor),
+                const SizedBox(width: 6),
+                PopupMenuButton<String>(
+                  icon: const Icon(
+                    Icons.more_vert,
+                    size: 18,
+                    color: kTextGrey,
+                  ),
+                  padding: EdgeInsets.zero,
+                  color: kCardBg,
+                  onSelected: (v) {
+                    if (v == 'copy_ticket') {
+                      clipboard.copy(src.noTicket);
+                      onSnack('No. Tiket disalin');
+                    }
+                    if (v == 'copy_plate') {
+                      clipboard.copy(src.vehiclePlate);
+                      onSnack('Plat disalin');
+                    }
+                  },
+                  itemBuilder:
+                      (_) => [
+                        const PopupMenuItem(
+                          value: 'copy_ticket',
+                          child: Text(
+                            'Salin No. Tiket',
+                            style: TextStyle(color: kTextWhite),
+                          ),
+                        ),
+                        const PopupMenuItem(
+                          value: 'copy_plate',
+                          child: Text(
+                            'Salin Plat',
+                            style: TextStyle(color: kTextWhite),
+                          ),
+                        ),
+                      ],
+                ),
+              ],
+            ),
+            const SizedBox(height: 10),
+            _ColSub(row.vehiclePlate, row.driverName),
+            const SizedBox(height: 10),
+            Wrap(
+              spacing: 12,
+              runSpacing: 8,
+              children: [
+                _kv('Produk', row.productName),
+                _kv('Supplier', row.supplierName),
+                _kv('Customer', row.customerName),
+              ],
+            ),
+            const SizedBox(height: 10),
+            Row(
+              children: [
+                Expanded(child: _num('Bruto', row.formattedBruto)),
+                Expanded(child: _num('Tara', row.formattedTare)),
+                Expanded(child: _num('Netto', row.formattedNetto)),
+                Expanded(
+                  child: _num(
+                    'Total',
+                    row.formattedTotal,
+                    valueStyle: const TextStyle(
+                      color: kPrimaryCyan,
+                      fontWeight: FontWeight.w700,
+                      fontSize: 13,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _kv(String k, String v) {
+    return SizedBox(
+      width: 220,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            k,
+            style: TextStyle(color: kTextGrey.withOpacity(0.75), fontSize: 11),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+          const SizedBox(height: 2),
+          Tooltip(
+            message: v,
+            child: Text(
+              v,
+              style: const TextStyle(color: kTextWhite, fontSize: 13),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _num(String label, String value, {TextStyle? valueStyle}) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: TextStyle(color: kTextGrey.withOpacity(0.75), fontSize: 11),
+        ),
+        const SizedBox(height: 2),
+        Text(
+          value,
+          style: valueStyle ?? const TextStyle(color: kTextWhite, fontSize: 13),
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+        ),
+      ],
     );
   }
 }
@@ -425,18 +685,28 @@ class _ColTitle extends StatelessWidget {
   Widget build(BuildContext context) => Column(
     crossAxisAlignment: CrossAxisAlignment.start,
     children: [
-      Text(
-        title,
-        style: const TextStyle(
-          color: kPrimaryCyan,
-          fontWeight: FontWeight.w600,
-          fontSize: 13,
+      Tooltip(
+        message: title,
+        child: Text(
+          title,
+          style: const TextStyle(
+            color: kPrimaryCyan,
+            fontWeight: FontWeight.w600,
+            fontSize: 13,
+          ),
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
         ),
       ),
       const SizedBox(height: 2),
-      Text(
-        subtitle,
-        style: TextStyle(color: kTextGrey.withOpacity(0.7), fontSize: 11),
+      Tooltip(
+        message: subtitle,
+        child: Text(
+          subtitle,
+          style: TextStyle(color: kTextGrey.withOpacity(0.7), fontSize: 11),
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+        ),
       ),
     ],
   );
@@ -450,18 +720,28 @@ class _ColSub extends StatelessWidget {
   Widget build(BuildContext context) => Column(
     crossAxisAlignment: CrossAxisAlignment.start,
     children: [
-      Text(
-        a,
-        style: const TextStyle(
-          color: kTextWhite,
-          fontWeight: FontWeight.w500,
-          fontSize: 13,
+      Tooltip(
+        message: a,
+        child: Text(
+          a,
+          style: const TextStyle(
+            color: kTextWhite,
+            fontWeight: FontWeight.w500,
+            fontSize: 13,
+          ),
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
         ),
       ),
       const SizedBox(height: 2),
-      Text(
-        b,
-        style: TextStyle(color: kTextGrey.withOpacity(0.7), fontSize: 11),
+      Tooltip(
+        message: b,
+        child: Text(
+          b,
+          style: TextStyle(color: kTextGrey.withOpacity(0.7), fontSize: 11),
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+        ),
       ),
     ],
   );

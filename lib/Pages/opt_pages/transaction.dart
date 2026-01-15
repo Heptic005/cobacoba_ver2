@@ -77,7 +77,7 @@ class _TransactionState extends State<Transaction> {
   /// Recent transactions
   final TextEditingController _recentSearchController = TextEditingController();
   bool _recentSortDesc = true;
-  Set<String> _draftTickets = {};
+  TransactionStatusFilter _recentFilter = TransactionStatusFilter.all;
   List<ListTransactionJson> _recentTransactions = [];
 
   /// Services
@@ -130,9 +130,8 @@ class _TransactionState extends State<Transaction> {
   Future<void> _loadRecentTransactions() async {
     final items = await DbHelper.instance.getListTransaction();
     setState(() {
-      _recentTransactions = items.where((e) => e.isDrafted == 0).toList();
-      _draftTickets =
-          items.where((e) => e.isDrafted == 1).map((e) => e.noTicket).toSet();
+      // Keep all transactions; mark drafts for quick lookup.
+        _recentTransactions = items;
     });
   }
 
@@ -773,7 +772,7 @@ class _TransactionState extends State<Transaction> {
             RecentTransactionTable(
               searchController: _recentSearchController,
               sortDesc: _recentSortDesc,
-              draftTickets: _draftTickets,
+              statusFilter: _recentFilter,
               transactions: _recentTransactions,
               suppliers: _suppliers,
               customers: _customers,
@@ -782,6 +781,7 @@ class _TransactionState extends State<Transaction> {
               textGrey: AppThemes.textGrey,
               primaryCyan: AppThemes.primaryCyan,
               inputBg: AppThemes.inputBg,
+              onFilterChanged: (val) => setState(() => _recentFilter = val),
               onShowDetailMap: _handleShowDetailMap,
               onPrintMap: _handlePrintMap,
               onExportPdfMap: _handleExportPdfMap,
