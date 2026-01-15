@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 
 class WeightMonitorCard extends StatefulWidget {
   final bool isWeighIn;
+  final bool isConnected;
   final bool isBruto;
   final Color cardBg;
   final Color primaryCyan;
@@ -21,6 +22,7 @@ class WeightMonitorCard extends StatefulWidget {
     required this.textWhite,
     required this.onCaptured,
     required this.isBruto,
+    required this.isConnected,
   });
 
   @override
@@ -30,8 +32,8 @@ class WeightMonitorCard extends StatefulWidget {
 class _WeightMonitorCardState extends State<WeightMonitorCard> {
   double? _displayWeight;
   bool _isCaptured = false;
-  bool isWeighIn = true;
   bool isBruto = true;
+  bool _isConnected = SerialService().isConnected;
 
   @override
   void initState() {
@@ -83,42 +85,38 @@ class _WeightMonitorCardState extends State<WeightMonitorCard> {
                         ],
                       ),
                     ),
-                    ElevatedButton.icon(
-                      onPressed: () {
-                        _isCaptured
-                            ? null
-                            : setState(() {
-                              isBruto = !isBruto;
-                            });
-                      },
-                      label: isBruto ? const Text("Bruto") : const Text("Tare"),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor:
-                            isWeighIn ? widget.primaryCyan : Colors.transparent,
-                        foregroundColor:
-                            isWeighIn ? Colors.black : Colors.white,
-                        elevation: 0,
-                        side:
-                            isWeighIn
-                                ? BorderSide.none
-                                : BorderSide(
-                                  color: widget.textGrey.withAlpha(
-                                    (0.6 * 255).round(),
-                                  ),
-                                ),
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 20,
-                          vertical: 16,
-                        ),
-                        textStyle: const TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w600,
-                        ),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                      ),
-                    ),
+                    widget.isWeighIn
+                        ? ElevatedButton.icon(
+                          onPressed: () {
+                            _isCaptured
+                                ? null
+                                : setState(() {
+                                  isBruto = !isBruto;
+                                });
+                          },
+                          label:
+                              isBruto
+                                  ? const Text("Bruto")
+                                  : const Text("Tare"),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: widget.primaryCyan,
+                            foregroundColor: Colors.black,
+                            elevation: 0,
+                            side: BorderSide.none,
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 20,
+                              vertical: 16,
+                            ),
+                            textStyle: const TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w600,
+                            ),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                          ),
+                        )
+                        : const SizedBox(),
                   ],
                 ),
               ),
@@ -158,7 +156,9 @@ class _WeightMonitorCardState extends State<WeightMonitorCard> {
                         Expanded(
                           child: ElevatedButton(
                             onPressed:
-                                (_displayWeight == null || _isCaptured)
+                                (_displayWeight == null ||
+                                        _isCaptured ||
+                                        !widget.isConnected)
                                     ? null
                                     : () {
                                       setState(() {

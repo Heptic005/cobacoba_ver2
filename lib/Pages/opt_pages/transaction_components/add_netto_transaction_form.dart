@@ -108,9 +108,6 @@ class _TransactionFormCardState extends State<AddNettoTransactionFormCard> {
 
   /// Make Existing Data to Be Placeholder
   void _onSelected(ListTransactionJson transaction) async {
-    print(transaction.productName);
-    print(transaction.noDO);
-    print(transaction.additionalInformation);
     setState(() {
       _transaction = transaction;
       widget.brutoController.text = _transaction.bruto.toString();
@@ -206,23 +203,23 @@ class _TransactionFormCardState extends State<AddNettoTransactionFormCard> {
 
   @override
   Widget build(BuildContext context) {
-    print('build');
-    return Row(
-      children: [
-        Expanded(
-          flex: 3,
-          child: Container(
-            padding: const EdgeInsets.all(24),
-            decoration: BoxDecoration(
-              color: widget.cardBg,
-              borderRadius: BorderRadius.circular(24),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withAlpha((0.2 * 255).round()),
-                  blurRadius: 8,
-                ),
-              ],
-            ),
+    return Container(
+      padding: const EdgeInsets.all(24),
+      decoration: BoxDecoration(
+        color: widget.cardBg,
+        borderRadius: BorderRadius.circular(24),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withAlpha((0.2 * 255).round()),
+            blurRadius: 8,
+          ),
+        ],
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Expanded(
+            flex: 3,
             child: Column(
               children: [
                 SearchTicketField(onSelected: _onSelected),
@@ -428,42 +425,58 @@ class _TransactionFormCardState extends State<AddNettoTransactionFormCard> {
               ],
             ),
           ),
-        ),
-        const SizedBox(width: 20),
-        Expanded(
-          flex: 2,
+          const SizedBox(width: 20),
+          Expanded(
+            flex: 2,
 
-          /// TODO : MAKE SURE THE CALCULATION IS CORRECT
-          child: WeightDetails(
-            bruto:
-                widget.brutoController.text.isEmpty
-                    ? '0.00'
-                    : widget.brutoController.text,
-            tare: widget.tare?.toStringAsFixed(2) ?? '0.00',
-            netto: ((double.tryParse(widget.brutoController.text) ?? 0) -
-                    (widget.tare?.toDouble() ?? 0))
-                .toStringAsFixed(2),
-            afterCut: (((double.tryParse(widget.brutoController.text) ?? 0) -
-                        (widget.tare?.toDouble() ?? 0)) -
-                    (((double.tryParse(widget.brutoController.text) ?? 0) -
-                            (widget.tare?.toDouble() ?? 0)) *
-                        (double.tryParse(widget.potonganController.text) ?? 0) /
-                        100))
-                .toStringAsFixed(2),
-            totalPrice: ((((double.tryParse(widget.brutoController.text) ?? 0) -
-                            (widget.tare?.toDouble() ?? 0)) -
-                        (((double.tryParse(widget.brutoController.text) ?? 0) -
-                                (widget.tare?.toDouble() ?? 0)) *
-                            (double.tryParse(widget.potonganController.text) ??
-                                0) /
-                            100)) *
-                    (double.tryParse(widget.hargaController.text) ?? 0))
-                .toStringAsFixed(2),
-            textGrey: widget.textGrey,
-            cardBg: widget.cardBg,
+            /// TODO : MAKE SURE THE CALCULATION IS CORRECT 16 January
+            child: Column(
+              children: [
+                const SizedBox(height: 95),
+                WeightDetails(
+                  bruto:
+                      widget.brutoController.text.isEmpty
+                          ? '0.00'
+                          : widget.brutoController.text,
+                  tare: widget.tare?.toStringAsFixed(2) ?? '0.00',
+                  netto: ((double.tryParse(widget.brutoController.text) ?? 0) -
+                          (widget.tare?.toDouble() ?? 0))
+                      .toStringAsFixed(2),
+                  afterCut: (((double.tryParse(widget.brutoController.text) ??
+                                  0) -
+                              (widget.tare?.toDouble() ?? 0)) -
+                          (((double.tryParse(widget.brutoController.text) ??
+                                      0) -
+                                  (widget.tare?.toDouble() ?? 0)) *
+                              (double.tryParse(
+                                    widget.potonganController.text,
+                                  ) ??
+                                  0) /
+                              100))
+                      .toStringAsFixed(2),
+                  totalPrice: ((((double.tryParse(
+                                        widget.brutoController.text,
+                                      ) ??
+                                      0) -
+                                  (widget.tare?.toDouble() ?? 0)) -
+                              (((double.tryParse(widget.brutoController.text) ??
+                                          0) -
+                                      (widget.tare?.toDouble() ?? 0)) *
+                                  (double.tryParse(
+                                        widget.potonganController.text,
+                                      ) ??
+                                      0) /
+                                  100)) *
+                          (double.tryParse(widget.hargaController.text) ?? 0))
+                      .toStringAsFixed(2),
+                  textGrey: widget.textGrey,
+                  cardBg: widget.cardBg,
+                ),
+              ],
+            ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 }

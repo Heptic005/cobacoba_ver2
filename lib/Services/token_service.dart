@@ -12,7 +12,7 @@ class TokenService {
   }
 
   static Future<ListTokenJson> createToken({
-    Duration validFor = const Duration(minutes: 30),
+    Duration validFor = const Duration(days: 1),
   }) async {
     final token = _generateToken();
     final expiresAt = DateTime.now().add(validFor);

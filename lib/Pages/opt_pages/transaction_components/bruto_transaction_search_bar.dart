@@ -69,7 +69,7 @@ class _SearchTicketFieldState extends State<SearchTicketField> {
                 ),
               ),
               subtitle: Text(
-                'Gross: ${transaction.bruto}',
+                '''Gross: ${transaction.bruto}\nTare: ${transaction.tare}''',
                 style: TextStyle(
                   color: Colors.white,
                   fontWeight: FontWeight.w100,

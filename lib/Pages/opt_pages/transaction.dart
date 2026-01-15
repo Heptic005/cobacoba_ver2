@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:dakara_weighbridge/Entities/Operator/operator.dart';
+import 'package:dakara_weighbridge/Pages/opt_pages/dashboard.dart';
 import 'package:dakara_weighbridge/Pages/opt_pages/transaction_components/add_netto_transaction_form.dart';
 import 'package:dakara_weighbridge/SQLite/db_helper.dart';
 import 'package:dakara_weighbridge/Services/serial_service.dart';
@@ -92,10 +93,22 @@ class _TransactionState extends State<Transaction> {
   double? _capturedWeight;
   bool _isBruto = true;
 
+  /// Connection Status From Serial
+  bool _isConnected = false;
+
+  /// Weight In or Weight Out
   void _onToggleButtonTimbang(bool mode) {
     setState(() {
       _isWeightIn = mode;
       _resetForm();
+    });
+  }
+
+  /// Connection Status From Serial
+  void _onToggleButtonConnection(bool isConnected) {
+    OperatorDashboard.isConnected.value = isConnected;
+    setState(() {
+      _isConnected = isConnected;
     });
   }
 
@@ -149,8 +162,7 @@ class _TransactionState extends State<Transaction> {
           _noContainerController.text.isNotEmpty
               ? int.tryParse(_noContainerController.text)
               : 0;
-      final bruto = double.tryParse(_capturedWeight!.toStringAsFixed(2));
-      final tare = double.tryParse(_capturedWeight!.toStringAsFixed(2));
+      final _weight = double.tryParse(_capturedWeight!.toStringAsFixed(2));
 
       if (_isWeightIn) {
         operator.addBrutoTransaction(
@@ -160,7 +172,7 @@ class _TransactionState extends State<Transaction> {
           customerId: _selectedCustomerId!,
           productId: _selectedProductId!,
           cut: cut!,
-          bruto: bruto!,
+          bruto: _weight!,
           kubikasi: kubikasi,
           noDo: _noDoController.text,
           noContainer: noContainer,
@@ -170,15 +182,11 @@ class _TransactionState extends State<Transaction> {
           isBruto: _isBruto,
         );
       } else {
-        /* TODO : 15 January : Check first Weight in DB on the add Netto Function,
-             if there's bruto then tare is the weight.
-             if there's tare then bruto is the weight
-         */
         operator.addNettoTransaction(
           transactionId: int.tryParse(_transactionIdController.text)!,
           kubikasi: kubikasi,
           additionalInformation: _keteranganController.text,
-          tare: tare!,
+          weight: _weight!,
         );
       }
 
@@ -438,6 +446,9 @@ class _TransactionState extends State<Transaction> {
   void initState() {
     super.initState();
 
+    /// Connection Status
+    _isConnected = SerialService().isConnected;
+
     /// Captured Weight
     _capturedWeight = null;
 
@@ -520,6 +531,7 @@ class _TransactionState extends State<Transaction> {
                     textWhite: AppThemes.textWhite,
                     onCaptured: _onWeightCaptured,
                     isBruto: _isBruto,
+                    isConnected: _isConnected,
                   ),
                 ),
                 const SizedBox(width: 20),
@@ -532,6 +544,7 @@ class _TransactionState extends State<Transaction> {
                     textWhite: AppThemes.textWhite,
                     cardBg: AppThemes.cardBg,
                     onToggleButtonTimbang: _onToggleButtonTimbang,
+                    onToggleButtonConection: _onToggleButtonConnection,
                   ),
                 ),
               ],
@@ -539,7 +552,7 @@ class _TransactionState extends State<Transaction> {
             const SizedBox(height: 30),
             Row(
               children: [
-                _isWeightIn
+                _isWeightIn && _isConnected
                     ? Expanded(
                       child: TransactionFormCard(
                         platnomorController: _platNomorController,
@@ -585,9 +598,83 @@ class _TransactionState extends State<Transaction> {
                         onSavePressed: _handleSavePressed,
                         isFormValid: isFormValid,
                         bruto: _capturedWeight,
+                        isBruto: _isBruto,
                       ),
                     )
-                    : Expanded(
+                    : _isWeightIn && !_isConnected
+                    ? Expanded(
+                      child: Stack(
+                        children: [
+                          TransactionFormCard(
+                            platnomorController: _platNomorController,
+                            poController: _noDoController,
+                            namasupirController: _namaSupirController,
+                            potonganController: _potonganController,
+                            kubikasiController: _kubikasiController,
+                            nocontainerController: _noContainerController,
+                            suhuController: _suhuController,
+                            hargaController: _hargaController,
+                            keteranganController: _keteranganController,
+                            focusPlatnomor: _focusPlatNomor,
+                            focusPO: _focusNoDo,
+                            focusSupir: _focusSupir,
+                            focusPotongan: _focusPotongan,
+                            focusKubikasi: _focusKubikasi,
+                            focusNoContainer: _focusNoContainer,
+                            focusSuhu: _focusSuhu,
+                            focusHarga: _focusHarga,
+                            focusKeterangan: _focusKeterangan,
+                            suppliers: _suppliers,
+                            customers: _customers,
+                            products: _products,
+                            selectedSupplier: _selectedSupplierId,
+                            selectedCustomer: _selectedCustomerId,
+                            selectedProduct: _selectedProductId,
+                            cardBg: AppThemes.cardBg,
+                            primaryCyan: AppThemes.primaryCyan,
+                            textGrey: AppThemes.textGrey,
+                            inputBg: AppThemes.inputBg,
+                            onSelectSupplier:
+                                (value) => setState(() {
+                                  _selectedSupplierId = value;
+                                }),
+                            onSelectCustomer:
+                                (value) => setState(() {
+                                  _selectedCustomerId = value;
+                                }),
+                            onSelectProduct:
+                                (value) => setState(() {
+                                  _selectedProductId = value;
+                                }),
+                            onSavePressed: _handleSavePressed,
+                            isFormValid: isFormValid,
+                            bruto: _capturedWeight,
+                            isBruto: _isBruto,
+                          ),
+                          Positioned.fill(
+                            child: Container(
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadiusGeometry.all(
+                                  Radius.circular(4),
+                                ),
+                                color: Colors.black45,
+                              ),
+                              child: const Center(
+                                child: Text(
+                                  'Menunggu koneksi timbangan',
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 18,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    )
+                    : !_isWeightIn && _isConnected
+                    ? Expanded(
                       child: AddNettoTransactionFormCard(
                         platnomorController: _platNomorController,
                         poController: _noDoController,
@@ -619,6 +706,63 @@ class _TransactionState extends State<Transaction> {
                         tareController: _tareController,
                         nettoController: _nettoController,
                         tare: _capturedWeight,
+                      ),
+                    )
+                    : Expanded(
+                      child: Stack(
+                        children: [
+                          AddNettoTransactionFormCard(
+                            platnomorController: _platNomorController,
+                            poController: _noDoController,
+                            namasupirController: _namaSupirController,
+                            potonganController: _potonganController,
+                            kubikasiController: _kubikasiController,
+                            nocontainerController: _noContainerController,
+                            suhuController: _suhuController,
+                            hargaController: _hargaController,
+                            keteranganController: _keteranganController,
+                            supplierController: _supplierController,
+                            customerController: _customerController,
+                            productController: _productController,
+                            transactionIdController: _transactionIdController,
+                            focusPO: _focusNoDo,
+                            focusPotongan: _focusPotongan,
+                            focusKubikasi: _focusKubikasi,
+                            focusNoContainer: _focusNoContainer,
+                            focusSuhu: _focusSuhu,
+                            focusHarga: _focusHarga,
+                            focusKeterangan: _focusKeterangan,
+                            cardBg: AppThemes.cardBg,
+                            primaryCyan: AppThemes.primaryCyan,
+                            textGrey: AppThemes.textGrey,
+                            inputBg: AppThemes.inputBg,
+                            onSavePressed: _handleSavePressed,
+                            isFormValid: isFormValid,
+                            brutoController: _brutoController,
+                            tareController: _tareController,
+                            nettoController: _nettoController,
+                            tare: _capturedWeight,
+                          ),
+                          Positioned.fill(
+                            child: Container(
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadiusGeometry.all(
+                                  Radius.circular(4),
+                                ),
+                                color: Colors.black45,
+                              ),
+                              child: const Center(
+                                child: Text(
+                                  'Menunggu koneksi timbangan',
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 18,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                 const SizedBox(width: 20),

@@ -32,6 +32,7 @@ class TransactionFormCard extends StatelessWidget {
   final int? selectedCustomer;
   final int? selectedProduct;
   final double? bruto;
+  final bool isBruto;
 
   final Color cardBg;
   final Color primaryCyan;
@@ -80,6 +81,7 @@ class TransactionFormCard extends StatelessWidget {
     required this.onSavePressed,
     required this.isFormValid,
     this.bruto = 0,
+    required this.isBruto,
   });
 
   Widget _buildTextInput({
@@ -209,22 +211,23 @@ class TransactionFormCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      children: [
-        Expanded(
-          flex: 3,
-          child: Container(
-            padding: const EdgeInsets.all(24),
-            decoration: BoxDecoration(
-              color: cardBg,
-              borderRadius: BorderRadius.circular(24),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withAlpha((0.2 * 255).round()),
-                  blurRadius: 8,
-                ),
-              ],
-            ),
+    return Container(
+      padding: const EdgeInsets.all(24),
+      decoration: BoxDecoration(
+        color: cardBg,
+        borderRadius: BorderRadius.circular(24),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withAlpha((0.2 * 255).round()),
+            blurRadius: 8,
+          ),
+        ],
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Expanded(
+            flex: 3,
             child: Column(
               children: [
                 Padding(
@@ -420,21 +423,30 @@ class TransactionFormCard extends StatelessWidget {
               ],
             ),
           ),
-        ),
-        const SizedBox(width: 20),
-        Expanded(
-          flex: 2,
-          child: WeightDetails(
-            bruto: bruto?.toStringAsFixed(2) ?? '0',
-            tare: '0',
-            netto: '0',
-            afterCut: '0',
-            totalPrice: '0',
-            textGrey: textGrey,
-            cardBg: cardBg,
+          const SizedBox(width: 20),
+          Expanded(
+            flex: 2,
+            child: Column(
+              children: [
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 12.0),
+                  child: Row(children: [const SizedBox(width: 12)]),
+                ),
+                WeightDetails(
+                  bruto: isBruto ? bruto?.toStringAsFixed(2) ?? '0' : '0',
+                  tare:
+                      isBruto == false ? bruto?.toStringAsFixed(2) ?? '0' : '0',
+                  netto: '0',
+                  afterCut: '0',
+                  totalPrice: '0',
+                  textGrey: textGrey,
+                  cardBg: cardBg,
+                ),
+              ],
+            ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 }

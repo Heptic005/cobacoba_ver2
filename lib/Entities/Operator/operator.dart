@@ -108,45 +108,82 @@ class Operator implements AbstractOperator {
     double? temperature,
     double? price,
     String? additionalInformation,
-    required double tare,
+    required double weight,
   }) async {
     final transaction = await DbHelper.instance.getTransactionById(
       id: transactionId,
     );
 
     /// TODO : Make Custom Exception
-    if (transaction.isEmpty) throw Error();
+    if (transaction.isEmpty)
+      throw TransactionGetFailedException('Not Found Any Transactions');
     final t = transaction[0];
-    final updated = ListTransactionJson(
-      vehiclePlate: t.vehiclePlate,
-      driverName: t.driverName,
-      supplierId: t.supplierId,
-      customerId: t.customerId,
-      productId: t.productId,
-      cut: t.cut,
-      kubikasi: kubikasi ?? t.kubikasi,
-      noDO: noDo ?? t.noDO,
-      noContainer: noContainer ?? t.noContainer,
-      temperature: temperature ?? t.temperature,
-      price: t.price,
-      additionalInformation: additionalInformation ?? t.additionalInformation,
-      noTicket: t.noTicket,
-      inTime: t.inTime,
-      outTime: DateTime.now(),
-      totalPrice:
-          t.price! * (t.bruto - tare - ((t.bruto - tare) * (t.cut / 100))),
-      bruto: t.bruto,
-      tare: tare,
-      netto: t.bruto - tare,
-      nettoAfterCut: t.bruto - tare - ((t.bruto - tare) * (t.cut / 100)),
-      driverLabel: t.driverLabel,
-      operatorLabel: t.operatorLabel,
-      managerLabel: t.managerLabel,
-      headWarehouseLabel: t.headWarehouseLabel,
-      isDrafted: 0,
-      transactionId: t.transactionId,
-      isManual: t.isManual,
-    );
-    await DbHelper.instance.updateTransaction(updated);
+    if (t.bruto != 0) {
+      final updated = ListTransactionJson(
+        vehiclePlate: t.vehiclePlate,
+        driverName: t.driverName,
+        supplierId: t.supplierId,
+        customerId: t.customerId,
+        productId: t.productId,
+        cut: t.cut,
+        kubikasi: kubikasi ?? t.kubikasi,
+        noDO: noDo ?? t.noDO,
+        noContainer: noContainer ?? t.noContainer,
+        temperature: temperature ?? t.temperature,
+        price: t.price,
+        additionalInformation: additionalInformation ?? t.additionalInformation,
+        noTicket: t.noTicket,
+        inTime: t.inTime,
+        outTime: DateTime.now(),
+        totalPrice:
+            t.price! *
+            (t.bruto - weight - ((t.bruto - weight) * (t.cut / 100))),
+        bruto: t.bruto,
+        tare: weight,
+        netto: t.bruto - weight,
+        nettoAfterCut: t.bruto - weight - ((t.bruto - weight) * (t.cut / 100)),
+        driverLabel: t.driverLabel,
+        operatorLabel: t.operatorLabel,
+        managerLabel: t.managerLabel,
+        headWarehouseLabel: t.headWarehouseLabel,
+        isDrafted: 0,
+        transactionId: t.transactionId,
+        isManual: t.isManual,
+      );
+
+      await DbHelper.instance.updateTransaction(updated);
+    } else {
+      final updated = ListTransactionJson(
+        vehiclePlate: t.vehiclePlate,
+        driverName: t.driverName,
+        supplierId: t.supplierId,
+        customerId: t.customerId,
+        productId: t.productId,
+        cut: t.cut,
+        kubikasi: kubikasi ?? t.kubikasi,
+        noDO: noDo ?? t.noDO,
+        noContainer: noContainer ?? t.noContainer,
+        temperature: temperature ?? t.temperature,
+        price: t.price,
+        additionalInformation: additionalInformation ?? t.additionalInformation,
+        noTicket: t.noTicket,
+        inTime: t.inTime,
+        outTime: DateTime.now(),
+        totalPrice:
+            t.price! * (weight - t.tare - ((weight - t.tare) * (t.cut / 100))),
+        bruto: weight,
+        tare: t.tare,
+        netto: weight - t.tare,
+        nettoAfterCut: weight - t.tare - ((weight - t.tare) * (t.cut / 100)),
+        driverLabel: t.driverLabel,
+        operatorLabel: t.operatorLabel,
+        managerLabel: t.managerLabel,
+        headWarehouseLabel: t.headWarehouseLabel,
+        isDrafted: 0,
+        transactionId: t.transactionId,
+        isManual: t.isManual,
+      );
+      await DbHelper.instance.updateTransaction(updated);
+    }
   }
 }

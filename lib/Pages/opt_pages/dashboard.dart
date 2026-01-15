@@ -8,6 +8,9 @@ import 'package:flutter/material.dart';
 class OperatorDashboard extends StatefulWidget {
   const OperatorDashboard({super.key});
 
+  /// Listening To Transaction Connect Button To Serial
+  static ValueNotifier<bool> isConnected = ValueNotifier<bool>(false);
+
   @override
   State<OperatorDashboard> createState() => _OperatorDashboardState();
 }
@@ -169,7 +172,7 @@ class _OperatorDashboardState extends State<OperatorDashboard> {
                                 color: Colors.transparent,
                                 child: Container(
                                   height: 40,
-                                  width: 125,
+                                  width: 130,
                                   // padding: EdgeInsets.only(right: 50),
                                   // padding: EdgeInsets.all(.3),
                                   decoration: BoxDecoration(
@@ -195,12 +198,28 @@ class _OperatorDashboardState extends State<OperatorDashboard> {
                                     child: Container(
                                       alignment: Alignment.centerLeft,
                                       padding: const EdgeInsets.only(left: 15),
-                                      child: Text(
-                                        "Connected",
-                                        style: TextStyle(
-                                          color: Colors.white,
-                                          height: 1,
-                                        ),
+                                      child: ValueListenableBuilder(
+                                        valueListenable:
+                                            OperatorDashboard.isConnected,
+                                        builder: (context, isConnected, _) {
+                                          if (isConnected) {
+                                            return Text(
+                                              "Connected",
+                                              style: TextStyle(
+                                                color: Colors.white,
+                                                height: 1,
+                                              ),
+                                            );
+                                          } else {
+                                            return Text(
+                                              "Disconnected",
+                                              style: TextStyle(
+                                                color: Colors.white,
+                                                height: 1,
+                                              ),
+                                            );
+                                          }
+                                        },
                                       ),
                                     ),
                                   ),

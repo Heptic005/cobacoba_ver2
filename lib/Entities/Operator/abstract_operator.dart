@@ -22,11 +22,6 @@ abstract class AbstractOperator {
     double? temperature,
     double? price,
     String? additionalInformation,
-    required double tare,
+    required double weight,
   });
-  // Future<void> requestTokenForManualWeight();
-  // Future<void> exportReportPdf();
-  // Future<void> exportReportExcel();
-  // Future<void> exportTransactionPdf();
-  // Future<void> printTransaction();
 }
