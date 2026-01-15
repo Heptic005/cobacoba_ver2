@@ -1,11 +1,12 @@
+import 'package:dakara_weighbridge/Menu/manager_menu_items.dart';
 import 'package:dakara_weighbridge/Menu/menu_details.dart';
+import 'package:dakara_weighbridge/Pages/mgr_pages/token_generator_page.dart';
 import 'package:dakara_weighbridge/Pages/opt_pages/data/data_page.dart'; 
 import 'package:dakara_weighbridge/Pages/opt_pages/report.dart';
 import 'package:dakara_weighbridge/Pages/opt_pages/transaction.dart';
 import 'package:flutter/material.dart';
 import 'package:dakara_weighbridge/Entities/Supervisor/supervisor.dart';
 import 'package:dakara_weighbridge/Pages/spv_pages/create_operator_spv.dart';
-import 'package:dakara_weighbridge/Pages/spv_pages/emergency_transaksi_spv.dart';
 
 class MenuItems {
   // Menu untuk Operator
@@ -31,11 +32,6 @@ class MenuItems {
           title: "Buat Operator Baru",
           icon: Icons.person_add,
           page: CreateOperatorPage(),
-        ),
-        MenuDetails(
-          title: "Transaksi Emergency",
-          icon: Icons.warning_amber,
-          page: EmergencyTransaksiPage(),
         ),
         MenuDetails(
           title: "Report",

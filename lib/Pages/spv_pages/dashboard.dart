@@ -15,7 +15,7 @@ class SupervisorDashboard extends StatefulWidget {
 class _SupervisorDashboardState extends State<SupervisorDashboard> {
   final menu = MenuItems();
   final PageController pageController = PageController();
-  List<String> menuItems = ["CreateUser", "Emergency","Report"];
+  List<String> menuItems = ["CreateOPT","Report"];
   // Use ValueNotifier to avoid rebuilding the whole scaffold when toggling
   final ValueNotifier<int> selectedIndex = ValueNotifier<int>(0);
   Color bgGrey = const Color.fromARGB(255, 228, 230, 232);
@@ -67,7 +67,7 @@ class _SupervisorDashboardState extends State<SupervisorDashboard> {
                             vertical: 3,
                           ),
                           current: current,
-                          values: const [0, 1,2],
+                          values: const [0, 1],
                           iconOpacity: 0.7,
                           height: 45,
                           indicatorSize: const Size.fromWidth(90),
@@ -161,67 +161,6 @@ class _SupervisorDashboardState extends State<SupervisorDashboard> {
                       Row(
                         spacing: 6,
                         children: [
-                          // Serial button
-                          Stack(
-                            alignment: Alignment.centerRight,
-                            children: [
-                              Material(
-                                color: Colors.transparent,
-                                child: Container(
-                                  height: 40,
-                                  width: 125,
-                                  // padding: EdgeInsets.only(right: 50),
-                                  // padding: EdgeInsets.all(.3),
-                                  decoration: BoxDecoration(
-                                    borderRadius: BorderRadius.circular(50),
-                                    border: Border.all(
-                                      color: Colors.white12,
-                                      width: 0.6,
-                                      strokeAlign:
-                                          BorderSide.strokeAlignOutside,
-                                    ),
-                                    color: const Color.fromARGB(69, 84, 88, 96),
-                                  ),
-                                  child: InkWell(
-                                    onTap: () {},
-                                    hoverColor: const Color.fromARGB(
-                                      247,
-                                      74,
-                                      86,
-                                      102,
-                                    ),
-                                    borderRadius: BorderRadius.circular(50),
-                                    hoverDuration: Duration(milliseconds: 100),
-                                    child: Container(
-                                      alignment: Alignment.centerLeft,
-                                      padding: const EdgeInsets.only(left: 15),
-                                      child: Text(
-                                        "Connected",
-                                        style: TextStyle(
-                                          color: Colors.white,
-                                          height: 1,
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              ),
-                              Container(
-                                decoration: BoxDecoration(
-                                  borderRadius: BorderRadius.circular(50),
-                                  color: const Color.fromARGB(247, 74, 86, 102),
-                                ),
-                                child: IconButton(
-                                  onPressed: () {},
-                                  icon: Icon(
-                                    Icons.settings_input_component_rounded,
-                                  ),
-                                  color: Colors.white,
-                                  iconSize: 18,
-                                ),
-                              ),
-                            ],
-                          ),
                           // Notif button
                           Container(
                             decoration: BoxDecoration(
