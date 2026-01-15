@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:dakara_weighbridge/Entities/Manager/manager.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 class TokenGeneratorPage extends StatefulWidget {
   const TokenGeneratorPage({super.key});
@@ -18,22 +17,27 @@ class _TokenGeneratorPageState extends State<TokenGeneratorPage> {
   Future<void> _generateToken() async {
     setState(() => _isLoading = true);
 
-    // Ambil ID Manager yang sedang login dari SharedPreferences
-    final prefs = await SharedPreferences.getInstance();
-    int managerId = prefs.getInt('id') ?? 0;
-
     try {
       String newToken = await _manager.createTokenForManualWeight();
+      
+      // Gunakan mounted check sebelum setState
+      if (!mounted) return;
+      
       setState(() {
         _generatedToken = newToken;
       });
     } catch (e) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text("Gagal generate: $e")));
-    } finally {
-      setState(() => _isLoading = false);
+      // Gunakan mounted check sebelum menggunakan context
+      if (!mounted) return;
+      
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Gagal generate: $e")),
+      );
     }
+    
+    // Pindahkan setState isLoading ke sini, di luar finally block
+    if (!mounted) return;
+    setState(() => _isLoading = false);
   }
 
   @override
