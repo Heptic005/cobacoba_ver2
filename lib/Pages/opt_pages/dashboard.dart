@@ -1,8 +1,11 @@
+import 'dart:async';
 import 'dart:ui';
 
 import 'package:animated_toggle_switch/animated_toggle_switch.dart';
 import 'package:dakara_weighbridge/Menu/menu_items.dart';
-import 'package:dakara_weighbridge/Pages/opt_pages/techician_page.dart';
+import 'package:dakara_weighbridge/Pages/tec_pages/techician_page.dart';
+import 'package:dakara_weighbridge/Services/config_service.dart';
+import 'package:dakara_weighbridge/Services/serial_service.dart';
 import 'package:flutter/material.dart';
 
 class OperatorDashboard extends StatefulWidget {
@@ -25,6 +28,9 @@ class _OperatorDashboardState extends State<OperatorDashboard> {
   Color royalGrey = const Color.fromARGB(255, 86, 105, 113);
   // Color limeGreen = const Color.fromARGB(255, 124, 233, 0);
   Color limeGreen = const Color.fromARGB(255, 151, 255, 33);
+
+  /// Serial
+  StreamSubscription<String>? _subscription;
 
   @override
   Widget build(BuildContext context) {
@@ -185,43 +191,77 @@ class _OperatorDashboardState extends State<OperatorDashboard> {
                                     ),
                                     color: const Color.fromARGB(69, 84, 88, 96),
                                   ),
-                                  child: InkWell(
-                                    onTap: () {},
-                                    hoverColor: const Color.fromARGB(
-                                      247,
-                                      74,
-                                      86,
-                                      102,
-                                    ),
-                                    borderRadius: BorderRadius.circular(50),
-                                    hoverDuration: Duration(milliseconds: 100),
-                                    child: Container(
-                                      alignment: Alignment.centerLeft,
-                                      padding: const EdgeInsets.only(left: 15),
-                                      child: ValueListenableBuilder(
-                                        valueListenable:
-                                            OperatorDashboard.isConnected,
-                                        builder: (context, isConnected, _) {
-                                          if (isConnected) {
-                                            return Text(
-                                              "Connected",
-                                              style: TextStyle(
-                                                color: Colors.white,
-                                                height: 1,
-                                              ),
-                                            );
-                                          } else {
-                                            return Text(
-                                              "Disconnected",
-                                              style: TextStyle(
-                                                color: Colors.white,
-                                                height: 1,
-                                              ),
-                                            );
-                                          }
-                                        },
-                                      ),
-                                    ),
+                                  child: ValueListenableBuilder(
+                                    valueListenable:
+                                        OperatorDashboard.isConnected,
+                                    builder: (context, isConnected, _) {
+                                      return InkWell(
+                                        onTap:
+                                            OperatorDashboard
+                                                        .isConnected
+                                                        .value ==
+                                                    true
+                                                ? () async {
+                                                  _subscription?.cancel();
+                                                  _subscription = null;
+                                                  SerialService().disconnect();
+                                                  print('Disconnected');
+                                                  OperatorDashboard
+                                                      .isConnected
+                                                      .value = false;
+                                                }
+                                                : () async {
+                                                  SerialService().connect(
+                                                    await ConfigService()
+                                                        .load(),
+                                                  );
+                                                  print('Connected');
+                                                  OperatorDashboard
+                                                      .isConnected
+                                                      .value = true;
+                                                },
+                                        hoverColor: const Color.fromARGB(
+                                          247,
+                                          74,
+                                          86,
+                                          102,
+                                        ),
+                                        borderRadius: BorderRadius.circular(50),
+                                        hoverDuration: Duration(
+                                          milliseconds: 100,
+                                        ),
+                                        child: Container(
+                                          alignment: Alignment.centerLeft,
+                                          padding: const EdgeInsets.only(
+                                            left: 15,
+                                          ),
+                                          child: ValueListenableBuilder(
+                                            valueListenable:
+                                                OperatorDashboard.isConnected,
+                                            builder: (context, isConnected, _) {
+                                              if (isConnected) {
+                                                return Text(
+                                                  "Connected",
+                                                  style: TextStyle(
+                                                    color: Colors.white,
+                                                    height: 1,
+                                                  ),
+                                                );
+                                              } else {
+                                                return Text(
+                                                  "Disconnected",
+                                                  style: TextStyle(
+                                                    color: Colors.white,
+                                                    height: 1,
+                                                  ),
+                                                );
+                                              }
+                                            },
+                                          ),
+                                        ),
+                                      );
+                                    },
+                                    // child:
                                   ),
                                 ),
                               ),
@@ -261,16 +301,7 @@ class _OperatorDashboardState extends State<OperatorDashboard> {
                               color: const Color.fromARGB(18, 255, 255, 255),
                             ),
                             child: IconButton(
-                              onPressed: () {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (context) {
-                                      return TechnicianPage();
-                                    },
-                                  ),
-                                );
-                              },
+                              onPressed: () {},
                               icon: Icon(Icons.settings),
                               color: Colors.white,
                               iconSize: 18,

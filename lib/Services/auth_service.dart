@@ -53,6 +53,11 @@ class AuthService {
       await prefs.setInt('id', user.accountID);
       await prefs.setString('name', user.accountUsername);
       await prefs.setString('role', user.accountPosition);
+    } else if (user.accountPosition == 'technician') {
+      await prefs.setBool('isLoggedIn', true);
+      await prefs.setInt('id', user.accountID);
+      await prefs.setString('name', user.accountUsername);
+      await prefs.setString('role', user.accountPosition);
     }
 
     return user;

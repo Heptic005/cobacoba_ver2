@@ -17,12 +17,12 @@ class TokenService {
     final token = _generateToken();
     final expiresAt = DateTime.now().add(validFor);
     final prefs = await SharedPreferences.getInstance();
-    final managerId = prefs.getInt('id');
+    final tokenCreatorId = prefs.getInt('id');
 
     final weighingToken = ListTokenJson(
       tokenCode: token,
       expiresAt: expiresAt,
-      createdBy: managerId!,
+      createdBy: tokenCreatorId!,
       createdAt: DateTime.now(),
     );
 

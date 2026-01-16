@@ -1,3 +1,5 @@
+import 'package:dakara_weighbridge/Pages/opt_pages/dashboard.dart';
+import 'package:dakara_weighbridge/Pages/opt_pages/transaction_components/bruto_transaction_search_bar.dart';
 import 'package:dakara_weighbridge/Services/serial_service.dart';
 import 'package:flutter/material.dart';
 
@@ -5,7 +7,6 @@ import 'package:flutter/material.dart';
 
 class WeightMonitorCard extends StatefulWidget {
   final bool isWeighIn;
-  final bool isConnected;
   final bool isBruto;
   final Color cardBg;
   final Color primaryCyan;
@@ -22,7 +23,6 @@ class WeightMonitorCard extends StatefulWidget {
     required this.textWhite,
     required this.onCaptured,
     required this.isBruto,
-    required this.isConnected,
   });
 
   @override
@@ -33,17 +33,6 @@ class _WeightMonitorCardState extends State<WeightMonitorCard> {
   double? _displayWeight;
   bool _isCaptured = false;
   bool isBruto = true;
-  bool _isConnected = SerialService().isConnected;
-
-  @override
-  void initState() {
-    super.initState();
-  }
-
-  @override
-  void dispose() {
-    super.dispose();
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -135,7 +124,7 @@ class _WeightMonitorCardState extends State<WeightMonitorCard> {
                     Text(
                       _displayWeight == null
                           ? '-- KG'
-                          : "${_displayWeight!.toStringAsFixed(2)} KG",
+                          : "${_displayWeight!.toString()} KG",
                       style: TextStyle(
                         fontSize: 80,
                         color: widget.textWhite,
@@ -153,48 +142,225 @@ class _WeightMonitorCardState extends State<WeightMonitorCard> {
                     const Spacer(),
                     Row(
                       children: [
-                        Expanded(
-                          child: ElevatedButton(
-                            onPressed:
-                                (_displayWeight == null ||
-                                        _isCaptured ||
-                                        !widget.isConnected)
-                                    ? null
-                                    : () {
-                                      setState(() {
-                                        _isCaptured = true;
-                                      });
-                                      widget.onCaptured(
-                                        _displayWeight!,
-                                        isBruto,
-                                      );
-                                    },
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: widget.primaryCyan,
-                              foregroundColor: Colors.black,
-                              elevation: 4,
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 20,
-                                vertical: 18,
-                              ),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(12),
-                              ),
+                        widget.isWeighIn
+                            ? ValueListenableBuilder(
+                              valueListenable: OperatorDashboard.isConnected,
+                              builder: (context, isConnected, _) {
+                                return isConnected
+                                    ? Expanded(
+                                      child: ElevatedButton(
+                                        onPressed:
+                                            (_displayWeight == null ||
+                                                    _isCaptured)
+                                                ? null
+                                                : () {
+                                                  setState(() {
+                                                    _isCaptured = true;
+                                                  });
+                                                  widget.onCaptured(
+                                                    _displayWeight!,
+                                                    isBruto,
+                                                  );
+                                                },
+                                        style: ElevatedButton.styleFrom(
+                                          backgroundColor: widget.primaryCyan,
+                                          foregroundColor: Colors.black,
+                                          elevation: 4,
+                                          padding: const EdgeInsets.symmetric(
+                                            horizontal: 20,
+                                            vertical: 18,
+                                          ),
+                                          shape: RoundedRectangleBorder(
+                                            borderRadius: BorderRadius.circular(
+                                              12,
+                                            ),
+                                          ),
+                                        ),
+                                        child: Padding(
+                                          padding: const EdgeInsets.symmetric(
+                                            vertical: 6.0,
+                                          ),
+                                          child: Text(
+                                            _isCaptured
+                                                ? "Captured"
+                                                : "Capture Weight",
+                                            style: const TextStyle(
+                                              fontSize: 18,
+                                              fontWeight: FontWeight.bold,
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                    )
+                                    : Expanded(
+                                      child: ElevatedButton(
+                                        onPressed: null,
+                                        style: ElevatedButton.styleFrom(
+                                          backgroundColor: widget.primaryCyan,
+                                          foregroundColor: Colors.black,
+                                          elevation: 4,
+                                          padding: const EdgeInsets.symmetric(
+                                            horizontal: 20,
+                                            vertical: 18,
+                                          ),
+                                          shape: RoundedRectangleBorder(
+                                            borderRadius: BorderRadius.circular(
+                                              12,
+                                            ),
+                                          ),
+                                        ),
+                                        child: Padding(
+                                          padding: const EdgeInsets.symmetric(
+                                            vertical: 6.0,
+                                          ),
+                                          child: Text(
+                                            _isCaptured
+                                                ? "Captured"
+                                                : "Capture Weight",
+                                            style: const TextStyle(
+                                              fontSize: 18,
+                                              fontWeight: FontWeight.bold,
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                    );
+                              },
+                            )
+                            : ValueListenableBuilder(
+                              valueListenable: OperatorDashboard.isConnected,
+                              builder: (context, isConnected, _) {
+                                return isConnected
+                                    ? ValueListenableBuilder(
+                                      valueListenable:
+                                          SearchTicketField.isSelected,
+                                      builder: (context, isSelected, _) {
+                                        return isSelected
+                                            ? Expanded(
+                                              child: ElevatedButton(
+                                                onPressed:
+                                                    (_displayWeight == null ||
+                                                            _isCaptured)
+                                                        ? null
+                                                        : () {
+                                                          setState(() {
+                                                            _isCaptured = true;
+                                                          });
+                                                          widget.onCaptured(
+                                                            _displayWeight!,
+                                                            isBruto,
+                                                          );
+                                                        },
+                                                style: ElevatedButton.styleFrom(
+                                                  backgroundColor:
+                                                      widget.primaryCyan,
+                                                  foregroundColor: Colors.black,
+                                                  elevation: 4,
+                                                  padding:
+                                                      const EdgeInsets.symmetric(
+                                                        horizontal: 20,
+                                                        vertical: 18,
+                                                      ),
+                                                  shape: RoundedRectangleBorder(
+                                                    borderRadius:
+                                                        BorderRadius.circular(
+                                                          12,
+                                                        ),
+                                                  ),
+                                                ),
+                                                child: Padding(
+                                                  padding:
+                                                      const EdgeInsets.symmetric(
+                                                        vertical: 6.0,
+                                                      ),
+                                                  child: Text(
+                                                    _isCaptured
+                                                        ? "Captured"
+                                                        : "Capture Weight",
+                                                    style: const TextStyle(
+                                                      fontSize: 18,
+                                                      fontWeight:
+                                                          FontWeight.bold,
+                                                    ),
+                                                  ),
+                                                ),
+                                              ),
+                                            )
+                                            : Expanded(
+                                              child: ElevatedButton(
+                                                onPressed: null,
+                                                style: ElevatedButton.styleFrom(
+                                                  backgroundColor:
+                                                      widget.primaryCyan,
+                                                  foregroundColor: Colors.black,
+                                                  elevation: 4,
+                                                  padding:
+                                                      const EdgeInsets.symmetric(
+                                                        horizontal: 20,
+                                                        vertical: 18,
+                                                      ),
+                                                  shape: RoundedRectangleBorder(
+                                                    borderRadius:
+                                                        BorderRadius.circular(
+                                                          12,
+                                                        ),
+                                                  ),
+                                                ),
+                                                child: Padding(
+                                                  padding:
+                                                      const EdgeInsets.symmetric(
+                                                        vertical: 6.0,
+                                                      ),
+                                                  child: Text(
+                                                    _isCaptured
+                                                        ? "Captured"
+                                                        : "Capture Weight",
+                                                    style: const TextStyle(
+                                                      fontSize: 18,
+                                                      fontWeight:
+                                                          FontWeight.bold,
+                                                    ),
+                                                  ),
+                                                ),
+                                              ),
+                                            );
+                                      },
+                                    )
+                                    : Expanded(
+                                      child: ElevatedButton(
+                                        onPressed: null,
+                                        style: ElevatedButton.styleFrom(
+                                          backgroundColor: widget.primaryCyan,
+                                          foregroundColor: Colors.black,
+                                          elevation: 4,
+                                          padding: const EdgeInsets.symmetric(
+                                            horizontal: 20,
+                                            vertical: 18,
+                                          ),
+                                          shape: RoundedRectangleBorder(
+                                            borderRadius: BorderRadius.circular(
+                                              12,
+                                            ),
+                                          ),
+                                        ),
+                                        child: Padding(
+                                          padding: const EdgeInsets.symmetric(
+                                            vertical: 6.0,
+                                          ),
+                                          child: Text(
+                                            _isCaptured
+                                                ? "Captured"
+                                                : "Capture Weight",
+                                            style: const TextStyle(
+                                              fontSize: 18,
+                                              fontWeight: FontWeight.bold,
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                    );
+                              },
                             ),
-                            child: Padding(
-                              padding: const EdgeInsets.symmetric(
-                                vertical: 6.0,
-                              ),
-                              child: Text(
-                                _isCaptured ? "Captured" : "Capture Weight",
-                                style: const TextStyle(
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                            ),
-                          ),
-                        ),
                         const SizedBox(width: 12),
                         Column(
                           children: [

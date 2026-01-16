@@ -6,6 +6,7 @@ import 'package:dakara_weighbridge/Json/listaccount_json.dart';
 import 'package:dakara_weighbridge/Json/listrequesttoken_json.dart';
 import 'package:dakara_weighbridge/Json/listtransaction_json.dart';
 import 'package:dakara_weighbridge/SQLite/db_helper.dart';
+import 'package:dakara_weighbridge/Services/token_service.dart';
 import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -119,6 +120,19 @@ class Supervisor implements AbstractSupervisor {
     } catch (_) {
       throw TransactionCreationException(
         'Failed to Create Special Transaction',
+      );
+    }
+  }
+
+  /// Supervisor Creating Token For Operator To Be Able To Special Transaction
+  @override
+  Future<String> createTokenForManualWeight() async {
+    try {
+      final token = await TokenService.createToken();
+      return token.tokenCode;
+    } catch (_) {
+      throw TokenCreationException(
+        'Failed to Create Token for Special Transaction',
       );
     }
   }

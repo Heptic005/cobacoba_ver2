@@ -2,7 +2,7 @@ import 'dart:ui';
 
 import 'package:animated_toggle_switch/animated_toggle_switch.dart';
 import 'package:dakara_weighbridge/Menu/menu_items.dart';
-import 'package:dakara_weighbridge/Pages/opt_pages/techician_page.dart';
+import 'package:dakara_weighbridge/Pages/tec_pages/techician_page.dart';
 import 'package:flutter/material.dart';
 
 class SupervisorDashboard extends StatefulWidget {
@@ -15,7 +15,7 @@ class SupervisorDashboard extends StatefulWidget {
 class _SupervisorDashboardState extends State<SupervisorDashboard> {
   final menu = MenuItems();
   final PageController pageController = PageController();
-  List<String> menuItems = ["CreateOPT","Report"];
+  List<String> menuItems = ["Token", "CreateOPT", "Report"];
   // Use ValueNotifier to avoid rebuilding the whole scaffold when toggling
   final ValueNotifier<int> selectedIndex = ValueNotifier<int>(0);
   Color bgGrey = const Color.fromARGB(255, 228, 230, 232);
@@ -67,7 +67,7 @@ class _SupervisorDashboardState extends State<SupervisorDashboard> {
                             vertical: 3,
                           ),
                           current: current,
-                          values: const [0, 1],
+                          values: const [0, 1, 2],
                           iconOpacity: 0.7,
                           height: 45,
                           indicatorSize: const Size.fromWidth(90),
@@ -181,16 +181,7 @@ class _SupervisorDashboardState extends State<SupervisorDashboard> {
                               color: const Color.fromARGB(18, 255, 255, 255),
                             ),
                             child: IconButton(
-                              onPressed: () {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (context) {
-                                      return TechnicianPage();
-                                    },
-                                  ),
-                                );
-                              },
+                              onPressed: () {},
                               icon: Icon(Icons.settings),
                               color: Colors.white,
                               iconSize: 18,

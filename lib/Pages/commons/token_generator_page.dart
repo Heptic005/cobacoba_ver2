@@ -1,6 +1,8 @@
+import 'package:dakara_weighbridge/Entities/Supervisor/supervisor.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:dakara_weighbridge/Entities/Manager/manager.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class TokenGeneratorPage extends StatefulWidget {
   const TokenGeneratorPage({super.key});
@@ -10,31 +12,34 @@ class TokenGeneratorPage extends StatefulWidget {
 }
 
 class _TokenGeneratorPageState extends State<TokenGeneratorPage> {
-  final Manager _manager = Manager();
   String _generatedToken = "---";
   bool _isLoading = false;
 
   Future<void> _generateToken() async {
     setState(() => _isLoading = true);
+    final prefs = await SharedPreferences.getInstance();
 
     try {
-      String newToken = await _manager.createTokenForManualWeight();
-      
+      String newToken = '';
+      prefs.getString('role') == 'manager'
+          ? newToken = await Manager().createTokenForManualWeight()
+          : newToken = await Supervisor().createTokenForManualWeight();
+
       // Gunakan mounted check sebelum setState
       if (!mounted) return;
-      
+
       setState(() {
         _generatedToken = newToken;
       });
     } catch (e) {
       // Gunakan mounted check sebelum menggunakan context
       if (!mounted) return;
-      
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Gagal generate: $e")),
-      );
+
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text("Gagal generate: $e")));
     }
-    
+
     // Pindahkan setState isLoading ke sini, di luar finally block
     if (!mounted) return;
     setState(() => _isLoading = false);

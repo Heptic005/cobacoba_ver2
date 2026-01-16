@@ -3,9 +3,9 @@ import 'package:dakara_weighbridge/Menu/menu_details.dart';
 
 // Kita akan buat halaman-halaman ini sebentar lagi
 import 'package:dakara_weighbridge/Pages/mgr_pages/user_management_page.dart';
-import 'package:dakara_weighbridge/Pages/mgr_pages/token_generator_page.dart';
+import 'package:dakara_weighbridge/Pages/commons/token_generator_page.dart';
 import 'package:dakara_weighbridge/Pages/mgr_pages/audit_transaction_page.dart';
-import 'package:dakara_weighbridge/Pages/opt_pages/report.dart'; // Manager juga bisa lihat report yg sama
+import 'package:dakara_weighbridge/Pages/commons/report.dart'; // Manager juga bisa lihat report yg sama
 
 class ManagerMenuItems {
   List<MenuDetails> items = [
