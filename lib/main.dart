@@ -1,5 +1,6 @@
 import 'package:bitsdojo_window/bitsdojo_window.dart';
 import 'package:dakara_weighbridge/Pages/login.dart';
+import 'package:dakara_weighbridge/Services/config_service.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
@@ -7,6 +8,9 @@ import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 Future main() async {
   // Inisialisasi database
   WidgetsFlutterBinding.ensureInitialized();
+
+  /// Initialize Config File
+  await ConfigService().initConfig();
   sqfliteFfiInit();
   databaseFactory = databaseFactoryFfi;
 

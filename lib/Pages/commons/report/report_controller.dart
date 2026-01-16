@@ -14,8 +14,8 @@ import 'package:dakara_weighbridge/Json/listtransaction_json.dart';
 import 'package:dakara_weighbridge/Json/listsupplier_json.dart';
 import 'package:dakara_weighbridge/Json/listproduct_json.dart';
 import 'package:dakara_weighbridge/Json/listcustomer_json.dart';
-import 'package:dakara_weighbridge/Pages/opt_pages/report/report_models.dart';
-import 'package:dakara_weighbridge/Pages/opt_pages/report/report_perf.dart';
+import 'package:dakara_weighbridge/Pages/commons/report/report_models.dart';
+import 'package:dakara_weighbridge/Pages/commons/report/report_perf.dart';
 
 class ReportController {
   // State notifiers untuk UI subscribe
@@ -166,7 +166,7 @@ class ReportController {
     _applyFilters();
   }
 
-  void setCustomer(int? id){
+  void setCustomer(int? id) {
     _customerId = id;
     _applyFilters();
   }
@@ -269,10 +269,14 @@ class ReportController {
           final matchSupplier =
               _supplierId == null || t.supplierId == _supplierId;
           final matchProduct = _productId == null || t.productId == _productId;
-          final matchCustomer = _customerId == null || t.customerId == _customerId;
-            final matchPlate =
-              _plate == null || _plate!.isEmpty ||
-              (t.vehiclePlate ?? '').toLowerCase().contains(_plate!.toLowerCase());
+          final matchCustomer =
+              _customerId == null || t.customerId == _customerId;
+          final matchPlate =
+              _plate == null ||
+              _plate!.isEmpty ||
+              (t.vehiclePlate ?? '').toLowerCase().contains(
+                _plate!.toLowerCase(),
+              );
           final inTime = t.inTime;
           final matchStart =
               _startDate == null ||

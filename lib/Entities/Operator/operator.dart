@@ -136,8 +136,14 @@ class Operator implements AbstractOperator {
         inTime: t.inTime,
         outTime: DateTime.now(),
         totalPrice:
-            t.price! *
-            (t.bruto - weight - ((t.bruto - weight) * (t.cut / 100))),
+            t.price == 0
+                ? price ??
+                    0 *
+                        (t.bruto -
+                            weight -
+                            ((t.bruto - weight) * (t.cut / 100)))
+                : t.price! *
+                    (t.bruto - weight - ((t.bruto - weight) * (t.cut / 100))),
         bruto: t.bruto,
         tare: weight,
         netto: t.bruto - weight,
@@ -170,7 +176,11 @@ class Operator implements AbstractOperator {
         inTime: t.inTime,
         outTime: DateTime.now(),
         totalPrice:
-            t.price! * (weight - t.tare - ((weight - t.tare) * (t.cut / 100))),
+            t.price == 0
+                ? price ??
+                    0 * (weight - t.tare - ((weight - t.tare) * (t.cut / 100)))
+                : t.price! *
+                    (weight - t.tare - ((weight - t.tare) * (t.cut / 100))),
         bruto: weight,
         tare: t.tare,
         netto: weight - t.tare,

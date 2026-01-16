@@ -4,9 +4,9 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:dakara_weighbridge/Pages/opt_pages/report/report_controller.dart';
-import 'package:dakara_weighbridge/Pages/opt_pages/report/report_widgets.dart';
-import 'package:dakara_weighbridge/Pages/opt_pages/report/report_models.dart';
+import 'package:dakara_weighbridge/Pages/commons/report/report_controller.dart';
+import 'package:dakara_weighbridge/Pages/commons/report/report_widgets.dart';
+import 'package:dakara_weighbridge/Pages/commons/report/report_models.dart';
 import 'package:dakara_weighbridge/features/transaction/services/clipboard_service.dart';
 
 /// Widget utama untuk Data Table
@@ -116,7 +116,10 @@ class _ReportDataTableState extends State<ReportDataTable> {
                         padding: const EdgeInsets.all(12),
                         child: Text(
                           'Menampilkan ${list.length} hasil',
-                          style: const TextStyle(color: kTextGrey, fontSize: 13),
+                          style: const TextStyle(
+                            color: kTextGrey,
+                            fontSize: 13,
+                          ),
                         ),
                       ),
                       if (isVeryNarrow)
@@ -167,7 +170,8 @@ class _ReportDataTableState extends State<ReportDataTable> {
                                     thumbVisibility: !isVeryNarrow,
                                     child: ListView.builder(
                                       controller: _scrollController,
-                                      physics: const AlwaysScrollableScrollPhysics(),
+                                      physics:
+                                          const AlwaysScrollableScrollPhysics(),
                                       itemCount:
                                           list.length +
                                           (widget.controller.hasMore ? 1 : 0),
@@ -183,15 +187,17 @@ class _ReportDataTableState extends State<ReportDataTable> {
                                                   child:
                                                       loadingMore
                                                           ? const Padding(
-                                                            padding: EdgeInsets.all(
-                                                              8.0,
-                                                            ),
+                                                            padding:
+                                                                EdgeInsets.all(
+                                                                  8.0,
+                                                                ),
                                                             child: SizedBox(
                                                               width: 20,
                                                               height: 20,
                                                               child:
                                                                   CircularProgressIndicator(
-                                                                    strokeWidth: 2,
+                                                                    strokeWidth:
+                                                                        2,
                                                                   ),
                                                             ),
                                                           )
@@ -387,74 +393,9 @@ class ReportRowWidget extends StatelessWidget {
             Expanded(
               flex: 1,
               child: Center(
-                child: compact
-                    ? SizedBox(
-                      width: 30,
-                      height: 30,
-                      child: PopupMenuButton<String>(
-                        icon: const Icon(
-                          Icons.more_vert,
-                          size: 16,
-                          color: kTextGrey,
-                        ),
-                        padding: EdgeInsets.zero,
-                        iconSize: 16,
-                        color: kCardBg,
-                        onSelected: (v) {
-                          if (v == 'copy_ticket') {
-                            clipboard.copy(src.noTicket);
-                            onSnack('No. Tiket disalin');
-                          }
-                          if (v == 'copy_plate') {
-                            clipboard.copy(src.vehiclePlate);
-                            onSnack('Plat disalin');
-                          }
-                        },
-                        itemBuilder:
-                            (_) => [
-                              const PopupMenuItem(
-                                value: 'copy_ticket',
-                                child: Text(
-                                  'Salin No. Tiket',
-                                  style: TextStyle(color: kTextWhite),
-                                ),
-                              ),
-                              const PopupMenuItem(
-                                value: 'copy_plate',
-                                child: Text(
-                                  'Salin Plat',
-                                  style: TextStyle(color: kTextWhite),
-                                ),
-                              ),
-                            ],
-                      ),
-                    )
-                    : Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        SizedBox(
-                          width: 30,
-                          height: 30,
-                          child: IconButton(
-                            icon: const Icon(
-                              Icons.visibility,
-                              size: 16,
-                              color: kTextGrey,
-                            ),
-                            padding: EdgeInsets.zero,
-                            constraints: const BoxConstraints(),
-                            onPressed:
-                                () => showTransactionDetailDialog(
-                                  context,
-                                  src,
-                                  (id) => row.supplierName,
-                                  (id) => row.productName,
-                                ),
-                            tooltip: 'Lihat',
-                          ),
-                        ),
-                        const SizedBox(width: 2),
-                        SizedBox(
+                child:
+                    compact
+                        ? SizedBox(
                           width: 30,
                           height: 30,
                           child: PopupMenuButton<String>(
@@ -494,9 +435,75 @@ class ReportRowWidget extends StatelessWidget {
                                   ),
                                 ],
                           ),
+                        )
+                        : Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            SizedBox(
+                              width: 30,
+                              height: 30,
+                              child: IconButton(
+                                icon: const Icon(
+                                  Icons.visibility,
+                                  size: 16,
+                                  color: kTextGrey,
+                                ),
+                                padding: EdgeInsets.zero,
+                                constraints: const BoxConstraints(),
+                                onPressed:
+                                    () => showTransactionDetailDialog(
+                                      context,
+                                      src,
+                                      (id) => row.supplierName,
+                                      (id) => row.productName,
+                                    ),
+                                tooltip: 'Lihat',
+                              ),
+                            ),
+                            const SizedBox(width: 2),
+                            SizedBox(
+                              width: 30,
+                              height: 30,
+                              child: PopupMenuButton<String>(
+                                icon: const Icon(
+                                  Icons.more_vert,
+                                  size: 16,
+                                  color: kTextGrey,
+                                ),
+                                padding: EdgeInsets.zero,
+                                iconSize: 16,
+                                color: kCardBg,
+                                onSelected: (v) {
+                                  if (v == 'copy_ticket') {
+                                    clipboard.copy(src.noTicket);
+                                    onSnack('No. Tiket disalin');
+                                  }
+                                  if (v == 'copy_plate') {
+                                    clipboard.copy(src.vehiclePlate);
+                                    onSnack('Plat disalin');
+                                  }
+                                },
+                                itemBuilder:
+                                    (_) => [
+                                      const PopupMenuItem(
+                                        value: 'copy_ticket',
+                                        child: Text(
+                                          'Salin No. Tiket',
+                                          style: TextStyle(color: kTextWhite),
+                                        ),
+                                      ),
+                                      const PopupMenuItem(
+                                        value: 'copy_plate',
+                                        child: Text(
+                                          'Salin Plat',
+                                          style: TextStyle(color: kTextWhite),
+                                        ),
+                                      ),
+                                    ],
+                              ),
+                            ),
+                          ],
                         ),
-                      ],
-                    ),
               ),
             ),
           ],
@@ -549,18 +556,12 @@ class ReportRowCardWidget extends StatelessWidget {
           children: [
             Row(
               children: [
-                Expanded(
-                  child: _ColTitle(row.noTicket, row.formattedDate),
-                ),
+                Expanded(child: _ColTitle(row.noTicket, row.formattedDate)),
                 const SizedBox(width: 8),
                 StatusBadge(text: statusText, color: statusColor),
                 const SizedBox(width: 6),
                 PopupMenuButton<String>(
-                  icon: const Icon(
-                    Icons.more_vert,
-                    size: 18,
-                    color: kTextGrey,
-                  ),
+                  icon: const Icon(Icons.more_vert, size: 18, color: kTextGrey),
                   padding: EdgeInsets.zero,
                   color: kCardBg,
                   onSelected: (v) {

@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:dakara_weighbridge/Services/config_service.dart';
 import 'package:dakara_weighbridge/Services/serial_service.dart';
 import 'package:flutter/material.dart';
 
@@ -10,12 +11,17 @@ class TechnicianPage extends StatefulWidget {
 }
 
 class _TechnicianPageState extends State<TechnicianPage> {
+  /// Test
+  final _configService = ConfigService();
+  String _port = 'COM1';
+  int _baudRate = 9600;
+
+  ///
   final SerialService _serialService = SerialService();
   final ScrollController _scrollController = ScrollController();
 
   List<String> _ports = [];
   String? _selectedPort;
-  int _selectedBaudRate = 9600;
   bool _isConnected = false;
 
   final List<String> _logs = [];
@@ -25,6 +31,11 @@ class _TechnicianPageState extends State<TechnicianPage> {
   @override
   void initState() {
     super.initState();
+
+    ///
+    _loadConfig();
+
+    ///
     _refreshPorts();
     _isConnected = _serialService.isConnected;
     _selectedPort = _serialService.connectedPortName;
@@ -39,6 +50,27 @@ class _TechnicianPageState extends State<TechnicianPage> {
     super.dispose();
   }
 
+  Future<void> _loadConfig() async {
+    final config = await _configService.load();
+    setState(() {
+      _port = config['serial']['port'];
+      _baudRate = config['serial']['baudRate'];
+    });
+  }
+
+  Future<void> _save() async {
+    final config = await _configService.load();
+
+    config['serial']['port'] = _port;
+    config['serial']['baudRate'] = _baudRate;
+
+    await _configService.save(config);
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Config disimpan. Reconnect diperlukan')),
+    );
+  }
+
   void _refreshPorts() {
     setState(() {
       _ports = _serialService.availablePorts;
@@ -46,29 +78,6 @@ class _TechnicianPageState extends State<TechnicianPage> {
         _selectedPort = _ports.first;
       }
     });
-  }
-
-  void _toggleConnection() {
-    if (_isConnected) {
-      _subscription?.cancel();
-      _subscription = null;
-
-      _serialService.disconnect();
-
-      setState(() => _isConnected = false);
-    } else {
-      if (_selectedPort == null) return;
-
-      bool success = _serialService.connect(_selectedPort!, _selectedBaudRate);
-      if (success) {
-        setState(() => _isConnected = true);
-        _startListening();
-      } else {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(const SnackBar(content: Text("Failed to connect")));
-      }
-    }
   }
 
   void _startListening() {
@@ -143,7 +152,7 @@ class _TechnicianPageState extends State<TechnicianPage> {
                 ),
                 const SizedBox(height: 20),
                 DropdownButtonFormField<String>(
-                  value: _selectedPort,
+                  value: _port,
                   style: const TextStyle(color: Colors.white),
                   dropdownColor: const Color(0xFF36444D),
                   decoration: const InputDecoration(
@@ -162,11 +171,11 @@ class _TechnicianPageState extends State<TechnicianPage> {
                             (p) => DropdownMenuItem(value: p, child: Text(p)),
                           )
                           .toList(),
-                  onChanged: (v) => setState(() => _selectedPort = v),
+                  onChanged: (v) => setState(() => _port = v!),
                 ),
                 const SizedBox(height: 20),
                 DropdownButtonFormField<int>(
-                  value: _selectedBaudRate,
+                  value: _baudRate,
                   style: const TextStyle(color: Colors.white),
                   dropdownColor: const Color(0xFF36444D),
                   decoration: const InputDecoration(
@@ -188,24 +197,21 @@ class _TechnicianPageState extends State<TechnicianPage> {
                             ),
                           )
                           .toList(),
-                  onChanged: (v) => setState(() => _selectedBaudRate = v!),
+                  onChanged: (v) => setState(() => _baudRate = v!),
                 ),
                 const SizedBox(height: 40),
                 SizedBox(
                   width: double.infinity,
                   height: 50,
                   child: ElevatedButton(
-                    onPressed: _toggleConnection,
+                    onPressed: _save,
                     style: ElevatedButton.styleFrom(
-                      backgroundColor:
-                          _isConnected
-                              ? Colors.redAccent
-                              : const Color(0xFF00E5FF),
+                      backgroundColor: const Color(0xFF00E5FF),
                     ),
                     child: Text(
-                      _isConnected ? "DISCONNECT" : "CONNECT",
+                      "Save",
                       style: TextStyle(
-                        color: _isConnected ? Colors.white : Colors.black,
+                        color: Colors.black,
                         fontWeight: FontWeight.bold,
                       ),
                     ),

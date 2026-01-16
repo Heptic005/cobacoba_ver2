@@ -16,9 +16,9 @@ import 'package:printing/printing.dart';
 import 'package:excel/excel.dart';
 import 'package:csv/csv.dart';
 
-import 'package:dakara_weighbridge/Pages/opt_pages/report/report_models.dart';
+import 'package:dakara_weighbridge/Pages/commons/report/report_models.dart';
 import 'report_preview.dart';
-import 'package:dakara_weighbridge/Pages/opt_pages/report/report_widgets.dart';
+import 'package:dakara_weighbridge/Pages/commons/report/report_widgets.dart';
 
 // Shared tabular preview defaults
 const List<String> _kTabularHeaders = [

@@ -7,10 +7,10 @@ import 'package:flutter/material.dart';
 
 // Import Halaman Fitur Manager
 import 'package:dakara_weighbridge/Pages/mgr_pages/user_management_page.dart';
-import 'package:dakara_weighbridge/Pages/mgr_pages/token_generator_page.dart';
+import 'package:dakara_weighbridge/Pages/commons/token_generator_page.dart';
 import 'package:dakara_weighbridge/Pages/mgr_pages/audit_transaction_page.dart';
-import 'package:dakara_weighbridge/Pages/opt_pages/report.dart'; 
-import 'package:dakara_weighbridge/Pages/opt_pages/techician_page.dart';
+import 'package:dakara_weighbridge/Pages/commons/report.dart';
+import 'package:dakara_weighbridge/Pages/tec_pages/techician_page.dart';
 
 class ManagerDashboard extends StatefulWidget {
   const ManagerDashboard({super.key});
@@ -46,13 +46,14 @@ class _ManagerDashboardState extends State<ManagerDashboard> {
         PageView.builder(
           controller: pageController,
           itemCount: _pages.length,
-          itemBuilder: (context, index) => PageStorage(
-            bucket: PageStorageBucket(),
-            child: KeyedSubtree(
-              key: PageStorageKey('page_$index'),
-              child: _pages[index],
-            ),
-          ),
+          itemBuilder:
+              (context, index) => PageStorage(
+                bucket: PageStorageBucket(),
+                child: KeyedSubtree(
+                  key: PageStorageKey('page_$index'),
+                  child: _pages[index],
+                ),
+              ),
         ),
 
         // Top Bar sama persis dengan dashboard.dart
@@ -101,16 +102,17 @@ class _ManagerDashboardState extends State<ManagerDashboard> {
                           style: const ToggleStyle(
                             borderColor: Colors.transparent,
                           ),
-                          styleBuilder: (i) => const ToggleStyle(
-                            indicatorGradient: LinearGradient(
-                              begin: Alignment.centerLeft,
-                              end: Alignment.centerRight,
-                              colors: [
-                                Color(0xFF0080FF),
-                                Color(0xFF00E5FF),
-                              ],
-                            ),
-                          ),
+                          styleBuilder:
+                              (i) => const ToggleStyle(
+                                indicatorGradient: LinearGradient(
+                                  begin: Alignment.centerLeft,
+                                  end: Alignment.centerRight,
+                                  colors: [
+                                    Color(0xFF0080FF),
+                                    Color(0xFF00E5FF),
+                                  ],
+                                ),
+                              ),
                           onChanged: (i) {
                             selectedIndex.value = i;
                             pageController.animateToPage(
@@ -141,7 +143,10 @@ class _ManagerDashboardState extends State<ManagerDashboard> {
                         child: Row(
                           spacing: 5,
                           children: [
-                            const Icon(Icons.wordpress_outlined, color: Colors.white),
+                            const Icon(
+                              Icons.wordpress_outlined,
+                              color: Colors.white,
+                            ),
                             Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               mainAxisSize: MainAxisSize.min,
@@ -186,7 +191,8 @@ class _ManagerDashboardState extends State<ManagerDashboard> {
                                     border: Border.all(
                                       color: Colors.white12,
                                       width: 0.6,
-                                      strokeAlign: BorderSide.strokeAlignOutside,
+                                      strokeAlign:
+                                          BorderSide.strokeAlignOutside,
                                     ),
                                     color: const Color.fromARGB(69, 84, 88, 96),
                                   ),
@@ -214,7 +220,9 @@ class _ManagerDashboardState extends State<ManagerDashboard> {
                                 ),
                                 child: IconButton(
                                   onPressed: () {},
-                                  icon: const Icon(Icons.settings_input_component_rounded),
+                                  icon: const Icon(
+                                    Icons.settings_input_component_rounded,
+                                  ),
                                   color: Colors.white,
                                   iconSize: 18,
                                 ),
@@ -229,7 +237,9 @@ class _ManagerDashboardState extends State<ManagerDashboard> {
                             ),
                             child: IconButton(
                               onPressed: () {},
-                              icon: const Icon(Icons.notifications_none_rounded),
+                              icon: const Icon(
+                                Icons.notifications_none_rounded,
+                              ),
                               color: Colors.white,
                               iconSize: 18,
                             ),
@@ -241,16 +251,7 @@ class _ManagerDashboardState extends State<ManagerDashboard> {
                               color: const Color.fromARGB(18, 255, 255, 255),
                             ),
                             child: IconButton(
-                              onPressed: () {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (context) {
-                                      return const TechnicianPage();
-                                    },
-                                  ),
-                                );
-                              },
+                              onPressed: () {},
                               icon: const Icon(Icons.settings),
                               color: Colors.white,
                               iconSize: 18,

@@ -21,4 +21,5 @@ abstract class AbstractSupervisor {
     double? price,
     String? additionalInformation,
   });
+  Future<String> createTokenForManualWeight();
 }

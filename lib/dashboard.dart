@@ -6,7 +6,7 @@ import 'package:dakara_weighbridge/Menu/menu_items.dart';
 import 'package:dakara_weighbridge/Pages/mgr_pages/manager_dashboard.dart';
 import 'package:dakara_weighbridge/Pages/opt_pages/dashboard.dart';
 import 'package:dakara_weighbridge/Pages/spv_pages/dashboard.dart';
-import 'package:dakara_weighbridge/Pages/tec_pages/placeholder.dart';
+import 'package:dakara_weighbridge/Pages/tec_pages/techician_page.dart';
 import 'package:dakara_weighbridge/Themes/app_themes.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -84,7 +84,7 @@ class _DashboardState extends State<Dashboard> {
       case 'manager':
         return const ManagerDashboard();
       case 'technician':
-        return TechnicianTemporaryDashboard();
+        return TechnicianPage();
       default:
         return const LoginPage();
     }

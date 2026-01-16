@@ -2,10 +2,10 @@ import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:dakara_weighbridge/Pages/opt_pages/report/report_widgets.dart';
+import 'package:dakara_weighbridge/Pages/commons/report/report_widgets.dart';
 import 'package:printing/printing.dart';
 
-import 'package:dakara_weighbridge/Pages/opt_pages/report/report_models.dart';
+import 'package:dakara_weighbridge/Pages/commons/report/report_models.dart';
 
 /// Lightweight PDF preview dialog body. All external side-effects are passed
 /// as callbacks so this file does not need to import `report_export_service.dart`.

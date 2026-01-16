@@ -23,25 +23,25 @@ class SerialService {
   List<String> get availablePorts => SerialPort.availablePorts;
 
   /// Connecting to Specific Port
-  bool connect(String portName, int baudRate) {
+  bool connect(Map<String, dynamic> serialConfig) {
     disconnect();
 
     try {
-      final port = SerialPort(portName);
+      final port = SerialPort(serialConfig['serial']['port']);
       if (!port.openReadWrite()) {
         debugPrint("Gagal membuka port");
         return false;
       }
 
       final config = port.config;
-      config.baudRate = baudRate;
+      config.baudRate = serialConfig['serial']['baudRate'];
       config.bits = 8;
       config.stopBits = 1;
       config.parity = 0;
       port.config = config;
 
       _port = port;
-      _connectedPortName = portName;
+      _connectedPortName = serialConfig['serial']['port'];
 
       _startReader();
 
@@ -84,7 +84,7 @@ class SerialService {
       _port!.dispose();
       _port = null;
     }
-
+    _controller.add('No Data');
     _connectedPortName = null;
   }
 }

@@ -29,7 +29,7 @@ class Manager implements AbstractManager {
     }
   }
 
-  /// Manager Creating Token For Supervisor To Be Able To Special Transaction
+  /// Manager Creating Token For Operator To Be Able To Special Transaction
   @override
   Future<String> createTokenForManualWeight() async {
     try {

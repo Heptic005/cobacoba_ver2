@@ -7,16 +7,16 @@
 /// - Fitur ekspor saat ini masih placeholder.
 
 import 'package:flutter/material.dart';
-import 'package:dakara_weighbridge/Pages/opt_pages/report/report_controller.dart';
-import 'package:dakara_weighbridge/Pages/opt_pages/report/report_widgets.dart';
-import 'package:dakara_weighbridge/Pages/opt_pages/report/report_filter_bar.dart';
-import 'package:dakara_weighbridge/Pages/opt_pages/report/report_table.dart';
+import 'package:dakara_weighbridge/Pages/commons/report/report_controller.dart';
+import 'package:dakara_weighbridge/Pages/commons/report/report_widgets.dart';
+import 'package:dakara_weighbridge/Pages/commons/report/report_filter_bar.dart';
+import 'package:dakara_weighbridge/Pages/commons/report/report_table.dart';
 import 'package:dakara_weighbridge/Json/listsupplier_json.dart';
 import 'package:dakara_weighbridge/Json/listproduct_json.dart';
 import 'package:dakara_weighbridge/Json/listcustomer_json.dart';
 import 'package:dakara_weighbridge/features/transaction/services/clipboard_service.dart';
 import 'package:dakara_weighbridge/features/report/report_export_service.dart';
-import 'package:dakara_weighbridge/Pages/opt_pages/report/report_models.dart';
+import 'package:dakara_weighbridge/Pages/commons/report/report_models.dart';
 
 class ReportPage extends StatefulWidget {
   const ReportPage({super.key});

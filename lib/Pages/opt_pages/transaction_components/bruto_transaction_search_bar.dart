@@ -5,6 +5,8 @@ import 'package:dakara_weighbridge/SQLite/db_helper.dart';
 import 'package:flutter/material.dart';
 
 class SearchTicketField extends StatefulWidget {
+  /// Value Notifier to Make Sure Select Available Transaction Before Capture Weighing
+  static ValueNotifier<bool> isSelected = ValueNotifier<bool>(false);
   final void Function(ListTransactionJson transactions) onSelected;
 
   const SearchTicketField({super.key, required this.onSelected});
@@ -78,6 +80,7 @@ class _SearchTicketFieldState extends State<SearchTicketField> {
               onTap: () {
                 widget.onSelected(transaction);
                 setState(() => _results.clear());
+                SearchTicketField.isSelected.value = true;
               },
             );
           },
