@@ -20,6 +20,7 @@ class _DataCustomerBarangState extends State<DataCustomerBarang> {
     // dbHandler.init().whenComplete(() => listProduct = getAllListProduct());
 
     super.initState();
+    //TODO: fetch list product from database
     listProduct = DbHelper.instance.getListProducts();
   }
 

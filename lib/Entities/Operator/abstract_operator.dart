@@ -1,6 +1,4 @@
 abstract class AbstractOperator {
-  Future<void> login({required String username, required String password});
-  Future<void> logout();
   Future<void> addBrutoTransaction({
     required String vehiclePlate,
     required String driverName,
@@ -24,12 +22,6 @@ abstract class AbstractOperator {
     double? temperature,
     double? price,
     String? additionalInformation,
-    required double tare,
-    required double nettoAfterCut,
+    required double weight,
   });
-  // Future<void> requestTokenForManualWeight();
-  // Future<void> exportReportPdf();
-  // Future<void> exportReportExcel();
-  // Future<void> exportTransactionPdf();
-  // Future<void> printTransaction();
 }

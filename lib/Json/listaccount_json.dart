@@ -25,10 +25,22 @@ class ListAccountJson {
 
   factory ListAccountJson.fromJson(Map<String, dynamic> json) =>
       ListAccountJson(
-        accountID: json["accountID"],
-        accountUsername: json["accountUsername"],
-        accountPassword: json["accountPassword"],
-        accountPosition: json["accountPosition"],
+        accountID: json["accountId"] ?? json["accountID"] ?? 0,
+        accountUsername:
+            json["accountUsername"] ??
+            json["accountusername"] ??
+            json["username"] ??
+            '',
+        accountPassword:
+            json["accountPassword"] ??
+            json["accountpassword"] ??
+            json["password"] ??
+            '',
+        accountPosition:
+            json["accountPosition"] ??
+            json["accountposition"] ??
+            json["position"] ??
+            '',
       );
 
   Map<String, dynamic> toJson() => {

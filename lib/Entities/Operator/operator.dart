@@ -1,39 +1,12 @@
 import 'package:dakara_weighbridge/Entities/Operator/abstract_operator.dart';
-import 'package:dakara_weighbridge/Exception/auth_exception.dart';
+import 'package:dakara_weighbridge/Exception/transaction_exception.dart';
 import 'package:dakara_weighbridge/Json/listtransaction_json.dart';
 import 'package:dakara_weighbridge/SQLite/db_helper.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
-/// TODO : Need to add export to pdf, excel and print feature
 class Operator implements AbstractOperator {
-  @override
-  Future<void> login({
-    required String username,
-    required String password,
-  }) async {
-    final user = await DbHelper.instance.getUserByUsername(username: username);
-
-    if (user.isEmpty || user[0].accountPassword != password) {
-      throw InvalidCredentialException();
-    }
-
-    // Save session
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setBool('isLoggedIn', true);
-    await prefs.setInt('operatorId', user[0].accountID);
-    await prefs.setString('operatorName', user[0].accountUsername);
-    await prefs.setString('role', user[0].accountPosition);
-  }
-
-  @override
-  Future<void> logout() async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.remove('isLoggedIn');
-    await prefs.remove('operatorId');
-    await prefs.remove('operatorName');
-    await prefs.remove('role');
-  }
-
+  /// Operator Creating Bruto Transaction
+  /// TODO : First Transaction Maybe Tare First, So Make the Conditional Statement
+  /// TODO : Change Function Name and Implementation in UI Because The Weight is Between Bruto and Tare
   @override
   Future<void> addBrutoTransaction({
     required String vehiclePlate,
@@ -42,21 +15,18 @@ class Operator implements AbstractOperator {
     required int customerId,
     required int productId,
     required int cut,
+    required double bruto,
+    bool isBruto = false,
     int? kubikasi,
     String? noDo,
     int? noContainer,
     double? temperature,
     double? price,
     String? additionalInformation,
-    required double bruto,
   }) async {
-    final prefs = await SharedPreferences.getInstance();
-    final bool? isLoggedInStatus = prefs.getBool('isLoggedIn');
-    final String? roleStatus = prefs.getString('role');
-
-    if (isLoggedInStatus != null && isLoggedInStatus) {
-      if (roleStatus != null && roleStatus == 'operator') {
-        DbHelper.instance.addTransaction(
+    try {
+      if (isBruto) {
+        await DbHelper.instance.addTransaction(
           ListTransactionJson(
             vehiclePlate: vehiclePlate,
             driverName: driverName,
@@ -64,7 +34,13 @@ class Operator implements AbstractOperator {
             customerId: customerId,
             productId: productId,
             cut: cut,
-            noTicket: 'WB-${DateTime.now()}',
+            kubikasi: kubikasi,
+            noDO: noDo,
+            noContainer: noContainer,
+            temperature: temperature,
+            price: price,
+            additionalInformation: additionalInformation,
+            noTicket: 'WB-${DateTime.now().millisecondsSinceEpoch}',
             inTime: DateTime.now(),
             outTime: DateTime.now(),
             totalPrice: 0,
@@ -76,12 +52,53 @@ class Operator implements AbstractOperator {
             operatorLabel: 0,
             managerLabel: 0,
             headWarehouseLabel: 0,
+            isDrafted: 1,
+          ),
+        );
+      } else {
+        final tare = bruto;
+        await DbHelper.instance.addTransaction(
+          ListTransactionJson(
+            vehiclePlate: vehiclePlate,
+            driverName: driverName,
+            supplierId: supplierId,
+            customerId: customerId,
+            productId: productId,
+            cut: cut,
+            kubikasi: kubikasi,
+            noDO: noDo,
+            noContainer: noContainer,
+            temperature: temperature,
+            price: price,
+            additionalInformation: additionalInformation,
+            noTicket: 'WB-${DateTime.now().millisecondsSinceEpoch}',
+            inTime: DateTime.now(),
+            outTime: DateTime.now(),
+            totalPrice: 0,
+            bruto: 0,
+            tare: tare,
+            netto: 0,
+            nettoAfterCut: 0,
+            driverLabel: 0,
+            operatorLabel: 0,
+            managerLabel: 0,
+            headWarehouseLabel: 0,
+            isDrafted: 1,
           ),
         );
       }
+    } catch (_) {
+      throw TransactionCreationException('Failed to Create Transaction');
     }
   }
 
+  /*
+   TODO : MAKE SURE THE CALCULATION IS CORRECT,
+    Initial Weight Value Maybe Bruto or Tare,
+    So Make The Conditional Statement
+   */
+
+  /// Operator Creating Netto Transaction
   @override
   Future<void> addNettoTransaction({
     required int transactionId,
@@ -91,41 +108,82 @@ class Operator implements AbstractOperator {
     double? temperature,
     double? price,
     String? additionalInformation,
-    required double tare,
-    required double nettoAfterCut,
+    required double weight,
   }) async {
-    final prefs = await SharedPreferences.getInstance();
-    final bool? isLoggedInStatus = prefs.getBool('isLoggedIn');
-    final String? roleStatus = prefs.getString('role');
+    final transaction = await DbHelper.instance.getTransactionById(
+      id: transactionId,
+    );
 
-    if (isLoggedInStatus != null && isLoggedInStatus) {
-      if (roleStatus != null && roleStatus == 'operator') {
-        final transaction = await DbHelper.instance.getTransactionById(
-          id: transactionId,
-        );
-        await DbHelper.instance.updateTransaction(
-          ListTransactionJson(
-            vehiclePlate: transaction[0].vehiclePlate,
-            driverName: transaction[0].driverName,
-            supplierId: transaction[0].supplierId,
-            customerId: transaction[0].customerId,
-            productId: transaction[0].productId,
-            cut: transaction[0].cut,
-            noTicket: transaction[0].noTicket,
-            inTime: transaction[0].inTime,
-            outTime: DateTime.now(),
-            totalPrice: 0,
-            bruto: transaction[0].bruto,
-            tare: tare,
-            netto: transaction[0].bruto - tare,
-            nettoAfterCut: nettoAfterCut / 100 * transaction[0].bruto,
-            driverLabel: 0,
-            operatorLabel: 0,
-            managerLabel: 0,
-            headWarehouseLabel: 0,
-          ),
-        );
-      }
+    /// TODO : Make Custom Exception
+    if (transaction.isEmpty)
+      throw TransactionGetFailedException('Not Found Any Transactions');
+    final t = transaction[0];
+    if (t.bruto != 0) {
+      final updated = ListTransactionJson(
+        vehiclePlate: t.vehiclePlate,
+        driverName: t.driverName,
+        supplierId: t.supplierId,
+        customerId: t.customerId,
+        productId: t.productId,
+        cut: t.cut,
+        kubikasi: kubikasi ?? t.kubikasi,
+        noDO: noDo ?? t.noDO,
+        noContainer: noContainer ?? t.noContainer,
+        temperature: temperature ?? t.temperature,
+        price: t.price,
+        additionalInformation: additionalInformation ?? t.additionalInformation,
+        noTicket: t.noTicket,
+        inTime: t.inTime,
+        outTime: DateTime.now(),
+        totalPrice:
+            t.price! *
+            (t.bruto - weight - ((t.bruto - weight) * (t.cut / 100))),
+        bruto: t.bruto,
+        tare: weight,
+        netto: t.bruto - weight,
+        nettoAfterCut: t.bruto - weight - ((t.bruto - weight) * (t.cut / 100)),
+        driverLabel: t.driverLabel,
+        operatorLabel: t.operatorLabel,
+        managerLabel: t.managerLabel,
+        headWarehouseLabel: t.headWarehouseLabel,
+        isDrafted: 0,
+        transactionId: t.transactionId,
+        isManual: t.isManual,
+      );
+
+      await DbHelper.instance.updateTransaction(updated);
+    } else {
+      final updated = ListTransactionJson(
+        vehiclePlate: t.vehiclePlate,
+        driverName: t.driverName,
+        supplierId: t.supplierId,
+        customerId: t.customerId,
+        productId: t.productId,
+        cut: t.cut,
+        kubikasi: kubikasi ?? t.kubikasi,
+        noDO: noDo ?? t.noDO,
+        noContainer: noContainer ?? t.noContainer,
+        temperature: temperature ?? t.temperature,
+        price: t.price,
+        additionalInformation: additionalInformation ?? t.additionalInformation,
+        noTicket: t.noTicket,
+        inTime: t.inTime,
+        outTime: DateTime.now(),
+        totalPrice:
+            t.price! * (weight - t.tare - ((weight - t.tare) * (t.cut / 100))),
+        bruto: weight,
+        tare: t.tare,
+        netto: weight - t.tare,
+        nettoAfterCut: weight - t.tare - ((weight - t.tare) * (t.cut / 100)),
+        driverLabel: t.driverLabel,
+        operatorLabel: t.operatorLabel,
+        managerLabel: t.managerLabel,
+        headWarehouseLabel: t.headWarehouseLabel,
+        isDrafted: 0,
+        transactionId: t.transactionId,
+        isManual: t.isManual,
+      );
+      await DbHelper.instance.updateTransaction(updated);
     }
   }
 }

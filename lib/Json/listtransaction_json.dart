@@ -25,7 +25,7 @@ class ListTransactionJson {
   final String? additionalInformation;
   final String noTicket;
   final DateTime inTime;
-  final DateTime outTime;
+  final DateTime? outTime;
   final double totalPrice;
   final double bruto;
   final double tare;
@@ -35,6 +35,13 @@ class ListTransactionJson {
   final int operatorLabel;
   final int managerLabel;
   final int headWarehouseLabel;
+  final int isDrafted;
+  final int isManual;
+
+  /// data placeholder for join query
+  String? supplierName;
+  String? customerName;
+  String? productName;
 
   ListTransactionJson({
     required this.vehiclePlate,
@@ -62,31 +69,47 @@ class ListTransactionJson {
     required this.operatorLabel,
     required this.managerLabel,
     required this.headWarehouseLabel,
+    this.isDrafted = 1,
+    this.isManual = 0,
+    this.supplierName = '',
+    this.customerName = '',
+    this.productName = '',
   });
 
-  factory ListTransactionJson.fromJson(
-    Map<String, dynamic> json,
-  ) => ListTransactionJson(
-    vehiclePlate: json['vehiclePlate'],
-    driverName: json['driverName'],
-    supplierId: json['supplierId'], // Mapping from DB column which will be IDs
-    customerId: json['customerId'], // Mapping from DB column which will be IDs
-    productId: json['productId'], // Mapping from DB column which will be IDs
-    cut: json['cut'],
-    noTicket: json['noTicket'],
-    inTime: DateTime.parse(json['inTime']),
-    outTime: DateTime.parse(json['outTime']),
-    totalPrice: (json['totalPrice'] as num).toDouble(),
-    bruto: (json['bruto'] as num).toDouble(),
-    tare: (json['tare'] as num).toDouble(),
-    netto: (json['netto'] as num).toDouble(),
-    nettoAfterCut: (json['nettoAfterCut'] as num).toDouble(),
-    driverLabel: json['driverLabel'],
-    transactionId: json['transactionId'],
-    operatorLabel: json['operatorLabel'],
-    managerLabel: json['managerLabel'],
-    headWarehouseLabel: json['headWarehouseLabel'],
-  );
+  factory ListTransactionJson.fromJson(Map<String, dynamic> json) =>
+      ListTransactionJson(
+        vehiclePlate: json['vehiclePlate'],
+        driverName: json['driverName'],
+        supplierId: json['supplierId'],
+        customerId: json['customerId'],
+        productId: json['productId'],
+        cut: json['cut'],
+        noContainer: int.tryParse(json['noContainer'].toString()),
+        noDO: json['noDO'] ?? '',
+        kubikasi: json['kubikasi'] ?? 0,
+        temperature: (json['temperature'] ?? 0 as num).toDouble(),
+        price: (json['price'] ?? 0 as num).toDouble(),
+        additionalInformation: json['additionalInformation'],
+        noTicket: json['noTicket'],
+        inTime: DateTime.parse(json['inTime']),
+        outTime:
+            json['outTime'] == null ? null : DateTime.parse(json['outTime']),
+        totalPrice: (json['totalPrice'] as num).toDouble(),
+        bruto: (json['bruto'] as num).toDouble(),
+        tare: (json['tare'] as num).toDouble(),
+        netto: (json['netto'] as num).toDouble(),
+        nettoAfterCut: (json['nettoAfterCut'] as num).toDouble(),
+        driverLabel: json['driverLabel'],
+        transactionId: json['transactionId'],
+        operatorLabel: json['operatorLabel'],
+        managerLabel: json['managerLabel'],
+        headWarehouseLabel: json['headWarehouseLabel'],
+        isDrafted: json['isDrafted'],
+        isManual: json['isManual'],
+        supplierName: json['supplierName'] ?? '',
+        customerName: json['customerName'] ?? '',
+        productName: json['productName'] ?? '',
+      );
 
   Map<String, dynamic> toJson() => {
     "vehiclePlate": vehiclePlate,
@@ -103,7 +126,7 @@ class ListTransactionJson {
     "additionalInformation": additionalInformation,
     "noTicket": noTicket,
     "inTime": inTime.toIso8601String(),
-    "outTime": outTime.toIso8601String(),
+    "outTime": outTime == null ? null : outTime!.toIso8601String(),
     "totalPrice": totalPrice,
     "bruto": bruto,
     "tare": tare,
@@ -113,5 +136,7 @@ class ListTransactionJson {
     "operatorLabel": operatorLabel,
     "managerLabel": managerLabel,
     "headWarehouseLabel": headWarehouseLabel,
+    "isDrafted": isDrafted,
+    "isManual": isManual,
   };
 }
