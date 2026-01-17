@@ -393,38 +393,6 @@ class _TransactionState extends State<Transaction> {
     );
   }
 
-  Future<void> _handleContinueAuto(ListTransactionJson tx) async {
-    if (!mounted) return;
-    final messenger = ScaffoldMessenger.of(context);
-    messenger.showSnackBar(
-      SnackBar(content: Text('Lanjutkan transaksi ${tx.noTicket}')),
-    );
-  }
-
-  void _handleLoadDraft(ListTransactionJson tx) {
-    setState(() {
-      _isWeightIn = false;
-      _platNomorController.text = tx.vehiclePlate;
-      _noDoController.text = tx.noDO ?? '';
-      _namaSupirController.text = tx.driverName;
-      _potonganController.text = tx.cut.toString();
-      _kubikasiController.text = (tx.kubikasi ?? 0).toString();
-      _noContainerController.text = (tx.noContainer ?? 0).toString();
-      _suhuController.text = (tx.temperature ?? 0).toString();
-      _hargaController.text = (tx.price ?? 0).toString();
-      _keteranganController.text = tx.additionalInformation ?? '';
-      _selectedSupplierId = tx.supplierId;
-      _selectedCustomerId = tx.customerId;
-      _selectedProductId = tx.productId;
-      _transactionIdController.text = tx.transactionId.toString();
-    });
-    if (!mounted) return;
-    final messenger = ScaffoldMessenger.of(context);
-    messenger.showSnackBar(
-      SnackBar(content: Text('Draft ${tx.noTicket} dimuat')),
-    );
-  }
-
   Future<void> _handleCopy(String text) async {
     await _clipboardService.copy(text);
     if (!mounted) return;
@@ -782,8 +750,6 @@ class _TransactionState extends State<Transaction> {
               onShowDetailMap: _handleShowDetailMap,
               onPrintMap: _handlePrintMap,
               onExportPdfMap: _handleExportPdfMap,
-              onContinueAuto: _handleContinueAuto,
-              onLoadDraft: _handleLoadDraft,
               onCopyToClipboard: _handleCopy,
             ),
           ],

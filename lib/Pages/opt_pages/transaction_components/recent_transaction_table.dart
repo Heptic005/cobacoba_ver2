@@ -29,8 +29,6 @@ class RecentTransactionTable extends StatefulWidget {
   final Future<void> Function(Map<String, Object?> item) onShowDetailMap;
   final Future<void> Function(Map<String, Object?> item) onPrintMap;
   final Future<void> Function(Map<String, Object?> item) onExportPdfMap;
-  final Future<void> Function(ListTransactionJson tx) onContinueAuto;
-  final void Function(ListTransactionJson tx) onLoadDraft;
   final void Function(String text) onCopyToClipboard;
 
   const RecentTransactionTable({
@@ -50,8 +48,6 @@ class RecentTransactionTable extends StatefulWidget {
     required this.onShowDetailMap,
     required this.onPrintMap,
     required this.onExportPdfMap,
-    required this.onContinueAuto,
-    required this.onLoadDraft,
     required this.onCopyToClipboard,
   });
 
@@ -346,27 +342,7 @@ class _RecentTransactionTableState extends State<RecentTransactionTable> {
                               Text('After cut', style: TextStyle(color: textGrey.withAlpha((0.7 * 255).round()), fontSize: 10)),
                             ],
                           ),
-                          const SizedBox(width: 12),
-                          Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                            decoration: BoxDecoration(
-                              color: isDraft ? primaryCyan.withOpacity(0.2) : AppThemes.statusFinished.withOpacity(0.18),
-                              borderRadius: BorderRadius.circular(12),
-                              border: Border.all(
-                                color: isDraft ? primaryCyan : AppThemes.statusFinished,
-                                width: 0.8,
-                              ),
-                            ),
-                            child: Text(
-                              isDraft ? 'DRAFT' : 'FINISHED',
-                              style: TextStyle(
-                                color: isDraft ? primaryCyan : AppThemes.statusFinished,
-                                fontWeight: FontWeight.w700,
-                                fontSize: 11,
-                                letterSpacing: 0.4,
-                              ),
-                            ),
-                          ),
+                          const SizedBox(width: 8),
                           PopupMenuButton<String>(
                             color: cardBg,
                             icon: Icon(Icons.more_vert, color: textGrey),
@@ -383,13 +359,6 @@ class _RecentTransactionTableState extends State<RecentTransactionTable> {
                                 await widget.onPrintMap(map);
                               } else if (value == 'pdf') {
                                 await widget.onExportPdfMap(map);
-                              } else if (value == 'continue') {
-                                await widget.onContinueAuto(tx);
-                              } else if (value == 'loadDraft') {
-                                widget.onLoadDraft(tx);
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(content: Text('Draft loaded')),
-                                );
                               }
                             },
                             itemBuilder: (_) => [
@@ -417,16 +386,17 @@ class _RecentTransactionTableState extends State<RecentTransactionTable> {
                         Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 8),
                           child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text('Product: $prodName', style: TextStyle(color: textGrey)),
-                              const SizedBox(height: 6),
-                              Row(
-                                children: [
-                                  Expanded(child: Text('Supplier: ${supName.isEmpty ? '-' : supName}', style: TextStyle(color: textGrey))),
-                                  const SizedBox(width: 12),
-                                  Expanded(child: Text('Customer: ${custName.isEmpty ? '-' : custName}', style: TextStyle(color: textGrey))),
-                                ],
+                              Padding(
+                                padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 8),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    _infoRow('Product', prodName),
+                                    _infoRow('Supplier', supName),
+                                    _infoRow('Customer', custName),
+                                  ],
+                                ),
                               ),
                             ],
                           ),

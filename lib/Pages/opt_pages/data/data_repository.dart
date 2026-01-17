@@ -1,18 +1,4 @@
-/// ============================================================================
-/// Data Repository
-/// ============================================================================
-/// File: data_repository.dart
 /// Deskripsi: Repository layer untuk mengakses data Supplier, Customer, dan Product
-///            dari database melalui DbHelper. Repository ini bertanggung jawab untuk:
-///            - Memanggil method DbHelper untuk fetch data
-///            - Melakukan insert data baru (khusus Supplier dan Customer)
-///            - TIDAK memodifikasi db_helper.dart
-/// 
-/// Catatan Keamanan:
-/// - Tidak melakukan string concatenation untuk query
-/// - Menggunakan parameterized queries melalui DbHelper
-/// - Sanitasi input dilakukan di Controller sebelum sampai ke repository
-/// ============================================================================
 
 import 'package:dakara_weighbridge/Json/listcustomer_json.dart';
 import 'package:dakara_weighbridge/Json/listproduct_json.dart';
@@ -26,9 +12,8 @@ class DataRepository {
   /// Constructor dengan dependency injection untuk DbHelper
   DataRepository({DbHelper? dbHelper}) : _dbHelper = dbHelper ?? DbHelper.instance;
 
-  // ============================================================================
+
   // SUPPLIER METHODS
-  // ============================================================================
 
   /// Mengambil semua data supplier dari database
   /// Returns: List<ListSupplierJson> - daftar supplier tanpa filter
@@ -51,10 +36,7 @@ class DataRepository {
     }
   }
 
-  // ============================================================================
   // CUSTOMER METHODS
-  // ============================================================================
-
   /// Mengambil semua data customer dari database
   /// Returns: List<ListCustomerJson> - daftar customer tanpa filter
   Future<List<ListCustomerJson>> getCustomers() async {
@@ -75,13 +57,9 @@ class DataRepository {
     }
   }
 
-  // ============================================================================
   // PRODUCT METHODS
-  // ============================================================================
 
   /// Mengambil semua data product dari database
-  /// CATATAN: Product hanya bisa dibaca, tidak ada method insert
-  /// Returns: List<ListProductJson> - daftar product tanpa filter
   Future<List<ListProductJson>> getProducts() async {
     try {
       return await _dbHelper.getListProducts();
@@ -91,14 +69,8 @@ class DataRepository {
   }
 
   /// Menambahkan product baru ke database
-  /// Returns: int - ID dari product yang baru ditambahkan
   Future<int> addProduct(ListProductJson product) async {
     try {
-      // db_helper.addProduct uses product.toJson() which may include
-      // productId (default 0) and cause UNIQUE constraint errors when
-      // inserting. To avoid sending productId in the INSERT, perform the
-      // insert here with an explicit map that omits productId so
-      // SQLite AUTOINCREMENT assigns it.
       final db = await _dbHelper.database;
       final map = <String, dynamic>{
         'productName': product.productName,
@@ -110,7 +82,6 @@ class DataRepository {
     }
   }
 
-  // Sebelumnya product hanya read-only; sekarang mendukung insert dari UI
 }
 
 /// Custom exception untuk error di repository layer

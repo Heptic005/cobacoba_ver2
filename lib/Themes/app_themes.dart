@@ -32,6 +32,26 @@ class AppThemes {
     Color(0xFFFB94FF),
   ];
 
+  /// kartu produk pada halaman Data Management
+  static const List<Color> productPalette = [
+    Color(0xFF512DA8), 
+    Color(0xFF00897B), 
+    Color(0xFF1E88E5), 
+    Color(0xFFFF7043), 
+    Color(0xFF7B1FA2), 
+    Color(0xFF43A047), 
+    Color(0xFFD81B60), 
+    Color(0xFF006064), 
+  ];
+
+  /// Gradient pairs untuk kartu produk 
+  static const List<List<Color>> productGradients = [
+    [Color(0xFF7C55FF), Color(0xFFE64980)],
+    [Color(0xFF00B7FF), Color(0xFF0061FF)],
+    [Color(0xFFFF8C42), Color(0xFFFC466B)],
+    [Color(0xFF20C997), Color(0xFF0FB9B1)],
+  ];
+
   // static String fontBaloo = "BalooBhai2";
 
   //************************* Light Theme ************************/
