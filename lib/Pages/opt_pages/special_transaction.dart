@@ -644,8 +644,6 @@ class _SpecialTransactionState extends State<SpecialTransaction> {
               onShowDetailMap: _handleShowDetailMap,
               onPrintMap: _handlePrintMap,
               onExportPdfMap: _handleExportPdfMap,
-              onContinueAuto: _handleContinueAuto,
-              onLoadDraft: _handleLoadDraft,
               onCopyToClipboard: _handleCopy,
             ),
           ],
