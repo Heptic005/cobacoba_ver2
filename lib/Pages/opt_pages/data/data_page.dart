@@ -1,15 +1,4 @@
-/// ============================================================================
-/// Data Page (UI)
-/// ============================================================================
-/// File: data_page.dart
 /// Deskripsi: Halaman utama untuk Manajemen Data (Supplier, Customer, Product).
-///            Halaman ini menampilkan:
-///            - Tabs untuk navigasi antar tipe data (Supplier/Customer/Barang)
-///            - Search bar untuk filtering data
-///            - Tombol "Tambah Baru" untuk Supplier dan Customer
-///            - List/Table data sesuai tab yang aktif
-///
-/// ============================================================================
 
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -27,8 +16,6 @@ const Color _primaryCyan = Color(0xFF00E5C3);
 const Color _textGrey = Color(0xFF9E9E9E);
 const Color _textWhite = Colors.white;
 
-/// Widget utama untuk halaman Data Management
-/// Menggunakan ChangeNotifierProvider untuk menyediakan DataController
 class DataPage extends StatelessWidget {
   const DataPage({super.key});
 
@@ -226,8 +213,6 @@ class _SearchActionBar extends StatelessWidget {
   Widget build(BuildContext context) {
     return Consumer<DataController>(
       builder: (context, controller, _) {
-        // Tentukan apakah tombol tambah harus ditampilkan
-        // Tampilkan juga untuk Product sekarang
         final showAddButton = true;
 
         return Row(

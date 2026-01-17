@@ -30,108 +30,110 @@ class DbHelper {
       final dbPath = join(docsPath.path, databaseName);
       // print(dbPath);
 
+      // PERBAIKAN: Menambahkan kolom lastLogin
       const createAccountTable = '''
       CREATE TABLE IF NOT EXISTS "account" (
-	     "accountId"	INTEGER NOT NULL UNIQUE,
-	     "accountUsername"	TEXT NOT NULL UNIQUE,
-	     "accountPassword"	TEXT NOT NULL,
-	     "accountPosition"	TEXT NOT NULL,
-	      PRIMARY KEY("accountId" AUTOINCREMENT)
-        );
+       "accountId"  INTEGER NOT NULL UNIQUE,
+       "accountUsername"  TEXT NOT NULL UNIQUE,
+       "accountPassword"  TEXT NOT NULL,
+       "accountPosition"  TEXT NOT NULL,
+       "lastLogin" TEXT,
+       PRIMARY KEY("accountId" AUTOINCREMENT)
+       );
       ''';
 
       const createCustomerTable = '''
       CREATE TABLE IF NOT EXISTS "customer" (
-	    "customerId"	INTEGER NOT NULL UNIQUE,
-	    "customerName"	TEXT NOT NULL,
-	    "customerAddress"	TEXT NOT NULL,
-	    "customerPhone"	TEXT NOT NULL,
-	    PRIMARY KEY("customerId" AUTOINCREMENT)
+      "customerId"  INTEGER NOT NULL UNIQUE,
+      "customerName"  TEXT NOT NULL,
+      "customerAddress" TEXT NOT NULL,
+      "customerPhone" TEXT NOT NULL,
+      PRIMARY KEY("customerId" AUTOINCREMENT)
       );
       ''';
 
       const createProductTable = '''
       CREATE TABLE IF NOT EXISTS "product" (
-	    "productId"	INTEGER NOT NULL UNIQUE,
-	    "productName"	TEXT NOT NULL,
-	    "productCode"	TEXT NOT NULL UNIQUE,
-	    PRIMARY KEY("productId" AUTOINCREMENT)
+      "productId" INTEGER NOT NULL UNIQUE,
+      "productName" TEXT NOT NULL,
+      "productCode" TEXT NOT NULL UNIQUE,
+      PRIMARY KEY("productId" AUTOINCREMENT)
       );
       ''';
 
       const createSupplierTable = '''
       CREATE TABLE IF NOT EXISTS "supplier" (
-	    "supplierId"	INTEGER NOT NULL UNIQUE,
-	    "supplierName"	TEXT NOT NULL,
-	    "supplierAddress"	TEXT NOT NULL,
-	    "supplierCity"	TEXT NOT NULL,
-	    "supplierSubdistrict"	TEXT NOT NULL,
-	    "supplierPostCode"	TEXT NOT NULL,
-	    PRIMARY KEY("supplierId" AUTOINCREMENT)
+      "supplierId"  INTEGER NOT NULL UNIQUE,
+      "supplierName"  TEXT NOT NULL,
+      "supplierAddress" TEXT NOT NULL,
+      "supplierCity"  TEXT NOT NULL,
+      "supplierSubdistrict" TEXT NOT NULL,
+      "supplierPostCode"  TEXT NOT NULL,
+      PRIMARY KEY("supplierId" AUTOINCREMENT)
       );
       ''';
 
       const createManualTokensTable = '''
       CREATE TABLE IF NOT EXISTS "manual_tokens" (
-	    "tokenId"	INTEGER NOT NULL UNIQUE,
-	    "tokenCode"	TEXT NOT NULL,
-	    "expiresAt"	TEXT NOT NULL,
-	    "isUsed"	INTEGER NOT NULL,
-	    "createdBy"	INTEGER NOT NULL,
-	    "usedAt"	TEXT,
-	    "createdAt"	TEXT,
-	    PRIMARY KEY("tokenId" AUTOINCREMENT)
+      "tokenId" INTEGER NOT NULL UNIQUE,
+      "tokenCode" TEXT NOT NULL,
+      "expiresAt" TEXT NOT NULL,
+      "isUsed"  INTEGER NOT NULL,
+      "createdBy" INTEGER NOT NULL,
+      "usedAt"  TEXT,
+      "createdAt" TEXT,
+      PRIMARY KEY("tokenId" AUTOINCREMENT)
       );
       ''';
 
       const createTokenRequestTable = '''
       CREATE TABLE IF NOT EXISTS "token_requests" (
-	    "tokenRequestId"	INTEGER NOT NULL UNIQUE,
-	    "requestedBy"	INTEGER NOT NULL,
-	    "reason"	TEXT NOT NULL,
-	    "status"	TEXT NOT NULL,
-	    "approvedBy"	INTEGER,
-	    "tokenId"	INTEGER,
-	    "requestedAt"	TEXT NOT NULL,
-	    "approvedAt"	INTEGER,
-	    PRIMARY KEY("tokenRequestId" AUTOINCREMENT),
-	    FOREIGN KEY("tokenId") REFERENCES "manual_tokens"("tokenId")
+      "tokenRequestId"  INTEGER NOT NULL UNIQUE,
+      "requestedBy" INTEGER NOT NULL,
+      "reason"  TEXT NOT NULL,
+      "status"  TEXT NOT NULL,
+      "approvedBy"  INTEGER,
+      "tokenId" INTEGER,
+      "requestedAt" TEXT NOT NULL,
+      "approvedAt"  INTEGER,
+      PRIMARY KEY("tokenRequestId" AUTOINCREMENT),
+      FOREIGN KEY("tokenId") REFERENCES "manual_tokens"("tokenId")
       );
       ''';
 
       const createTransactionTable = '''
       CREATE TABLE "transaction" (
-	    "transactionId"	INTEGER NOT NULL UNIQUE,
-	    "vehiclePlate"	TEXT NOT NULL,
-	    "driverName"	TEXT NOT NULL,
-	    "supplierId"	INTEGER NOT NULL,
-	    "customerId"	INTEGER NOT NULL,
-	    "productId"	INTEGER NOT NULL,
-	    "cut"	INTEGER NOT NULL,
-	    "kubikasi"	INTEGER,
-	    "noDO"	TEXT,
-	    "noContainer"	INTEGER,
-	    "temperature"	NUMERIC,
-	    "price"	NUMERIC,
-	    "additionalInformation"	TEXT,
-	    "noTicket"	TEXT NOT NULL,
-	    "inTime"	TEXT NOT NULL,
-	    "outTime"	TEXT NOT NULL,
-	    "totalPrice"	NUMERIC NOT NULL,
-	    "bruto"	NUMERIC NOT NULL,
-	    "tare"	NUMERIC NOT NULL,
-	    "netto"	NUMERIC NOT NULL,
-	    "nettoAfterCut"	NUMERIC NOT NULL,
-	    "driverLabel"	INTEGER NOT NULL,
-	    "operatorLabel"	INTEGER NOT NULL,
-	    "managerLabel"	INTEGER NOT NULL,
-	    "headWarehouseLabel"	INTEGER NOT NULL,
-	    "isDrafted"	INTEGER NOT NULL DEFAULT 1,
-	    "isManual"	INTEGER NOT NULL DEFAULT 0,
-	    PRIMARY KEY("transactionId" AUTOINCREMENT),
-	    FOREIGN KEY("customerId") REFERENCES "customer"("customerId"),
-	    FOREIGN KEY("productId") REFERENCES "product"("productId"),
-	    FOREIGN KEY("supplierId") REFERENCES "supplier"("supplierId")
+      "transactionId" INTEGER NOT NULL UNIQUE,
+      "vehiclePlate"  TEXT NOT NULL,
+      "driverName"  TEXT NOT NULL,
+      "supplierId"  INTEGER NOT NULL,
+      "customerId"  INTEGER NOT NULL,
+      "productId" INTEGER NOT NULL,
+      "cut" INTEGER NOT NULL,
+      "kubikasi"  INTEGER,
+      "noDO"  TEXT,
+      "noContainer" INTEGER,
+      "temperature" NUMERIC,
+      "price" NUMERIC,
+      "additionalInformation" TEXT,
+      "noTicket"  TEXT NOT NULL,
+      "inTime"  TEXT NOT NULL,
+      "outTime" TEXT NOT NULL,
+      "totalPrice"  NUMERIC NOT NULL,
+      "bruto" NUMERIC NOT NULL,
+      "tare"  NUMERIC NOT NULL,
+      "netto" NUMERIC NOT NULL,
+      "nettoAfterCut" NUMERIC NOT NULL,
+      "driverLabel" INTEGER NOT NULL,
+      "operatorLabel" INTEGER NOT NULL,
+      "managerLabel"  INTEGER NOT NULL,
+      "headWarehouseLabel"  INTEGER NOT NULL,
+      "isDrafted" INTEGER NOT NULL DEFAULT 1,
+      "isManual"  INTEGER NOT NULL DEFAULT 0,
+      PRIMARY KEY("transactionId" AUTOINCREMENT),
+      FOREIGN KEY("customerId") REFERENCES "customer"("customerId"),
+      FOREIGN KEY("productId") REFERENCES "product"("productId"),
+      FOREIGN KEY("supplierId") REFERENCES "supplier"("supplierId")
       );
       ''';
 
@@ -509,6 +511,19 @@ class DbHelper {
   Future<int> createRequestForManualToken(ListRequestTokenJson token) async {
     final Database db = await database;
     return db.insert('token_requests', token.toJson());
+  }
+
+  // --- PERBAIKAN: Fungsi Update Last Login ---
+  Future<void> updateLastLogin(int userId) async {
+    final Database db = await database;
+    String now = DateTime.now().toString(); 
+    
+    await db.update(
+      'account',
+      {'lastLogin': now},
+      where: 'accountId = ?',
+      whereArgs: [userId],
+    );
   }
 }
 

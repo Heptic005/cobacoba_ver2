@@ -10,7 +10,6 @@ import 'package:dakara_weighbridge/Pages/mgr_pages/user_management_page.dart';
 import 'package:dakara_weighbridge/Pages/commons/token_generator_page.dart';
 import 'package:dakara_weighbridge/Pages/mgr_pages/audit_transaction_page.dart';
 import 'package:dakara_weighbridge/Pages/commons/report.dart';
-import 'package:dakara_weighbridge/Pages/tec_pages/techician_page.dart';
 
 class ManagerDashboard extends StatefulWidget {
   const ManagerDashboard({super.key});
