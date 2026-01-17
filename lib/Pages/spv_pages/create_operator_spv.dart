@@ -18,55 +18,462 @@ class CreateOperatorPage extends StatefulWidget {
 class _CreateOperatorPageState extends State<CreateOperatorPage> {
   final TextEditingController _usernameController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
+  final TextEditingController _confirmPasswordController =
+      TextEditingController();
   bool _loading = false;
+  bool _showPassword = false;
+  bool _showConfirmPassword = false;
+
+  // Color Constants
+  static const Color bgDark = Color(0xFF1E2126);
+  static const Color cardBg = Color(0xFF2B2E33);
+  static const Color primaryCyan = Color(0xFF00E5FF);
+  static const Color inputBg = Color(0xFF383C42);
+  static const Color textGrey = Color(0xFFBFC9D6);
 
   @override
   void dispose() {
     _usernameController.dispose();
     _passwordController.dispose();
+    _confirmPasswordController.dispose();
     super.dispose();
+  }
+
+  void _showSuccessDialog(String message) {
+    showDialog(
+      context: context,
+      barrierDismissible: true,
+      builder: (BuildContext context) {
+        return Dialog(
+          backgroundColor: cardBg,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+            side: const BorderSide(
+              color: primaryCyan,
+              width: 1,
+            ),
+          ),
+          child: Padding(
+            padding: const EdgeInsets.all(24),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  width: 60,
+                  height: 60,
+                  decoration: BoxDecoration(
+                    color: primaryCyan.withOpacity(0.2),
+                    borderRadius: BorderRadius.circular(50),
+                    border: Border.all(
+                      color: primaryCyan,
+                      width: 2,
+                    ),
+                  ),
+                  child: const Icon(
+                    Icons.check,
+                    color: primaryCyan,
+                    size: 32,
+                  ),
+                ),
+                const SizedBox(height: 20),
+                const Text(
+                  'Berhasil!',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 12),
+                Text(
+                  message,
+                  style: const TextStyle(
+                    color: textGrey,
+                    fontSize: 14,
+                    height: 1.6,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 24),
+                SizedBox(
+                  width: double.infinity,
+                  height: 44,
+                  child: ElevatedButton(
+                    onPressed: () {
+                      Navigator.of(context).pop();
+                      _usernameController.clear();
+                      _passwordController.clear();
+                      _confirmPasswordController.clear();
+                      setState(() {
+                        _showPassword = false;
+                        _showConfirmPassword = false;
+                      });
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: primaryCyan,
+                      foregroundColor: bgDark,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      elevation: 0,
+                    ),
+                    child: const Text(
+                      'Tutup',
+                      style: TextStyle(
+                        fontWeight: FontWeight.w600,
+                        fontSize: 14,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  void _showErrorDialog(String message) {
+    showDialog(
+      context: context,
+      barrierDismissible: true,
+      builder: (BuildContext context) {
+        return Dialog(
+          backgroundColor: cardBg,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+            side: const BorderSide(
+              color: Color(0xFFE74C3C),
+              width: 1,
+            ),
+          ),
+          child: Padding(
+            padding: const EdgeInsets.all(24),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  width: 60,
+                  height: 60,
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFE74C3C).withOpacity(0.2),
+                    borderRadius: BorderRadius.circular(50),
+                    border: Border.all(
+                      color: const Color(0xFFE74C3C),
+                      width: 2,
+                    ),
+                  ),
+                  child: const Icon(
+                    Icons.close,
+                    color: Color(0xFFE74C3C),
+                    size: 32,
+                  ),
+                ),
+                const SizedBox(height: 20),
+                const Text(
+                  'Gagal!',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 12),
+                Text(
+                  message,
+                  style: const TextStyle(
+                    color: textGrey,
+                    fontSize: 14,
+                    height: 1.6,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 24),
+                SizedBox(
+                  width: double.infinity,
+                  height: 44,
+                  child: ElevatedButton(
+                    onPressed: () {
+                      Navigator.of(context).pop();
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFFE74C3C),
+                      foregroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      elevation: 0,
+                    ),
+                    child: const Text(
+                      'Tutup',
+                      style: TextStyle(
+                        fontWeight: FontWeight.w600,
+                        fontSize: 14,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  void _showValidationDialog(String message) {
+    showDialog(
+      context: context,
+      barrierDismissible: true,
+      builder: (BuildContext context) {
+        return Dialog(
+          backgroundColor: cardBg,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+            side: BorderSide(
+              color: primaryCyan.withOpacity(0.5),
+              width: 1,
+            ),
+          ),
+          child: Padding(
+            padding: const EdgeInsets.all(24),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  width: 60,
+                  height: 60,
+                  decoration: BoxDecoration(
+                    color: primaryCyan.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(50),
+                    border: Border.all(
+                      color: primaryCyan.withOpacity(0.5),
+                      width: 2,
+                    ),
+                  ),
+                  child: Icon(
+                    Icons.info_outline,
+                    color: primaryCyan.withOpacity(0.7),
+                    size: 32,
+                  ),
+                ),
+                const SizedBox(height: 20),
+                const Text(
+                  'Perhatian!',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 12),
+                Text(
+                  message,
+                  style: const TextStyle(
+                    color: textGrey,
+                    fontSize: 14,
+                    height: 1.6,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 24),
+                SizedBox(
+                  width: double.infinity,
+                  height: 44,
+                  child: ElevatedButton(
+                    onPressed: () {
+                      Navigator.of(context).pop();
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: primaryCyan,
+                      foregroundColor: bgDark,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      elevation: 0,
+                    ),
+                    child: const Text(
+                      'OK',
+                      style: TextStyle(
+                        fontWeight: FontWeight.w600,
+                        fontSize: 14,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  void _showConfirmAddOperatorDialog(String username) {
+    showDialog(
+      context: context,
+      barrierDismissible: true,
+      builder: (BuildContext context) {
+        return Dialog(
+          backgroundColor: cardBg,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+            side: BorderSide(
+              color: primaryCyan.withOpacity(0.5),
+              width: 1,
+            ),
+          ),
+          child: Padding(
+            padding: const EdgeInsets.all(24),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  width: 60,
+                  height: 60,
+                  decoration: BoxDecoration(
+                    color: primaryCyan.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(50),
+                    border: Border.all(
+                      color: primaryCyan.withOpacity(0.5),
+                      width: 2,
+                    ),
+                  ),
+                  child: Icon(
+                    Icons.person_add_outlined,
+                    color: primaryCyan.withOpacity(0.7),
+                    size: 32,
+                  ),
+                ),
+                const SizedBox(height: 20),
+                const Text(
+                  'Tambah Operator?',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 12),
+                Text(
+                  'Apakah Anda yakin ingin menambahkan operator dengan username "$username"?',
+                  style: const TextStyle(
+                    color: textGrey,
+                    fontSize: 14,
+                    height: 1.6,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 24),
+                Row(
+                  children: [
+                    Expanded(
+                      child: ElevatedButton(
+                        onPressed: () {
+                          Navigator.of(context).pop();
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: inputBg,
+                          foregroundColor: Colors.white,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          elevation: 0,
+                        ),
+                        child: const Text(
+                          'Batal',
+                          style: TextStyle(
+                            fontWeight: FontWeight.w600,
+                            fontSize: 14,
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: ElevatedButton(
+                        onPressed: () {
+                          Navigator.of(context).pop();
+                          _registerOperator();
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: primaryCyan,
+                          foregroundColor: bgDark,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          elevation: 0,
+                        ),
+                        child: const Text(
+                          'Tambah',
+                          style: TextStyle(
+                            fontWeight: FontWeight.w600,
+                            fontSize: 14,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
   }
 
   Future<void> _registerOperator() async {
     final username = _usernameController.text.trim();
     final password = _passwordController.text;
-    if (username.isEmpty || password.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Username dan password harus diisi')),
-      );
-      return;
-    }
 
     setState(() => _loading = true);
     try {
-      final authService = AuthService();
       final newAccount = ListAccountJson(
         accountUsername: username,
-        accountPassword: authService.hashPassword(password),
-        accountPosition: 'supervisor',
+        accountPassword: password,
+        accountPosition: 'operator',
       );
       await DbHelper.instance.addUser(newAccount);
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Operator berhasil didaftarkan')),
-      );
+      _showSuccessDialog('Operator $username berhasil ditambahkan ke dalam sistem');
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Gagal mendaftar: $e')),
-      );
+      _showErrorDialog('Gagal menambahkan operator: $e');
     } finally {
       if (mounted) setState(() => _loading = false);
     }
+  }
+
+  void _validateAndConfirm() {
+    final username = _usernameController.text.trim();
+    final password = _passwordController.text;
+    final confirmPassword = _confirmPasswordController.text;
+
+    if (username.isEmpty || password.isEmpty || confirmPassword.isEmpty) {
+      _showValidationDialog('Username, password, dan konfirmasi password harus diisi');
+      return;
+    }
+
+    if (password != confirmPassword) {
+      _showValidationDialog('Password dan konfirmasi password tidak sama');
+      return;
+    }
+
+    if (password.length < 6) {
+      _showValidationDialog('Password harus minimal 6 karakter');
+      return;
+    }
+
+    _showConfirmAddOperatorDialog(username);
   }
 
   Future<void> _login() async {
     final username = _usernameController.text.trim();
     final password = _passwordController.text;
     if (username.isEmpty || password.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Username dan password harus diisi')),
-      );
+      _showValidationDialog('Username dan password harus diisi');
       return;
     }
 
@@ -75,22 +482,16 @@ class _CreateOperatorPageState extends State<CreateOperatorPage> {
       final authService = AuthService();
       await authService.login(username: username, password: password);
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Login berhasil')),
-      );
+      _showSuccessDialog('Login berhasil');
       Navigator.of(context).pushReplacement(
         MaterialPageRoute(builder: (_) => const Dashboard()),
       );
     } on InvalidCredentialException {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Username atau password salah')),
-      );
+      _showErrorDialog('Username atau password salah');
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Gagal login: $e')),
-      );
+      _showErrorDialog('Gagal login: $e');
     } finally {
       if (mounted) setState(() => _loading = false);
     }
@@ -98,12 +499,6 @@ class _CreateOperatorPageState extends State<CreateOperatorPage> {
 
   @override
   Widget build(BuildContext context) {
-    const bgDark = Color(0xFF1E2126);
-    const cardBg = Color(0xFF2B2E33);
-    const primaryCyan = Color(0xFF00E5FF);
-    const inputBg = Color(0xFF383C42);
-    const textGrey = Color(0xFFBFC9D6);
-
     final supervisor = Supervisor();
 
     return Scaffold(
@@ -118,6 +513,10 @@ class _CreateOperatorPageState extends State<CreateOperatorPage> {
               decoration: BoxDecoration(
                 color: cardBg,
                 borderRadius: BorderRadius.circular(16),
+                border: Border.all(
+                  color: primaryCyan,
+                  width: 1,
+                ),
                 boxShadow: [
                   BoxShadow(
                     color: Colors.black.withAlpha(80),
@@ -162,7 +561,7 @@ class _CreateOperatorPageState extends State<CreateOperatorPage> {
                   const SizedBox(height: 16),
                   TextField(
                     controller: _passwordController,
-                    obscureText: true,
+                    obscureText: !_showPassword,
                     style: const TextStyle(color: Colors.white),
                     decoration: InputDecoration(
                       labelText: 'Password',
@@ -173,6 +572,48 @@ class _CreateOperatorPageState extends State<CreateOperatorPage> {
                         borderRadius: BorderRadius.circular(8),
                         borderSide: BorderSide.none,
                       ),
+                      suffixIcon: IconButton(
+                        icon: Icon(
+                          _showPassword
+                              ? Icons.visibility
+                              : Icons.visibility_off,
+                          color: textGrey,
+                        ),
+                        onPressed: () {
+                          setState(() {
+                            _showPassword = !_showPassword;
+                          });
+                        },
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  TextField(
+                    controller: _confirmPasswordController,
+                    obscureText: !_showConfirmPassword,
+                    style: const TextStyle(color: Colors.white),
+                    decoration: InputDecoration(
+                      labelText: 'Konfirmasi Password',
+                      labelStyle: const TextStyle(color: textGrey),
+                      filled: true,
+                      fillColor: inputBg,
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                        borderSide: BorderSide.none,
+                      ),
+                      suffixIcon: IconButton(
+                        icon: Icon(
+                          _showConfirmPassword
+                              ? Icons.visibility
+                              : Icons.visibility_off,
+                          color: textGrey,
+                        ),
+                        onPressed: () {
+                          setState(() {
+                            _showConfirmPassword = !_showConfirmPassword;
+                          });
+                        },
+                      ),
                     ),
                   ),
                   const SizedBox(height: 24),
@@ -180,14 +621,11 @@ class _CreateOperatorPageState extends State<CreateOperatorPage> {
                     onPressed: _loading
                         ? null
                         : () {
-                            supervisor.createOperator(
-                              username: _usernameController.text,
-                              password: _passwordController.text,
-                            );
+                            _validateAndConfirm();
                           },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: primaryCyan,
-                      foregroundColor: Colors.black,
+                      foregroundColor: bgDark,
                       padding: const EdgeInsets.symmetric(vertical: 14),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(10),
@@ -198,7 +636,7 @@ class _CreateOperatorPageState extends State<CreateOperatorPage> {
                             height: 18,
                             width: 18,
                             child: CircularProgressIndicator(
-                              color: Colors.black,
+                              color: Color(0xFF1E2126),
                               strokeWidth: 2,
                             ),
                           )

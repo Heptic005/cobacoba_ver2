@@ -3,6 +3,7 @@ import 'package:dakara_weighbridge/Entities/Operator/operator.dart';
 import 'package:dakara_weighbridge/Pages/opt_pages/dashboard.dart';
 import 'package:dakara_weighbridge/Pages/opt_pages/transaction_components/add_netto_transaction_form.dart';
 import 'package:dakara_weighbridge/Pages/opt_pages/transaction_components/bruto_transaction_search_bar.dart';
+import 'package:dakara_weighbridge/Pages/opt_pages/transaction_components/manual_weight_monitor.dart';
 import 'package:dakara_weighbridge/SQLite/db_helper.dart';
 import 'package:dakara_weighbridge/Services/serial_service.dart';
 import 'package:dakara_weighbridge/Themes/app_themes.dart';
@@ -24,14 +25,14 @@ import 'package:dakara_weighbridge/Pages/opt_pages/transaction_components/transa
 /// Transaction page — thin UI wrapper around TransactionController.
 /// All business logic lives in the controller; this widget only renders layout and wires events.
 /// TODO : Make Weight Detail and Recent Transaction
-class Transaction extends StatefulWidget {
-  const Transaction({super.key});
+class SpecialTransaction extends StatefulWidget {
+  const SpecialTransaction({super.key});
 
   @override
-  State<Transaction> createState() => _TransactionState();
+  State<SpecialTransaction> createState() => _SpecialTransactionState();
 }
 
-class _TransactionState extends State<Transaction> {
+class _SpecialTransactionState extends State<SpecialTransaction> {
   /// Main Actions Items
   final ValueNotifier<String> _timeNotifier = ValueNotifier('');
   late Timer _timer;
@@ -154,14 +155,14 @@ class _TransactionState extends State<Transaction> {
       final _weight = double.tryParse(_capturedWeight!.toStringAsFixed(2));
 
       if (_isWeightIn) {
-        operator.addBrutoTransaction(
+        operator.addSpecialTransaction(
           vehiclePlate: _platNomorController.text,
           driverName: _namaSupirController.text,
           supplierId: _selectedSupplierId!,
           customerId: _selectedCustomerId!,
           productId: _selectedProductId!,
           cut: cut!,
-          bruto: _weight!,
+          weight: _weight!,
           kubikasi: kubikasi,
           noDo: _noDoController.text,
           noContainer: noContainer,
@@ -172,6 +173,11 @@ class _TransactionState extends State<Transaction> {
         );
       } else {
         operator.addNettoTransaction(
+          cut: cut,
+          noDo: _noDoController.text,
+          noContainer: noContainer,
+          temperature: suhu,
+          price: price,
           transactionId: int.tryParse(_transactionIdController.text)!,
           kubikasi: kubikasi,
           additionalInformation: _keteranganController.text,
@@ -393,6 +399,38 @@ class _TransactionState extends State<Transaction> {
     );
   }
 
+  Future<void> _handleContinueAuto(ListTransactionJson tx) async {
+    if (!mounted) return;
+    final messenger = ScaffoldMessenger.of(context);
+    messenger.showSnackBar(
+      SnackBar(content: Text('Lanjutkan transaksi ${tx.noTicket}')),
+    );
+  }
+
+  void _handleLoadDraft(ListTransactionJson tx) {
+    setState(() {
+      _isWeightIn = false;
+      _platNomorController.text = tx.vehiclePlate;
+      _noDoController.text = tx.noDO ?? '';
+      _namaSupirController.text = tx.driverName;
+      _potonganController.text = tx.cut.toString();
+      _kubikasiController.text = (tx.kubikasi ?? 0).toString();
+      _noContainerController.text = (tx.noContainer ?? 0).toString();
+      _suhuController.text = (tx.temperature ?? 0).toString();
+      _hargaController.text = (tx.price ?? 0).toString();
+      _keteranganController.text = tx.additionalInformation ?? '';
+      _selectedSupplierId = tx.supplierId;
+      _selectedCustomerId = tx.customerId;
+      _selectedProductId = tx.productId;
+      _transactionIdController.text = tx.transactionId.toString();
+    });
+    if (!mounted) return;
+    final messenger = ScaffoldMessenger.of(context);
+    messenger.showSnackBar(
+      SnackBar(content: Text('Draft ${tx.noTicket} dimuat')),
+    );
+  }
+
   Future<void> _handleCopy(String text) async {
     await _clipboardService.copy(text);
     if (!mounted) return;
@@ -463,19 +501,19 @@ class _TransactionState extends State<Transaction> {
                 _capturedWeight != null;
 
     return Scaffold(
+      appBar: AppBar(backgroundColor: AppThemes.cardBg),
       backgroundColor: AppThemes.bgDark,
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(24.0),
         child: Column(
           children: [
-            const SizedBox(height: 100),
             const TransactionHeader(),
             const SizedBox(height: 20),
             Row(
               children: [
                 Expanded(
                   flex: 3,
-                  child: WeightMonitorCard(
+                  child: WeightMonitorManualCard(
                     isWeighIn: _isWeightIn,
                     cardBg: AppThemes.cardBg,
                     primaryCyan: AppThemes.primaryCyan,
@@ -503,231 +541,87 @@ class _TransactionState extends State<Transaction> {
             Row(
               children: [
                 _isWeightIn
-                    ? ValueListenableBuilder(
-                      valueListenable: OperatorDashboard.isConnected,
-                      builder: (context, isConnected, _) {
-                        return isConnected
-                            ? Expanded(
-                              child: TransactionFormCard(
-                                platnomorController: _platNomorController,
-                                poController: _noDoController,
-                                namasupirController: _namaSupirController,
-                                potonganController: _potonganController,
-                                kubikasiController: _kubikasiController,
-                                nocontainerController: _noContainerController,
-                                suhuController: _suhuController,
-                                hargaController: _hargaController,
-                                keteranganController: _keteranganController,
-                                focusPlatnomor: _focusPlatNomor,
-                                focusPO: _focusNoDo,
-                                focusSupir: _focusSupir,
-                                focusPotongan: _focusPotongan,
-                                focusKubikasi: _focusKubikasi,
-                                focusNoContainer: _focusNoContainer,
-                                focusSuhu: _focusSuhu,
-                                focusHarga: _focusHarga,
-                                focusKeterangan: _focusKeterangan,
-                                suppliers: _suppliers,
-                                customers: _customers,
-                                products: _products,
-                                selectedSupplier: _selectedSupplierId,
-                                selectedCustomer: _selectedCustomerId,
-                                selectedProduct: _selectedProductId,
-                                cardBg: AppThemes.cardBg,
-                                primaryCyan: AppThemes.primaryCyan,
-                                textGrey: AppThemes.textGrey,
-                                inputBg: AppThemes.inputBg,
-                                onSelectSupplier:
-                                    (value) => setState(() {
-                                      _selectedSupplierId = value;
-                                    }),
-                                onSelectCustomer:
-                                    (value) => setState(() {
-                                      _selectedCustomerId = value;
-                                    }),
-                                onSelectProduct:
-                                    (value) => setState(() {
-                                      _selectedProductId = value;
-                                    }),
-                                onSavePressed: _handleSavePressed,
-                                isFormValid: isFormValid,
-                                bruto: _capturedWeight,
-                                isBruto: _isBruto,
-                              ),
-                            )
-                            : Expanded(
-                              child: Stack(
-                                children: [
-                                  TransactionFormCard(
-                                    platnomorController: _platNomorController,
-                                    poController: _noDoController,
-                                    namasupirController: _namaSupirController,
-                                    potonganController: _potonganController,
-                                    kubikasiController: _kubikasiController,
-                                    nocontainerController:
-                                        _noContainerController,
-                                    suhuController: _suhuController,
-                                    hargaController: _hargaController,
-                                    keteranganController: _keteranganController,
-                                    focusPlatnomor: _focusPlatNomor,
-                                    focusPO: _focusNoDo,
-                                    focusSupir: _focusSupir,
-                                    focusPotongan: _focusPotongan,
-                                    focusKubikasi: _focusKubikasi,
-                                    focusNoContainer: _focusNoContainer,
-                                    focusSuhu: _focusSuhu,
-                                    focusHarga: _focusHarga,
-                                    focusKeterangan: _focusKeterangan,
-                                    suppliers: _suppliers,
-                                    customers: _customers,
-                                    products: _products,
-                                    selectedSupplier: _selectedSupplierId,
-                                    selectedCustomer: _selectedCustomerId,
-                                    selectedProduct: _selectedProductId,
-                                    cardBg: AppThemes.cardBg,
-                                    primaryCyan: AppThemes.primaryCyan,
-                                    textGrey: AppThemes.textGrey,
-                                    inputBg: AppThemes.inputBg,
-                                    onSelectSupplier:
-                                        (value) => setState(() {
-                                          _selectedSupplierId = value;
-                                        }),
-                                    onSelectCustomer:
-                                        (value) => setState(() {
-                                          _selectedCustomerId = value;
-                                        }),
-                                    onSelectProduct:
-                                        (value) => setState(() {
-                                          _selectedProductId = value;
-                                        }),
-                                    onSavePressed: _handleSavePressed,
-                                    isFormValid: isFormValid,
-                                    bruto: _capturedWeight,
-                                    isBruto: _isBruto,
-                                  ),
-                                  Positioned.fill(
-                                    child: Container(
-                                      decoration: BoxDecoration(
-                                        borderRadius: BorderRadiusGeometry.all(
-                                          Radius.circular(4),
-                                        ),
-                                        color: Colors.black45,
-                                      ),
-                                      child: const Center(
-                                        child: Text(
-                                          'Menunggu koneksi timbangan',
-                                          style: TextStyle(
-                                            color: Colors.white,
-                                            fontSize: 18,
-                                          ),
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            );
-                      },
+                    ? Expanded(
+                      child: TransactionFormCard(
+                        platnomorController: _platNomorController,
+                        poController: _noDoController,
+                        namasupirController: _namaSupirController,
+                        potonganController: _potonganController,
+                        kubikasiController: _kubikasiController,
+                        nocontainerController: _noContainerController,
+                        suhuController: _suhuController,
+                        hargaController: _hargaController,
+                        keteranganController: _keteranganController,
+                        focusPlatnomor: _focusPlatNomor,
+                        focusPO: _focusNoDo,
+                        focusSupir: _focusSupir,
+                        focusPotongan: _focusPotongan,
+                        focusKubikasi: _focusKubikasi,
+                        focusNoContainer: _focusNoContainer,
+                        focusSuhu: _focusSuhu,
+                        focusHarga: _focusHarga,
+                        focusKeterangan: _focusKeterangan,
+                        suppliers: _suppliers,
+                        customers: _customers,
+                        products: _products,
+                        selectedSupplier: _selectedSupplierId,
+                        selectedCustomer: _selectedCustomerId,
+                        selectedProduct: _selectedProductId,
+                        cardBg: AppThemes.cardBg,
+                        primaryCyan: AppThemes.primaryCyan,
+                        textGrey: AppThemes.textGrey,
+                        inputBg: AppThemes.inputBg,
+                        onSelectSupplier:
+                            (value) => setState(() {
+                              _selectedSupplierId = value;
+                            }),
+                        onSelectCustomer:
+                            (value) => setState(() {
+                              _selectedCustomerId = value;
+                            }),
+                        onSelectProduct:
+                            (value) => setState(() {
+                              _selectedProductId = value;
+                            }),
+                        onSavePressed: _handleSavePressed,
+                        isFormValid: isFormValid,
+                        bruto: _capturedWeight,
+                        isBruto: _isBruto,
+                      ),
                     )
-                    : ValueListenableBuilder(
-                      valueListenable: OperatorDashboard.isConnected,
-                      builder: (context, isConnected, _) {
-                        return isConnected
-                            ? Expanded(
-                              child: AddNettoTransactionFormCard(
-                                platnomorController: _platNomorController,
-                                poController: _noDoController,
-                                namasupirController: _namaSupirController,
-                                potonganController: _potonganController,
-                                kubikasiController: _kubikasiController,
-                                nocontainerController: _noContainerController,
-                                suhuController: _suhuController,
-                                hargaController: _hargaController,
-                                keteranganController: _keteranganController,
-                                supplierController: _supplierController,
-                                customerController: _customerController,
-                                productController: _productController,
-                                transactionIdController:
-                                    _transactionIdController,
-                                focusPO: _focusNoDo,
-                                focusPotongan: _focusPotongan,
-                                focusKubikasi: _focusKubikasi,
-                                focusNoContainer: _focusNoContainer,
-                                focusSuhu: _focusSuhu,
-                                focusHarga: _focusHarga,
-                                focusKeterangan: _focusKeterangan,
-                                cardBg: AppThemes.cardBg,
-                                primaryCyan: AppThemes.primaryCyan,
-                                textGrey: AppThemes.textGrey,
-                                inputBg: AppThemes.inputBg,
-                                onSavePressed: _handleSavePressed,
-                                isFormValid: isFormValid,
-                                brutoController: _brutoController,
-                                tareController: _tareController,
-                                nettoController: _nettoController,
-                                tare: _capturedWeight,
-                              ),
-                            )
-                            : Expanded(
-                              child: Stack(
-                                children: [
-                                  AddNettoTransactionFormCard(
-                                    platnomorController: _platNomorController,
-                                    poController: _noDoController,
-                                    namasupirController: _namaSupirController,
-                                    potonganController: _potonganController,
-                                    kubikasiController: _kubikasiController,
-                                    nocontainerController:
-                                        _noContainerController,
-                                    suhuController: _suhuController,
-                                    hargaController: _hargaController,
-                                    keteranganController: _keteranganController,
-                                    supplierController: _supplierController,
-                                    customerController: _customerController,
-                                    productController: _productController,
-                                    transactionIdController:
-                                        _transactionIdController,
-                                    focusPO: _focusNoDo,
-                                    focusPotongan: _focusPotongan,
-                                    focusKubikasi: _focusKubikasi,
-                                    focusNoContainer: _focusNoContainer,
-                                    focusSuhu: _focusSuhu,
-                                    focusHarga: _focusHarga,
-                                    focusKeterangan: _focusKeterangan,
-                                    cardBg: AppThemes.cardBg,
-                                    primaryCyan: AppThemes.primaryCyan,
-                                    textGrey: AppThemes.textGrey,
-                                    inputBg: AppThemes.inputBg,
-                                    onSavePressed: _handleSavePressed,
-                                    isFormValid: isFormValid,
-                                    brutoController: _brutoController,
-                                    tareController: _tareController,
-                                    nettoController: _nettoController,
-                                    tare: _capturedWeight,
-                                  ),
-                                  Positioned.fill(
-                                    child: Container(
-                                      decoration: BoxDecoration(
-                                        borderRadius: BorderRadiusGeometry.all(
-                                          Radius.circular(4),
-                                        ),
-                                        color: Colors.black45,
-                                      ),
-                                      child: const Center(
-                                        child: Text(
-                                          'Menunggu koneksi timbangan',
-                                          style: TextStyle(
-                                            color: Colors.white,
-                                            fontSize: 18,
-                                          ),
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            );
-                      },
+                    : Expanded(
+                      child: AddNettoTransactionFormCard(
+                        platnomorController: _platNomorController,
+                        poController: _noDoController,
+                        namasupirController: _namaSupirController,
+                        potonganController: _potonganController,
+                        kubikasiController: _kubikasiController,
+                        nocontainerController: _noContainerController,
+                        suhuController: _suhuController,
+                        hargaController: _hargaController,
+                        keteranganController: _keteranganController,
+                        supplierController: _supplierController,
+                        customerController: _customerController,
+                        productController: _productController,
+                        transactionIdController: _transactionIdController,
+                        focusPO: _focusNoDo,
+                        focusPotongan: _focusPotongan,
+                        focusKubikasi: _focusKubikasi,
+                        focusNoContainer: _focusNoContainer,
+                        focusSuhu: _focusSuhu,
+                        focusHarga: _focusHarga,
+                        focusKeterangan: _focusKeterangan,
+                        cardBg: AppThemes.cardBg,
+                        primaryCyan: AppThemes.primaryCyan,
+                        textGrey: AppThemes.textGrey,
+                        inputBg: AppThemes.inputBg,
+                        onSavePressed: _handleSavePressed,
+                        isFormValid: isFormValid,
+                        brutoController: _brutoController,
+                        tareController: _tareController,
+                        nettoController: _nettoController,
+                        tare: _capturedWeight,
+                      ),
                     ),
                 const SizedBox(width: 20),
               ],

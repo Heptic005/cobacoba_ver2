@@ -1,11 +1,4 @@
-/// ============================================================================
-/// Customer List Widget
-/// ============================================================================
-/// File: customer_list.dart
 /// Deskripsi: Widget untuk menampilkan daftar customer dalam format tabel.
-///            Menampilkan kolom: Nama Customer, Alamat, No. Telp
-///            ID customer tidak ditampilkan sesuai requirement keamanan.
-/// ============================================================================
 
 import 'package:flutter/material.dart';
 import 'package:dakara_weighbridge/Json/listcustomer_json.dart';
@@ -33,15 +26,12 @@ class CustomerList extends StatelessWidget {
       );
     }
 
-    // Konfigurasi kolom untuk customer table (sesuai Figma)
     final columns = [
       const TableColumnConfig(headerText: 'Nama Customer', flex: 2),
       const TableColumnConfig(headerText: 'Alamat', flex: 3),
       const TableColumnConfig(headerText: 'No. Telp', flex: 2),
     ];
 
-    // Konversi data customer ke format TableRowData
-    // NOTE: customerId tidak dimasukkan ke dalam tampilan
     final rows =
         customers.map((customer) {
           return TableRowData(

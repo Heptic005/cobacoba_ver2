@@ -1,11 +1,4 @@
 /// Deskripsi: Dialog form untuk menambahkan data Supplier atau Customer baru.
-///            Fitur:
-///            - Form dengan validasi client-side
-///            - Tampilan berbeda untuk Supplier vs Customer
-///            - Loading state saat submit
-///            - Error handling dengan feedback ke user
-///
-/// ============================================================================
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -184,14 +177,14 @@ class _AddEntityDialogState extends State<AddEntityDialog> {
             controller: _nameController,
             label: 'Nama Barang',
             hint: 'Masukkan nama barang',
-            validator: _validateRequired,
+            validator: widget.controller.validateProductName,
           ),
           const SizedBox(height: 16),
           _buildTextField(
             controller: _codeController,
             label: 'Kode Barang',
             hint: 'Contoh: PRD-001',
-            validator: _validateProductCode,
+            validator: widget.controller.validateProductCode,
           ),
         ],
       );
@@ -201,16 +194,16 @@ class _AddEntityDialogState extends State<AddEntityDialog> {
         children: [
           _buildTextField(
             controller: _nameController,
-            label: 'Nama Supplier *',
+            label: 'Nama Supplier',
             hint: 'Masukkan nama supplier',
-            validator: _validateRequired,
+            validator: widget.controller.validateSupplierName,
           ),
           const SizedBox(height: 16),
           _buildTextField(
             controller: _addressController,
-            label: 'Alamat *',
+            label: 'Alamat',
             hint: 'Masukkan alamat lengkap',
-            validator: _validateRequired,
+            validator: widget.controller.validateSupplierAddress,
             maxLines: 2,
           ),
           const SizedBox(height: 16),
@@ -219,18 +212,18 @@ class _AddEntityDialogState extends State<AddEntityDialog> {
               Expanded(
                 child: _buildTextField(
                   controller: _cityController,
-                  label: 'Kota *',
+                  label: 'Kota',
                   hint: 'Nama kota',
-                  validator: _validateRequired,
+                  validator: widget.controller.validateSupplierCity,
                 ),
               ),
               const SizedBox(width: 16),
               Expanded(
                 child: _buildTextField(
                   controller: _subdistrictController,
-                  label: 'Kecamatan *',
+                  label: 'Kecamatan',
                   hint: 'Nama kecamatan',
-                  validator: _validateRequired,
+                  validator: widget.controller.validateSupplierSubdistrict,
                 ),
               ),
             ],
@@ -238,9 +231,9 @@ class _AddEntityDialogState extends State<AddEntityDialog> {
           const SizedBox(height: 16),
           _buildTextField(
             controller: _postCodeController,
-            label: 'Kode Pos *',
+            label: 'Kode Pos',
             hint: '12345',
-            validator: _validatePostCode,
+            validator: widget.controller.validatePostCode,
             keyboardType: TextInputType.number,
             inputFormatters: [
               FilteringTextInputFormatter.digitsOnly,
@@ -255,24 +248,24 @@ class _AddEntityDialogState extends State<AddEntityDialog> {
         children: [
           _buildTextField(
             controller: _nameController,
-            label: 'Nama Customer *',
-            hint: 'Masukkan nama customer/perusahaan',
-            validator: _validateRequired,
+            label: 'Nama Customer',
+            hint: 'Masukkan nama customer',
+            validator: widget.controller.validateCustomerName,
           ),
           const SizedBox(height: 16),
           _buildTextField(
             controller: _addressController,
-            label: 'Alamat *',
+            label: 'Alamat',
             hint: 'Masukkan alamat lengkap',
-            validator: _validateRequired,
+            validator: widget.controller.validateCustomerAddress,
             maxLines: 2,
           ),
           const SizedBox(height: 16),
           _buildTextField(
             controller: _phoneController,
-            label: 'No. Telepon *',
+            label: 'No. Telepon',
             hint: '021-xxxx-xxxx atau 08xxxxxxxxxx',
-            validator: _validatePhone,
+            validator: widget.controller.validatePhone,
             keyboardType: TextInputType.phone,
             inputFormatters: [
               FilteringTextInputFormatter.allow(RegExp(r'[0-9\-\+\(\)\s]')),
@@ -281,15 +274,6 @@ class _AddEntityDialogState extends State<AddEntityDialog> {
         ],
       );
     }
-  }
-
-  String? _validateProductCode(String? value) {
-    if (value == null || value.trim().isEmpty) return 'Kode barang wajib diisi';
-    if (value.trim().length < 2) return 'Kode minimal 2 karakter';
-    if (value.trim().length > 50) return 'Kode maksimal 50 karakter';
-    // Basic disallow of angle brackets/control chars
-    if (RegExp(r'[<>\x00-\x1F]').hasMatch(value)) return 'Kode tidak valid';
-    return null;
   }
 
   Widget _buildTextField({
@@ -381,37 +365,7 @@ class _AddEntityDialogState extends State<AddEntityDialog> {
     );
   }
 
-  // ============================================================================
-  // VALIDATORS
-  // ============================================================================
-
-  String? _validateRequired(String? value) {
-    if (value == null || value.trim().isEmpty) {
-      return 'Field ini wajib diisi';
-    }
-    if (value.trim().length < 3) {
-      return 'Minimal 3 karakter';
-    }
-    return null;
-  }
-
-  String? _validatePhone(String? value) {
-    return widget.controller.validatePhone(value);
-  }
-
-  String? _validatePostCode(String? value) {
-    if (value == null || value.trim().isEmpty) {
-      return 'Kode pos wajib diisi';
-    }
-    if (value.trim().length != 5) {
-      return 'Kode pos harus 5 digit';
-    }
-    return null;
-  }
-
-  // ============================================================================
   // SUBMIT HANDLER
-  // ============================================================================
 
   Future<void> _handleSubmit() async {
     // Clear previous error
@@ -423,6 +377,21 @@ class _AddEntityDialogState extends State<AddEntityDialog> {
     if (!_formKey.currentState!.validate()) {
       return;
     }
+
+   if (isProduct) {
+      final validation = widget.controller.validateProductName(
+        _nameController.text,
+      ) ??
+          widget.controller.validateProductCode(
+            _codeController.text,
+      );
+      if (validation != null) {
+       setState(() {
+         _errorMessage = validation;
+       });
+        return;
+     }
+  }
 
     setState(() {
       _isSubmitting = true;

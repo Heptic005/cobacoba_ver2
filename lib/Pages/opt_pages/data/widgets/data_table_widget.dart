@@ -1,17 +1,4 @@
-/// ============================================================================
-/// Data Table Widget
-/// ============================================================================
-/// File: data_table_widget.dart
 /// Deskripsi: Generic table widget untuk menampilkan data dalam format tabel.
-///            Digunakan oleh Supplier, Customer, dan Product list.
-///            Widget ini menerima konfigurasi kolom dan data secara dinamis.
-/// 
-/// Fitur:
-/// - Header kolom yang dapat dikonfigurasi
-/// - Alternating row colors untuk readability
-/// - Support untuk icon di cell
-/// - Responsive layout
-/// ============================================================================
 
 import 'package:flutter/material.dart';
 

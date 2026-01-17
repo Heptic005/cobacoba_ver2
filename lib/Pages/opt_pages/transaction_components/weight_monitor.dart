@@ -3,8 +3,6 @@ import 'package:dakara_weighbridge/Pages/opt_pages/transaction_components/bruto_
 import 'package:dakara_weighbridge/Services/serial_service.dart';
 import 'package:flutter/material.dart';
 
-/// TODO : Make Weight 0 While restart Capture
-
 class WeightMonitorCard extends StatefulWidget {
   final bool isWeighIn;
   final bool isBruto;
@@ -32,7 +30,7 @@ class WeightMonitorCard extends StatefulWidget {
 class _WeightMonitorCardState extends State<WeightMonitorCard> {
   double? _displayWeight;
   bool _isCaptured = false;
-  bool isBruto = true;
+  bool _isBruto = true;
 
   @override
   Widget build(BuildContext context) {
@@ -80,11 +78,11 @@ class _WeightMonitorCardState extends State<WeightMonitorCard> {
                             _isCaptured
                                 ? null
                                 : setState(() {
-                                  isBruto = !isBruto;
+                                  _isBruto = !_isBruto;
                                 });
                           },
                           label:
-                              isBruto
+                              _isBruto
                                   ? const Text("Bruto")
                                   : const Text("Tare"),
                           style: ElevatedButton.styleFrom(
@@ -159,7 +157,7 @@ class _WeightMonitorCardState extends State<WeightMonitorCard> {
                                                   });
                                                   widget.onCaptured(
                                                     _displayWeight!,
-                                                    isBruto,
+                                                    _isBruto,
                                                   );
                                                 },
                                         style: ElevatedButton.styleFrom(
@@ -248,7 +246,7 @@ class _WeightMonitorCardState extends State<WeightMonitorCard> {
                                                           });
                                                           widget.onCaptured(
                                                             _displayWeight!,
-                                                            isBruto,
+                                                            _isBruto,
                                                           );
                                                         },
                                                 style: ElevatedButton.styleFrom(

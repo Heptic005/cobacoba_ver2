@@ -229,12 +229,29 @@ class DakaraSlipPdfBuilder {
         ],
       ),
       pw.SizedBox(height: 16),
-      // Signature area
+      // Signature area (2 columns x 2 rows)
       pw.Row(
-        mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+        crossAxisAlignment: pw.CrossAxisAlignment.start,
         children: [
-          _signBox('Operator'),
-          _signBox('Manager'),
+          pw.Expanded(
+            child: pw.Column(
+              children: [
+                _signBox('Operator'),
+                pw.SizedBox(height: 12),
+                _signBox('Supir'),
+              ],
+            ),
+          ),
+          pw.SizedBox(width: 16),
+          pw.Expanded(
+            child: pw.Column(
+              children: [
+                _signBox('Manager'),
+                pw.SizedBox(height: 12),
+                _signBox('KTU'),
+              ],
+            ),
+          ),
         ],
       ),
       pw.SizedBox(height: 12),
@@ -270,8 +287,8 @@ class DakaraSlipPdfBuilder {
 
   static pw.Widget _signBox(String role) {
     return pw.Container(
-      width: 180,
       padding: const pw.EdgeInsets.symmetric(vertical: 12),
+      decoration: pw.BoxDecoration(border: pw.Border.all(color: PdfColors.grey300, width: 0.5)),
       child: pw.Column(
         children: [
           pw.Text(role, style: pw.TextStyle(fontSize: 11, color: PdfColors.grey800)),
@@ -481,11 +498,31 @@ Future<void> showPdfPreview(BuildContext context, Map<String, Object?> tx,
                             _metricBox('After Cut (kg)', _numStrPreview(tx, 'nettoAfterCut')),
                           ],),
                           const SizedBox(height: 16),
-                          // Signatures
-                          Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-                            _signPreviewBox('Operator'),
-                            _signPreviewBox('Manager'),
-                          ]),
+                          // Signatures (2 columns x 2 rows)
+                          Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: const [
+                              Expanded(
+                                child: Column(
+                                  children: [
+                                    _signPreviewBox('Operator'),
+                                    SizedBox(height: 12),
+                                    _signPreviewBox('Supir'),
+                                  ],
+                                ),
+                              ),
+                              SizedBox(width: 16),
+                              Expanded(
+                                child: Column(
+                                  children: [
+                                    _signPreviewBox('Manager'),
+                                    SizedBox(height: 12),
+                                    _signPreviewBox('KTU'),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
                           const SizedBox(height: 12),
                           const Divider(),
                           Align(alignment: Alignment.centerRight, child: Text('Printed by Dakara Weighbridge', style: TextStyle(fontSize: 10, color: Colors.grey.shade700))),
@@ -527,20 +564,26 @@ Widget _metricBox(String label, String value) {
   );
 }
 
-Widget _signPreviewBox(String role) {
-  return Container(
-    width: 180,
-    padding: const EdgeInsets.symmetric(vertical: 12),
-    child: Column(
-      children: [
-        Text(role, style: TextStyle(fontSize: 12, color: Colors.grey.shade800)),
-        const SizedBox(height: 40),
-        Container(height: 1, color: Colors.grey.shade400),
-        const SizedBox(height: 4),
-        Text('(Nama / Tanda Tangan)', style: TextStyle(fontSize: 10, color: Colors.grey.shade600)),
-      ],
-    ),
-  );
+class _signPreviewBox extends StatelessWidget {
+  const _signPreviewBox(this.role);
+  final String role;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 150,
+      padding: const EdgeInsets.symmetric(vertical: 12),
+      child: Column(
+        children: [
+          Text(role, style: TextStyle(fontSize: 12, color: Colors.grey.shade800)),
+          const SizedBox(height: 40),
+          Container(height: 1, color: Colors.grey.shade400),
+          const SizedBox(height: 4),
+          Text('(Nama / Tanda Tangan)', style: TextStyle(fontSize: 10, color: Colors.grey.shade600)),
+        ],
+      ),
+    );
+  }
 }
 
 String _numStrPreview(Map<String, Object?> data, String key) {

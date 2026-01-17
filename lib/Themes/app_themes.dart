@@ -23,6 +23,7 @@ class AppThemes {
   static const Color statusManual = Color(0xFF42A5F5);
   static const Color textGrey = Colors.grey;
   static const Color textWhite = Colors.white;
+  static const Color textRed = Colors.red;
 
   static const List<Color> randomColor = [
     Color(0xFF00E0D1),
@@ -30,6 +31,26 @@ class AppThemes {
     Color(0xFFFFDC6A),
     Color(0xFFFF88A2),
     Color(0xFFFB94FF),
+  ];
+
+  /// kartu produk pada halaman Data Management
+  static const List<Color> productPalette = [
+    Color(0xFF512DA8), 
+    Color(0xFF00897B), 
+    Color(0xFF1E88E5), 
+    Color(0xFFFF7043), 
+    Color(0xFF7B1FA2), 
+    Color(0xFF43A047), 
+    Color(0xFFD81B60), 
+    Color(0xFF006064), 
+  ];
+
+  /// Gradient pairs untuk kartu produk 
+  static const List<List<Color>> productGradients = [
+    [Color(0xFF7C55FF), Color(0xFFE64980)],
+    [Color(0xFF00B7FF), Color(0xFF0061FF)],
+    [Color(0xFFFF8C42), Color(0xFFFC466B)],
+    [Color(0xFF20C997), Color(0xFF0FB9B1)],
   ];
 
   // static String fontBaloo = "BalooBhai2";

@@ -2,11 +2,16 @@ import 'dart:async';
 import 'dart:ui';
 
 import 'package:animated_toggle_switch/animated_toggle_switch.dart';
+import 'package:dakara_weighbridge/Entities/Operator/operator.dart';
 import 'package:dakara_weighbridge/Menu/menu_items.dart';
-import 'package:dakara_weighbridge/Pages/tec_pages/techician_page.dart';
+import 'package:dakara_weighbridge/Pages/opt_pages/special_transaction.dart';
+import 'package:dakara_weighbridge/Services/auth_service.dart';
 import 'package:dakara_weighbridge/Services/config_service.dart';
 import 'package:dakara_weighbridge/Services/serial_service.dart';
+import 'package:dakara_weighbridge/Themes/app_themes.dart';
+import 'package:dakara_weighbridge/dashboard.dart';
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class OperatorDashboard extends StatefulWidget {
   const OperatorDashboard({super.key});
@@ -31,6 +36,127 @@ class _OperatorDashboardState extends State<OperatorDashboard> {
 
   /// Serial
   StreamSubscription<String>? _subscription;
+
+  /// Token for Special Transaction Controller
+  final TextEditingController tokenController = TextEditingController();
+  final FocusNode tokenFocus = FocusNode();
+
+  /// User Name
+  String? _username = '';
+
+  Future<void> _loadUsername() async {
+    final prefs = await SharedPreferences.getInstance();
+    _username = prefs.getString('name');
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _loadUsername();
+  }
+
+  @override
+  void dispose() {
+    tokenController.dispose();
+    tokenFocus.dispose();
+    super.dispose();
+  }
+
+  void _showInputTokenDialog(BuildContext context) {
+    showDialog(
+      context: (context),
+      builder: (context) {
+        return AlertDialog(
+          title: const Text(
+            'Input Token for Special Transaction',
+            style: TextStyle(color: AppThemes.textWhite),
+          ),
+          backgroundColor: AppThemes.cardBg,
+          content: TextFormField(
+            controller: tokenController,
+            focusNode: tokenFocus,
+            maxLength: 6,
+            style: const TextStyle(
+              color: Colors.white,
+              fontWeight: FontWeight.w500,
+            ),
+            decoration: InputDecoration(
+              labelText: 'Token',
+              labelStyle: TextStyle(color: AppThemes.textGrey),
+              hintText: 'ABCDEF',
+              hintStyle: TextStyle(
+                color: Colors.white.withAlpha((0.5 * 255).round()),
+              ),
+              filled: true,
+              fillColor: AppThemes.inputBg,
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: 20,
+                vertical: 18,
+              ),
+              prefixIcon: const Icon(Icons.generating_tokens),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: BorderSide.none,
+              ),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: BorderSide(
+                  color: AppThemes.textGrey.withAlpha((0.12 * 255).round()),
+                ),
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: BorderSide(
+                  color: AppThemes.primaryCyan,
+                  width: 1.5,
+                ),
+              ),
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context);
+                tokenController.clear();
+              },
+              child: const Text(
+                'Cancel',
+                style: TextStyle(color: AppThemes.textRed),
+              ),
+            ),
+            ElevatedButton(
+              onPressed: () async {
+                try {
+                  final _isTokenValid = await Operator().validateToken(
+                    tokenController.text,
+                  );
+                  if (_isTokenValid) tokenController.clear();
+                  Navigator.pop(context);
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) {
+                        return SpecialTransaction();
+                      },
+                    ),
+                  );
+                } catch (e) {
+                  print('token not valid');
+                }
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppThemes.inputBg,
+              ),
+              child: const Text(
+                'Submit',
+                style: TextStyle(color: AppThemes.textWhite),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -313,9 +439,41 @@ class _OperatorDashboardState extends State<OperatorDashboard> {
                               color: Colors.white,
                               borderRadius: BorderRadius.circular(50),
                             ),
-                            child: IconButton(
-                              onPressed: () {},
-                              icon: Icon(Icons.person),
+                            child: PopupMenuButton(
+                              onSelected: (v) {
+                                if (v == 'special_transaction') {
+                                  _showInputTokenDialog(context);
+                                }
+                                if (v == 'logout') {
+                                  AuthService().logout();
+                                  Navigator.pushReplacement(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) {
+                                        return Dashboard();
+                                      },
+                                    ),
+                                  );
+                                }
+                              },
+                              itemBuilder:
+                                  (_) => [
+                                    PopupMenuItem(
+                                      enabled: false,
+                                      child: Text('Hello Operator $_username'),
+                                    ),
+                                    PopupMenuItem(
+                                      value: 'special_transaction',
+                                      child: const Text(
+                                        'Create Special Transaction',
+                                      ),
+                                    ),
+                                    PopupMenuItem(
+                                      value: 'logout',
+                                      child: const Text('Logout'),
+                                    ),
+                                  ],
+                              icon: const Icon(Icons.person),
                             ),
                           ),
                         ],
