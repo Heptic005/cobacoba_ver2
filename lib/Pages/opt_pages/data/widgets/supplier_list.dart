@@ -1,11 +1,4 @@
-/// ============================================================================
-/// Supplier List Widget
-/// ============================================================================
-/// File: supplier_list.dart
 /// Deskripsi: Widget untuk menampilkan daftar supplier dalam format tabel.
-///            Menampilkan kolom: Nama Supplier, Alamat, Kota
-///            ID supplier tidak ditampilkan sesuai requirement keamanan.
-/// ============================================================================
 
 import 'package:flutter/material.dart';
 import 'package:dakara_weighbridge/Json/listsupplier_json.dart';
@@ -43,7 +36,6 @@ class SupplierList extends StatelessWidget {
     ];
 
     // Konversi data supplier ke format TableRowData
-    // NOTE: supplierId tidak dimasukkan ke dalam tampilan
     final rows =
         suppliers.map((supplier) {
           return TableRowData(

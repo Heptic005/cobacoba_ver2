@@ -1,4 +1,4 @@
-/// TODO : Create Another Form for add Netto Transaction
+/// TODO : Fix Bug of Weight Details 18 Jan
 
 import 'package:dakara_weighbridge/Json/listtransaction_json.dart';
 import 'package:dakara_weighbridge/Pages/opt_pages/transaction_components/bruto_transaction_search_bar.dart';
@@ -111,6 +111,7 @@ class _TransactionFormCardState extends State<AddNettoTransactionFormCard> {
     setState(() {
       _transaction = transaction;
       widget.brutoController.text = _transaction.bruto.toString();
+      widget.tareController.text = _transaction.tare.toString();
       widget.transactionIdController.text =
           _transaction.transactionId.toString();
       widget.supplierController.text = _transaction.supplierName!;
@@ -429,7 +430,8 @@ class _TransactionFormCardState extends State<AddNettoTransactionFormCard> {
           Expanded(
             flex: 2,
 
-            /// TODO : MAKE SURE THE CALCULATION IS CORRECT 16 January
+            /// TODO : MAKE SURE THE CALCULATION IS CORRECT 16 January - 18 January ( Make Tare With Controller )
+            /// TODO : STILL BUGGING ABOUT THE NUMBER THAT OCCURE ON UI 17 January
             child: Column(
               children: [
                 const SizedBox(height: 95),
@@ -438,7 +440,10 @@ class _TransactionFormCardState extends State<AddNettoTransactionFormCard> {
                       widget.brutoController.text.isEmpty
                           ? '0.00'
                           : widget.brutoController.text,
-                  tare: widget.tare?.toStringAsFixed(2) ?? '0.00',
+                  tare:
+                      widget.tareController.text.isEmpty
+                          ? '0.00'
+                          : widget.tareController.text,
                   netto: ((double.tryParse(widget.brutoController.text) ?? 0) -
                           (widget.tare?.toDouble() ?? 0))
                       .toStringAsFixed(2),

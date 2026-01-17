@@ -36,6 +36,11 @@ class AuthService {
       password: password,
     );
     if (user == null) return null;
+
+    // --- PERBAIKAN: Update Last Login Time ---
+    await DbHelper.instance.updateLastLogin(user.accountID);
+    // -----------------------------------------
+
     final prefs = await SharedPreferences.getInstance();
     _currentUser = user;
     if (user.accountPosition == 'manager') {

@@ -2,11 +2,12 @@ import 'package:flutter/material.dart';
 
 class WeightMonitorManualCard extends StatefulWidget {
   final bool isWeighIn;
+  final bool isBruto;
   final Color cardBg;
   final Color primaryCyan;
   final Color textGrey;
   final Color textWhite;
-  final void Function(double weight) onCaptured;
+  final void Function(double weight, bool isBruto) onCaptured;
 
   const WeightMonitorManualCard({
     super.key,
@@ -16,6 +17,7 @@ class WeightMonitorManualCard extends StatefulWidget {
     required this.textGrey,
     required this.textWhite,
     required this.onCaptured,
+    required this.isBruto,
   });
 
   @override
@@ -25,16 +27,14 @@ class WeightMonitorManualCard extends StatefulWidget {
 
 class _WeightMonitorManualCardState extends State<WeightMonitorManualCard> {
   final TextEditingController _manualController = TextEditingController();
-  final TextEditingController _tokenController = TextEditingController();
-  bool _isRequireToken = true;
 
   double? _displayWeight;
   bool _isCaptured = false;
+  bool _isBruto = true;
 
   @override
   void dispose() {
     _manualController.dispose();
-    _tokenController.dispose();
     super.dispose();
   }
 
@@ -47,18 +47,12 @@ class _WeightMonitorManualCardState extends State<WeightMonitorManualCard> {
       ).showSnackBar(const SnackBar(content: Text('Berat manual tidak valid')));
       return;
     }
-
-    // if (_isRequireToken && _tokenController.text.isEmpty) {
-    //   _showError('Token Supervisor Wajib Di Isi');
-    //   return;
-    // }
-
     setState(() {
       _displayWeight = value;
       _isCaptured = true;
     });
 
-    widget.onCaptured(value);
+    widget.onCaptured(value, _isBruto);
   }
 
   void _showError(String msg) {
@@ -93,8 +87,8 @@ class _WeightMonitorManualCardState extends State<WeightMonitorManualCard> {
         children: [
           /// TITLE
           Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const SizedBox(width: 10),
               Text(
                 widget.isWeighIn
                     ? "Timbang Masuk (Manual)"
@@ -105,6 +99,35 @@ class _WeightMonitorManualCardState extends State<WeightMonitorManualCard> {
                   fontWeight: FontWeight.w600,
                 ),
               ),
+              widget.isWeighIn
+                  ? ElevatedButton.icon(
+                    onPressed: () {
+                      _isCaptured
+                          ? null
+                          : setState(() {
+                            _isBruto = !_isBruto;
+                          });
+                    },
+                    label: _isBruto ? const Text("Bruto") : const Text("Tare"),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: widget.primaryCyan,
+                      foregroundColor: Colors.black,
+                      elevation: 0,
+                      side: BorderSide.none,
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 20,
+                        vertical: 16,
+                      ),
+                      textStyle: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                      ),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                  )
+                  : const SizedBox(),
             ],
           ),
 
@@ -114,7 +137,7 @@ class _WeightMonitorManualCardState extends State<WeightMonitorManualCard> {
           Text(
             _displayWeight == null
                 ? '-- KG'
-                : "${_displayWeight!.toStringAsFixed(2)} KG",
+                : "${_displayWeight!.toString()} KG",
             style: TextStyle(
               fontSize: 72,
               color: widget.textWhite,

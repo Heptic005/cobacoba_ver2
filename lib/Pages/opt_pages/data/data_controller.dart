@@ -1,12 +1,5 @@
 /// Data Controller (ViewModel)
 /// Deskripsi: Controller/ViewModel untuk halaman Data Management.
-///            Bertanggung jawab untuk:
-///            - Mengambil data dari Repository
-///            - Mengelola state loading, error, dan data
-///            - Implementasi fitur search/filter lokal
-///            - Validasi dan sanitasi input sebelum dikirim ke repository
-///            - Expose data ke UI melalui Future/Stream
-///
 
 import 'package:flutter/foundation.dart';
 import 'package:dakara_weighbridge/Json/listcustomer_json.dart';
@@ -21,9 +14,7 @@ enum DataTab { supplier, customer, product }
 class DataController extends ChangeNotifier {
   final DataRepository _repository;
 
-  // ============================================================================
   // STATE VARIABLES
-  // ============================================================================
 
   /// Tab yang sedang aktif
   DataTab _activeTab = DataTab.supplier;
@@ -56,17 +47,11 @@ class DataController extends ChangeNotifier {
   int get customerCount => _customers.length;
   int get productCount => _products.length;
 
-  // ============================================================================
   // CONSTRUCTOR
-  // ============================================================================
-
   DataController({DataRepository? repository})
     : _repository = repository ?? DataRepository();
 
-  // ============================================================================
   // TAB MANAGEMENT
-  // ============================================================================
-
   /// Mengubah tab yang aktif dan me-reset search query
   void setActiveTab(DataTab tab) {
     _activeTab = tab;
@@ -74,10 +59,7 @@ class DataController extends ChangeNotifier {
     notifyListeners();
   }
 
-  // ============================================================================
   // SEARCH / FILTER
-  // ============================================================================
-
   /// Update search query dan trigger filter
   void updateSearchQuery(String query) {
     // Sanitasi query untuk mencegah input berbahaya
@@ -131,10 +113,7 @@ class DataController extends ChangeNotifier {
     }).toList();
   }
 
-  // ============================================================================
   // DATA FETCHING
-  // ============================================================================
-
   /// Load semua data (supplier, customer, product) dari repository
   Future<void> loadAllData() async {
     _setLoading(true);
@@ -186,13 +165,7 @@ class DataController extends ChangeNotifier {
     }
   }
 
-  // ============================================================================
   // DATA INSERTION (hanya Supplier & Customer)
-  // ============================================================================
-
-  /// Menambahkan supplier baru
-  /// Returns: bool - true jika berhasil, false jika gagal
-  /// Throws: Exception dengan pesan error untuk ditampilkan di UI
   Future<bool> addSupplier({
     required String name,
     required String address,
@@ -201,13 +174,12 @@ class DataController extends ChangeNotifier {
     required String postCode,
   }) async {
     // Validasi input
-    final validationError = _validateSupplierInput(
-      name: name,
-      address: address,
-      city: city,
-      subdistrict: subdistrict,
-      postCode: postCode,
-    );
+    final validationError = validateSupplierName(name) ??
+        validateSupplierAddress(address) ??
+        validateSupplierCity(city) ??
+        validateSupplierSubdistrict(subdistrict) ??
+        validatePostCode(postCode);
+
     if (validationError != null) {
       throw Exception(validationError);
     }
@@ -233,18 +205,15 @@ class DataController extends ChangeNotifier {
   }
 
   /// Menambahkan customer baru
-  /// Returns: bool - true jika berhasil, false jika gagal
-  /// Throws: Exception dengan pesan error untuk ditampilkan di UI
   Future<bool> addCustomer({
     required String name,
     required String address,
     required String phone,
   }) async {
     // Validasi input
-    final validationError = _validateCustomerInput(
-      name: name,
-      address: address,
-      phone: phone,
+    final validationError = validateCustomerName(name) ??
+        validateCustomerAddress(address) ??
+        validatePhone(phone
     );
     if (validationError != null) {
       throw Exception(validationError);
@@ -268,16 +237,13 @@ class DataController extends ChangeNotifier {
     }
   }
 
-  // ============================================================================
-  // PRODUCT INSERTION (baru ditambahkan)
-  // ============================================================================
-
   /// Menambahkan product baru
   Future<bool> addProduct({
     required String name,
     required String code,
   }) async {
-    final validationError = _validateProductInput(name: name, code: code);
+    final validationError = validateProductName(name) ??
+        validateProductCode(code);
     if (validationError != null) {
       throw Exception(validationError);
     }
@@ -298,82 +264,19 @@ class DataController extends ChangeNotifier {
     }
   }
 
-  // ============================================================================
-  // INPUT VALIDATION
-  // ============================================================================
-
-  /// Validasi input supplier
-  /// Returns: String error message jika invalid, null jika valid
-  String? _validateSupplierInput({
-    required String name,
-    required String address,
-    required String city,
-    required String subdistrict,
-    required String postCode,
-  }) {
-    if (name.trim().isEmpty) return 'Nama supplier harus diisi';
-    if (name.trim().length < 3) return 'Nama supplier minimal 3 karakter';
-    if (name.trim().length > 100) return 'Nama supplier maksimal 100 karakter';
-    final addressError = _validateAddress(address);
-    if (addressError != null) return addressError;
-
-    if (city.trim().isEmpty) return 'Kota harus diisi';
-    if (city.trim().length > 50) return 'Kota maksimal 50 karakter';
-
-    if (subdistrict.trim().isEmpty) return 'Kecamatan harus diisi';
-    if (subdistrict.trim().length > 50) return 'Kecamatan maksimal 50 karakter';
-
-    if (postCode.trim().isEmpty) return 'Kode pos harus diisi';
-    if (!_isValidPostCode(postCode))
-      return 'Format kode pos tidak valid (5 digit angka)';
-
+  /// Validator field: nama customer (TextFormField)
+  String? validateCustomerName(String? value) {
+    final name = (value ?? '').trim();
+    if (name.isEmpty) return 'Nama customer harus diisi';
+    if (name.length < 3) return 'Nama customer minimal 3 karakter';
+    if (name.length > 100) return 'Nama customer maksimal 100 karakter';
     return null;
   }
 
-  /// Validasi input customer
-  /// Returns: String error message jika invalid, null jika valid
-  String? _validateCustomerInput({
-    required String name,
-    required String address,
-    required String phone,
-  }) {
-    if (name.trim().isEmpty) return 'Nama customer harus diisi';
-    if (name.trim().length < 3) return 'Nama customer minimal 3 karakter';
-    if (name.trim().length > 100) return 'Nama customer maksimal 100 karakter';
-    final addressError = _validateAddress(address);
-    if (addressError != null) return addressError;
-
-    if (phone.trim().isEmpty) return 'Nomor telepon harus diisi';
-    final phoneError = _validatePhoneNumber(phone);
-    if (phoneError != null) return phoneError;
-
-    return null;
-  }
-
-  /// Validasi input product (nama dan kode)
-  String? _validateProductInput({
-    required String name,
-    required String code,
-  }) {
-    if (name.trim().isEmpty) return 'Nama barang harus diisi';
-    if (name.trim().length < 2) return 'Nama barang minimal 2 karakter';
-    if (name.trim().length > 150) return 'Nama barang maksimal 150 karakter';
-
-    if (code.trim().isEmpty) return 'Kode barang harus diisi';
-    if (code.trim().length < 2) return 'Kode barang minimal 2 karakter';
-    if (code.trim().length > 50) return 'Kode barang maksimal 50 karakter';
-
-    // Cek duplikasi kode (case-insensitive)
-    if (_products.any((p) => p.productCode.toLowerCase() == code.trim().toLowerCase())) {
-      return 'Kode barang sudah ada';
-    }
-
-    // Tolak karakter kontrol dan angle brackets untuk keamanan
-    if (RegExp(r'[<>\x00-\x1F]').hasMatch(code)) {
-      return 'Kode barang mengandung karakter tidak valid';
-    }
-
-    return null;
+  /// Validator field: alamat customer (TextFormField)
+  String? validateCustomerAddress(String? value) {
+    if (value == null) return 'Alamat harus diisi';
+    return _validateAddress(value);
   }
 
   /// Validator publik untuk dipakai langsung di TextFormField
@@ -384,8 +287,7 @@ class DataController extends ChangeNotifier {
     return _validatePhoneNumber(value);
   }
 
-  /// Validasi format nomor telepon Indonesia dengan pesan error spesifik
-  /// Mendukung: 08xx, +628xx, 628xx, 021-xxxx, (021) xxxx
+  /// Validasi format nomor telepon Indonesia( Mendukung: 08xx, +628xx, 628xx, 021-xxxx, (021) xxxx)
   String? _validatePhoneNumber(String phone) {
     final raw = phone.trim();
 
@@ -400,7 +302,7 @@ class DataController extends ChangeNotifier {
     }
 
     // Normalisasi: hapus spasi, tanda kurung, dan strip untuk pengecekan
-    final normalized = raw.replaceAll(RegExp(r'[\s\-\(\)]'), '');
+    final normalized = raw.replaceAll(RegExp(r'[\s\-\(\)+]'), '');
 
     // Cek prefix yang valid
     if (!(normalized.startsWith('+62') ||
@@ -429,17 +331,79 @@ class DataController extends ChangeNotifier {
     return null;
   }
 
-  /// Validasi format kode pos (5 digit angka)
+  // ----------------- Supplier field validators -----------------
+  String? validateSupplierName(String? value) {
+    final name = (value ?? '').trim();
+    if (name.isEmpty) return 'Nama supplier harus diisi';
+    if (name.length < 3) return 'Nama supplier minimal 3 karakter';
+    if (name.length > 100) return 'Nama supplier maksimal 100 karakter';
+    return null;
+  }
+
+  String? validateSupplierAddress(String? value) {
+    if (value == null) return 'Alamat harus diisi';
+    return _validateAddress(value);
+  }
+
+  String? validateSupplierCity(String? value) {
+    final city = (value ?? '').trim();
+    if (city.isEmpty) return 'Kota harus diisi';
+    if (city.length > 50) return 'Kota maksimal 50 karakter';
+    return null;
+  }
+
+  String? validateSupplierSubdistrict(String? value) {
+    final sub = (value ?? '').trim();
+    if (sub.isEmpty) return 'Kecamatan harus diisi';
+    if (sub.length > 50) return 'Kecamatan maksimal 50 karakter';
+    return null;
+  }
+
   bool _isValidPostCode(String postCode) {
     final pattern = RegExp(r'^[0-9]{5}$');
     return pattern.hasMatch(postCode.trim());
+  }
+
+  
+  String? validatePostCode(String? value) {
+    final raw = value ?? '';
+    if (raw.trim().isEmpty) return 'Kode pos wajib diisi';
+    if (!_isValidPostCode(raw)) return 'Kode pos harus 5 digit';
+    return null;
+  }
+
+  /// Validator field: nama barang (untuk TextFormField)
+  String? validateProductName(String? value) {
+    final name = (value ?? '').trim();
+    if (name.isEmpty) return 'Nama barang harus diisi';
+    if (name.length < 2) return 'Nama barang minimal 2 karakter';
+    if (name.length > 150) return 'Nama barang maksimal 150 karakter';
+    if (RegExp(r'[\x00-\x1F<>]').hasMatch(name)) {
+      return 'Nama barang mengandung karakter tidak valid';
+    }
+    return null;
+  }
+
+  /// Validator field: kode barang (untuk TextFormField)
+  String? validateProductCode(String? value) {
+    final code = (value ?? '').trim();
+    if (code.isEmpty) return 'Kode barang harus diisi';
+    if (code.length < 2) return 'Kode barang minimal 2 karakter';
+    if (code.length > 50) return 'Kode barang maksimal 50 karakter';
+    if (RegExp(r'[<>\x00-\x1F]').hasMatch(code)) {
+      return 'Kode barang mengandung karakter tidak valid';
+    }
+    if (_products.any((p) => p.productCode.toLowerCase() == code.toLowerCase())) {
+      return 'Kode barang sudah ada';
+    }
+    return null;
   }
 
   /// Validasi alamat untuk mencegah input berbahaya (script/HTML/tag)
   String? _validateAddress(String address) {
     final trimmed = address.trim();
     if (trimmed.isEmpty) return 'Alamat harus diisi';
-    if (trimmed.length > 200) return 'Alamat maksimal 200 karakter';
+    if (trimmed.length > 100) return 'Alamat maksimal 100 karakter';
 
     // Tolak karakter kontrol dan angle brackets untuk menghindari injection/HTML/script
     if (RegExp(r'[<>]').hasMatch(trimmed)) {
@@ -459,9 +423,7 @@ class DataController extends ChangeNotifier {
     return null;
   }
 
-  // ============================================================================
   // INPUT SANITIZATION
-  // ============================================================================
 
   /// Sanitasi input umum: trim whitespace, hapus karakter berbahaya
   String _sanitizeInput(String input) {
@@ -471,7 +433,10 @@ class DataController extends ChangeNotifier {
       RegExp(r'[\x00-\x08\x0B\x0C\x0E-\x1F]'),
       '',
     );
-    return noCtrl;
+
+    final singleSpaced= noCtrl.replaceAll(RegExp(r'\s+'), ' ');
+    return singleSpaced;
+
   }
 
   /// Sanitasi nomor telepon: hapus karakter non-angka kecuali + di depan
@@ -482,10 +447,7 @@ class DataController extends ChangeNotifier {
     return hasPlus ? '+$cleaned' : cleaned;
   }
 
-  // ============================================================================
   // UTILITY METHODS
-  // ============================================================================
-
   void _setLoading(bool value) {
     _isLoading = value;
     notifyListeners();

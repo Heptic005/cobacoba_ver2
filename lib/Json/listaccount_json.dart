@@ -15,12 +15,14 @@ class ListAccountJson {
   final String accountUsername;
   final String accountPassword;
   final String accountPosition;
+  final String? lastLogin; // <--- TAMBAHAN BARU
 
   ListAccountJson({
     this.accountID = 0,
     required this.accountUsername,
     required this.accountPassword,
     required this.accountPosition,
+    this.lastLogin, // <--- TAMBAHAN BARU
   });
 
   factory ListAccountJson.fromJson(Map<String, dynamic> json) =>
@@ -41,6 +43,7 @@ class ListAccountJson {
             json["accountposition"] ??
             json["position"] ??
             '',
+        lastLogin: json["lastLogin"], // <--- AMBIL DARI DB
       );
 
   Map<String, dynamic> toJson() => {
@@ -48,5 +51,6 @@ class ListAccountJson {
     "accountUsername": accountUsername,
     "accountPassword": accountPassword,
     "accountPosition": accountPosition,
+    "lastLogin": lastLogin, // <--- KIRIM KE DB
   };
 }
