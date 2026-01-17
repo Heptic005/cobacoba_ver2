@@ -23,6 +23,7 @@ class AppThemes {
   static const Color statusManual = Color(0xFF42A5F5);
   static const Color textGrey = Colors.grey;
   static const Color textWhite = Colors.white;
+  static const Color textRed = Colors.red;
 
   static const List<Color> randomColor = [
     Color(0xFF00E0D1),

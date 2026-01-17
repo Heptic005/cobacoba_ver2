@@ -3,11 +3,13 @@
 
 import 'dart:async';
 
+import 'package:dakara_weighbridge/Entities/Manager/manager.dart';
 import 'package:flutter/material.dart';
 import 'package:dakara_weighbridge/Pages/commons/report/report_controller.dart';
 import 'package:dakara_weighbridge/Pages/commons/report/report_widgets.dart';
 import 'package:dakara_weighbridge/Pages/commons/report/report_models.dart';
 import 'package:dakara_weighbridge/features/transaction/services/clipboard_service.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 /// Widget utama untuk Data Table
 class ReportDataTable extends StatefulWidget {
@@ -269,7 +271,7 @@ class _TableHeader extends StatelessWidget {
 }
 
 /// Lightweight row widget using precomputed `ReportRowData`.
-class ReportRowWidget extends StatelessWidget {
+class ReportRowWidget extends StatefulWidget {
   final ReportRowData row;
   final dynamic clipboard;
   final Function(String) onSnack;
@@ -284,8 +286,26 @@ class ReportRowWidget extends StatelessWidget {
   });
 
   @override
+  State<ReportRowWidget> createState() => _ReportRowWidgetState();
+}
+
+class _ReportRowWidgetState extends State<ReportRowWidget> {
+  bool _isManager = false;
+
+  Future<void> _loadPrefsDataIsManager() async {
+    final prefs = await SharedPreferences.getInstance();
+    _isManager = prefs.getString('role') == 'manager';
+  }
+
+  @override
+  void initState() {
+    _loadPrefsDataIsManager();
+    super.initState();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final src = row.source;
+    final src = widget.row.source;
     final isManual = src.isManual == 1;
     final isDraft = src.isDrafted == 1;
     final statusText = isManual ? 'Manual' : (isDraft ? 'Menunggu' : 'Selesai');
@@ -297,8 +317,8 @@ class ReportRowWidget extends StatelessWidget {
           () => showTransactionDetailDialog(
             context,
             src,
-            (id) => row.supplierName,
-            (id) => row.productName,
+            (id) => widget.row.supplierName,
+            (id) => widget.row.productName,
           ),
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
@@ -309,32 +329,35 @@ class ReportRowWidget extends StatelessWidget {
           children: [
             Expanded(
               flex: 3,
-              child: _ColTitle(row.noTicket, row.formattedDate),
+              child: _ColTitle(widget.row.noTicket, widget.row.formattedDate),
             ),
-            Expanded(flex: 1, child: _ColSub(row.vehiclePlate, row.driverName)),
-            if (!compact)
+            Expanded(
+              flex: 1,
+              child: _ColSub(widget.row.vehiclePlate, widget.row.driverName),
+            ),
+            if (!widget.compact)
               Expanded(
                 flex: 1,
                 child: Text(
-                  row.productName,
+                  widget.row.productName,
                   style: const TextStyle(color: kTextWhite, fontSize: 13),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
               ),
             Expanded(
-              flex: compact ? 2 : 2,
+              flex: widget.compact ? 2 : 2,
               child: Text(
-                row.supplierName,
+                widget.row.supplierName,
                 style: const TextStyle(color: kTextWhite, fontSize: 13),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
               ),
             ),
             Expanded(
-              flex: compact ? 1 : 2,
+              flex: widget.compact ? 1 : 2,
               child: Text(
-                row.customerName,
+                widget.row.customerName,
                 style: const TextStyle(color: kTextWhite, fontSize: 13),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
@@ -343,7 +366,7 @@ class ReportRowWidget extends StatelessWidget {
             Expanded(
               flex: 1,
               child: Text(
-                row.formattedBruto,
+                widget.row.formattedBruto,
                 style: const TextStyle(color: kTextWhite, fontSize: 13),
                 textAlign: TextAlign.right,
                 maxLines: 1,
@@ -353,7 +376,7 @@ class ReportRowWidget extends StatelessWidget {
             Expanded(
               flex: 1,
               child: Text(
-                row.formattedTare,
+                widget.row.formattedTare,
                 style: const TextStyle(color: kTextWhite, fontSize: 13),
                 textAlign: TextAlign.right,
                 maxLines: 1,
@@ -363,7 +386,7 @@ class ReportRowWidget extends StatelessWidget {
             Expanded(
               flex: 1,
               child: Text(
-                row.formattedNetto,
+                widget.row.formattedNetto,
                 style: const TextStyle(color: kTextWhite, fontSize: 13),
                 textAlign: TextAlign.right,
                 maxLines: 1,
@@ -373,7 +396,7 @@ class ReportRowWidget extends StatelessWidget {
             Expanded(
               flex: 1,
               child: Text(
-                row.formattedTotal,
+                widget.row.formattedTotal,
                 style: const TextStyle(
                   color: kPrimaryCyan,
                   fontWeight: FontWeight.w600,
@@ -394,7 +417,7 @@ class ReportRowWidget extends StatelessWidget {
               flex: 1,
               child: Center(
                 child:
-                    compact
+                    widget.compact
                         ? SizedBox(
                           width: 30,
                           height: 30,
@@ -409,12 +432,12 @@ class ReportRowWidget extends StatelessWidget {
                             color: kCardBg,
                             onSelected: (v) {
                               if (v == 'copy_ticket') {
-                                clipboard.copy(src.noTicket);
-                                onSnack('No. Tiket disalin');
+                                widget.clipboard.copy(src.noTicket);
+                                widget.onSnack('No. Tiket disalin');
                               }
                               if (v == 'copy_plate') {
-                                clipboard.copy(src.vehiclePlate);
-                                onSnack('Plat disalin');
+                                widget.clipboard.copy(src.vehiclePlate);
+                                widget.onSnack('Plat disalin');
                               }
                             },
                             itemBuilder:
@@ -454,8 +477,8 @@ class ReportRowWidget extends StatelessWidget {
                                     () => showTransactionDetailDialog(
                                       context,
                                       src,
-                                      (id) => row.supplierName,
-                                      (id) => row.productName,
+                                      (id) => widget.row.supplierName,
+                                      (id) => widget.row.productName,
                                     ),
                                 tooltip: 'Lihat',
                               ),
@@ -473,14 +496,19 @@ class ReportRowWidget extends StatelessWidget {
                                 padding: EdgeInsets.zero,
                                 iconSize: 16,
                                 color: kCardBg,
-                                onSelected: (v) {
+                                onSelected: (v) async {
                                   if (v == 'copy_ticket') {
-                                    clipboard.copy(src.noTicket);
-                                    onSnack('No. Tiket disalin');
+                                    widget.clipboard.copy(src.noTicket);
+                                    widget.onSnack('No. Tiket disalin');
                                   }
                                   if (v == 'copy_plate') {
-                                    clipboard.copy(src.vehiclePlate);
-                                    onSnack('Plat disalin');
+                                    widget.clipboard.copy(src.vehiclePlate);
+                                    widget.onSnack('Plat disalin');
+                                  }
+                                  if (v == 'delete_transaction') {
+                                    await Manager().deleteTransaction(
+                                      transactionId: src.transactionId,
+                                    );
                                   }
                                 },
                                 itemBuilder:
@@ -499,6 +527,14 @@ class ReportRowWidget extends StatelessWidget {
                                           style: TextStyle(color: kTextWhite),
                                         ),
                                       ),
+                                      if (_isManager)
+                                        const PopupMenuItem(
+                                          value: 'delete_transaction',
+                                          child: Text(
+                                            'Delete Transaction',
+                                            style: TextStyle(color: kTextWhite),
+                                          ),
+                                        ),
                                     ],
                               ),
                             ),
