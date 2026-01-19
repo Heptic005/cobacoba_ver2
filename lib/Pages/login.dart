@@ -28,29 +28,23 @@ class _LoginPageState extends State<LoginPage> {
   }
 
   bool _isNightTime() {
-    final now = DateTime.now();
-    final hour = now.hour;
-    // Night time: 18:00 (6 PM) to 06:00 (6 AM)
+    final hour = DateTime.now().hour;
     return hour >= 18 || hour < 6;
   }
 
-  Color _getBackgroundColor(bool isDark) {
-    return isDark ? const Color(0xFF1E2126) : const Color(0xFFF5F5F5);
-  }
+  Color _getBackgroundColor(bool isDark) =>
+      isDark ? const Color(0xFF17181A) : const Color(0xFFF5F5F5);
 
-  Color _getCardColor(bool isDark) {
-    return isDark ? const Color(0xFF2B2E33) : const Color(0xFFFFFFFF);
-  }
+  Color _getCardColor(bool isDark) =>
+      isDark ? const Color(0xFF23262B) : const Color(0xFFFFFFFF);
 
-  Color _getTextColor(bool isDark) {
-    return isDark ? const Color(0xFFBFC9D6) : const Color(0xFF383C42);
-  }
+  Color _getTextColor(bool isDark) =>
+      isDark ? const Color(0xFFBFC9D6) : const Color(0xFF383C42);
 
-  Color _getInputColor(bool isDark) {
-    return isDark ? const Color(0xFF383C42) : const Color(0xFFF0F0F0);
-  }
+  Color _getInputColor(bool isDark) =>
+      isDark ? const Color(0xFF191A1C) : const Color(0xFFF0F0F0);
 
-  Color _getPrimaryCyan() => const Color(0xFF00E5FF);
+  Color _getPrimaryCyan() => const Color(0xFF00E5C3);
 
   Future<void> _login() async {
     final username = _usernameController.text.trim();
@@ -67,12 +61,12 @@ class _LoginPageState extends State<LoginPage> {
       final authService = AuthService();
       await authService.login(username: username, password: password);
       if (!mounted) return;
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('Login berhasil')));
-      Navigator.of(
-        context,
-      ).pushReplacement(MaterialPageRoute(builder: (_) => const Dashboard()));
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Login berhasil')),
+      );
+      Navigator.of(context).pushReplacement(
+        MaterialPageRoute(builder: (_) => const Dashboard()),
+      );
     } on InvalidCredentialException {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
@@ -80,17 +74,15 @@ class _LoginPageState extends State<LoginPage> {
       );
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Gagal login: $e')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Gagal login: $e')),
+      );
     } finally {
       if (mounted) setState(() => _loading = false);
     }
   }
-
   @override
   Widget build(BuildContext context) {
-    // Determine theme based on time of day
     final isDark = _isNightTime();
 
     final bgColor = _getBackgroundColor(isDark);
@@ -112,32 +104,29 @@ class _LoginPageState extends State<LoginPage> {
                 gradient: LinearGradient(
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
-                  colors:
-                      isDark
-                          ? [
-                            cardBgColor.withAlpha((0.95 * 255).round()),
-                            cardBgColor.withAlpha((0.6 * 255).round()),
-                            Colors.black.withAlpha((0.25 * 255).round()),
-                          ]
-                          : [
-                            cardBgColor.withAlpha((0.95 * 255).round()),
-                            cardBgColor.withAlpha((0.7 * 255).round()),
-                            Colors.white.withAlpha((0.1 * 255).round()),
-                          ],
+                  colors: isDark
+                      ? [
+                          cardBgColor.withOpacity(0.95),
+                          cardBgColor.withOpacity(0.7),
+                          Colors.black.withOpacity(0.2),
+                        ]
+                      : [
+                          cardBgColor.withOpacity(0.95),
+                          cardBgColor.withOpacity(0.7),
+                          Colors.white.withOpacity(0.1),
+                        ],
                 ),
                 borderRadius: BorderRadius.circular(12),
                 border: Border.all(
-                  color:
-                      isDark
-                          ? textColor.withAlpha((0.06 * 255).round())
-                          : Colors.black.withAlpha((0.1 * 255).round()),
+                  color: isDark
+                      ? textColor.withOpacity(0.06)
+                      : Colors.black.withOpacity(0.1),
                 ),
                 boxShadow: [
                   BoxShadow(
-                    color:
-                        isDark
-                            ? Colors.black.withAlpha((0.65 * 255).round())
-                            : Colors.grey.withAlpha((0.3 * 255).round()),
+                    color: isDark
+                        ? Colors.black.withOpacity(0.65)
+                        : Colors.grey.withOpacity(0.3),
                     blurRadius: 30,
                     spreadRadius: 2,
                     offset: const Offset(0, 10),
@@ -146,7 +135,7 @@ class _LoginPageState extends State<LoginPage> {
               ),
               child: Row(
                 children: [
-                  // Left column: title, form, instructions
+                  // Left column: form login
                   Expanded(
                     flex: 5,
                     child: Padding(
@@ -157,16 +146,14 @@ class _LoginPageState extends State<LoginPage> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          // Top bar with language toggle (keep original style)
+                          // Language toggle
                           Row(
                             mainAxisAlignment: MainAxisAlignment.end,
                             children: [
                               Text(
                                 'EN',
                                 style: TextStyle(
-                                  color: textColor.withAlpha(
-                                    (0.7 * 255).round(),
-                                  ),
+                                  color: textColor.withOpacity(0.7),
                                 ),
                               ),
                               const SizedBox(width: 8),
@@ -176,16 +163,16 @@ class _LoginPageState extends State<LoginPage> {
                                 child: Switch(
                                   value: true,
                                   onChanged: (_) {},
-                                  activeColor: const Color(0xFF00E5FF),
+                                  activeColor: primaryCyan,
                                 ),
                               ),
                             ],
                           ),
-                          const SizedBox(height: 8),
+                          const SizedBox(height: 16),
                           Text(
                             'Welcome',
                             style: TextStyle(
-                              color: textColor.withAlpha((0.7 * 255).round()),
+                              color: textColor.withOpacity(0.7),
                               fontSize: 18,
                             ),
                           ),
@@ -194,34 +181,27 @@ class _LoginPageState extends State<LoginPage> {
                             'Dakara Weighbridge',
                             style: TextStyle(
                               color: isDark ? Colors.white : Colors.black,
-                              fontSize: 44,
+                              fontSize: 40,
                               fontWeight: FontWeight.w700,
                             ),
                           ),
                           const SizedBox(height: 24),
-                          // Instructions block
                           Container(
                             padding: const EdgeInsets.all(12),
                             decoration: BoxDecoration(
-                              color:
-                                  isDark
-                                      ? Colors.black.withAlpha(
-                                        (0.06 * 255).round(),
-                                      )
-                                      : Colors.black.withAlpha(
-                                        (0.03 * 255).round(),
-                                      ),
+                              color: isDark
+                                  ? Colors.black.withOpacity(0.06)
+                                  : Colors.black.withOpacity(0.03),
                               borderRadius: BorderRadius.circular(8),
                             ),
                             child: Text(
-                              'Testing: please sign in using your operator account. This build is for testing only.',
+                              'Please sign in using your account.',
                               style: TextStyle(
-                                color: textColor.withAlpha((0.7 * 255).round()),
+                                color: textColor.withOpacity(0.7),
                               ),
                             ),
                           ),
                           const SizedBox(height: 20),
-                          // Form
                           SizedBox(
                             width: 420,
                             child: Column(
@@ -265,7 +245,7 @@ class _LoginPageState extends State<LoginPage> {
                                 ElevatedButton(
                                   onPressed: _loading ? null : _login,
                                   style: ElevatedButton.styleFrom(
-                                    backgroundColor: const Color(0xFF00E5FF),
+                                    backgroundColor: primaryCyan,
                                     foregroundColor: Colors.black,
                                     padding: const EdgeInsets.symmetric(
                                       vertical: 14,
@@ -274,33 +254,43 @@ class _LoginPageState extends State<LoginPage> {
                                       borderRadius: BorderRadius.circular(8),
                                     ),
                                   ),
-                                  child:
-                                      _loading
-                                          ? const SizedBox(
-                                            height: 18,
-                                            width: 18,
-                                            child: CircularProgressIndicator(
-                                              color: Colors.black,
-                                              strokeWidth: 2,
-                                            ),
-                                          )
-                                          : const Text(
-                                            'Sign In',
-                                            style: TextStyle(
-                                              fontWeight: FontWeight.w700,
-                                            ),
+                                  child: _loading
+                                      ? const SizedBox(
+                                          height: 18,
+                                          width: 18,
+                                          child: CircularProgressIndicator(
+                                            color: Colors.black,
+                                            strokeWidth: 2,
                                           ),
+                                        )
+                                      : const Text(
+                                          'Sign In',
+                                          style: TextStyle(
+                                            fontWeight: FontWeight.w700,
+                                          ),
+                                        ),
                                 ),
-                                const SizedBox(height: 18),
+                                const SizedBox(height: 12),
+                                TextButton(
+                                  onPressed: () {
+                                    // TODO: implement help
+                                  },
+                                  child: Text(
+                                    'Need help? Contact Customer Services',
+                                    style: TextStyle(
+                                      color: textColor.withOpacity(0.7),
+                                      fontSize: 12,
+                                    ),
+                                  ),
+                                ),
                               ],
                             ),
                           ),
                           const SizedBox(height: 12),
-                          // Version text bottom-left
                           Text(
                             'Version 1.0.0',
                             style: TextStyle(
-                              color: textColor.withAlpha((0.5 * 255).round()),
+                              color: textColor.withOpacity(0.5),
                               fontSize: 12,
                             ),
                           ),
@@ -312,13 +302,12 @@ class _LoginPageState extends State<LoginPage> {
                   VerticalDivider(
                     width: 1,
                     thickness: 1,
-                    color:
-                        isDark
-                            ? Colors.black26
-                            : Colors.black.withAlpha((0.1 * 255).round()),
+                    color: isDark
+                        ? Colors.black26
+                        : Colors.black.withOpacity(0.1),
                   ),
 
-                  // Right column: image/illustration placeholder
+                  // Right column: logo perusahaan
                   Expanded(
                     flex: 5,
                     child: Center(
@@ -326,28 +315,22 @@ class _LoginPageState extends State<LoginPage> {
                         width: 260,
                         height: 260,
                         decoration: BoxDecoration(
-                          color:
-                              isDark
-                                  ? Colors.grey.shade700.withAlpha(
-                                    (0.18 * 255).round(),
-                                  )
-                                  : Colors.grey.shade300.withAlpha(
-                                    (0.3 * 255).round(),
-                                  ),
+                          color: isDark
+                              ? Colors.grey.shade700.withOpacity(0.18)
+                              : Colors.grey.shade300.withOpacity(0.3),
                           borderRadius: BorderRadius.circular(20),
                           border: Border.all(
-                            color:
-                                isDark
-                                    ? Colors.black12
-                                    : Colors.black.withAlpha(
-                                      (0.1 * 255).round(),
-                                    ),
+                            color: isDark
+                                ? Colors.black12
+                                : Colors.black.withOpacity(0.1),
                           ),
                         ),
-                        child: Icon(
-                          Icons.image,
-                          size: 96,
-                          color: isDark ? Colors.white24 : Colors.black26,
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(20),
+                          child: Image.asset(
+                            'assets/dakara.jpeg',
+                            fit: BoxFit.cover,
+                          ),
                         ),
                       ),
                     ),

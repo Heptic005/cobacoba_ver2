@@ -439,42 +439,71 @@ class _OperatorDashboardState extends State<OperatorDashboard> {
                               color: Colors.white,
                               borderRadius: BorderRadius.circular(50),
                             ),
-                            child: PopupMenuButton(
-                              onSelected: (v) {
-                                if (v == 'special_transaction') {
-                                  _showInputTokenDialog(context);
-                                }
-                                if (v == 'logout') {
-                                  AuthService().logout();
-                                  Navigator.pushReplacement(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (context) {
-                                        return Dashboard();
-                                      },
-                                    ),
-                                  );
-                                }
-                              },
-                              itemBuilder:
-                                  (_) => [
-                                    PopupMenuItem(
-                                      enabled: false,
-                                      child: Text('Hello Operator $_username'),
-                                    ),
-                                    PopupMenuItem(
-                                      value: 'special_transaction',
-                                      child: const Text(
-                                        'Create Special Transaction',
-                                      ),
-                                    ),
-                                    PopupMenuItem(
-                                      value: 'logout',
-                                      child: const Text('Logout'),
-                                    ),
-                                  ],
-                              icon: const Icon(Icons.person),
-                            ),
+                            child: PopupMenuButton<String>(
+  onSelected: (v) {
+    if (v == 'special_transaction') {
+      _showInputTokenDialog(context);
+    }
+    if (v == 'logout') {
+      AuthService().logout();
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+          builder: (context) => Dashboard(),
+        ),
+      );
+    }
+  },
+  color: AppThemes.cardBg,
+  shape: RoundedRectangleBorder(
+    borderRadius: BorderRadius.circular(10),
+    side: BorderSide(color: AppThemes.textGrey.withAlpha(40)),
+  ),
+  itemBuilder: (_) => [
+    PopupMenuItem(
+      enabled: false,
+      child: Text(
+        'Hello $_username',
+        style: TextStyle(
+          color: AppThemes.textGrey,
+          fontWeight: FontWeight.w500,
+        ),
+      ),
+    ),
+    const PopupMenuDivider(),
+    PopupMenuItem(
+      value: 'special_transaction',
+      child: Row(
+        children: [
+          Icon(Icons.add_circle_outline, color: AppThemes.primaryCyan),
+          const SizedBox(width: 8),
+          Text(
+            'Create Special Transaction',
+            style: TextStyle(color: AppThemes.textWhite),
+          ),
+        ],
+      ),
+    ),
+    PopupMenuItem(
+      value: 'logout',
+      child: Row(
+        children: [
+          Icon(Icons.logout, color: Colors.redAccent),
+          const SizedBox(width: 8),
+          Text(
+            'Logout',
+            style: TextStyle(color: AppThemes.textWhite),
+          ),
+        ],
+      ),
+    ),
+  ],
+  icon: Icon(
+    Icons.person,
+    color: AppThemes.primaryCyan,
+  ),
+),
+
                           ),
                         ],
                       ),

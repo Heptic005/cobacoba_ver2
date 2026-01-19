@@ -19,14 +19,12 @@ class _SupervisorDashboardState extends State<SupervisorDashboard> {
   final menu = MenuItems();
   final PageController pageController = PageController();
   List<String> menuItems = ["Token", "CreateOPT", "Report"];
-  // Use ValueNotifier to avoid rebuilding the whole scaffold when toggling
   final ValueNotifier<int> selectedIndex = ValueNotifier<int>(0);
+
   Color bgGrey = const Color.fromARGB(255, 228, 230, 232);
   Color royalGrey = const Color.fromARGB(255, 86, 105, 113);
-  // Color limeGreen = const Color.fromARGB(255, 124, 233, 0);
   Color limeGreen = const Color.fromARGB(255, 151, 255, 33);
 
-  /// User Name
   String? _username = '';
 
   Future<void> _loadUsername() async {
@@ -47,32 +45,28 @@ class _SupervisorDashboardState extends State<SupervisorDashboard> {
         PageView.builder(
           controller: pageController,
           itemCount: menu.items.length,
-          itemBuilder:
-              (context, index) => PageStorage(
-                // keep page state alive per tab
-                bucket: PageStorageBucket(),
-                child: KeyedSubtree(
-                  key: PageStorageKey('page_$index'),
-                  child: menu.supervisorItems[index].page,
-                ),
-              ),
+          itemBuilder: (context, index) => PageStorage(
+            bucket: PageStorageBucket(),
+            child: KeyedSubtree(
+              key: PageStorageKey('page_$index'),
+              child: menu.supervisorItems[index].page,
+            ),
+          ),
         ),
 
         // Top Bar
         ClipRect(
           child: BackdropFilter(
-            // Lower blur sigma to reduce GPU cost on low-end devices
             filter: ImageFilter.blur(sigmaX: 2.0, sigmaY: 2.0),
             child: Container(
               padding: const EdgeInsets.fromLTRB(30, 20, 30, 15),
-              decoration: BoxDecoration(
-                color: const Color.fromARGB(0, 238, 238, 238),
+              decoration: const BoxDecoration(
+                color: Color.fromARGB(0, 238, 238, 238),
               ),
               child: Stack(
                 alignment: Alignment.center,
                 children: [
-                  // Menu Bar
-                  // RepaintBoundary isolates top bar from page repaint
+                  // Toggle Menu
                   RepaintBoundary(
                     child: ValueListenableBuilder<int>(
                       valueListenable: selectedIndex,
@@ -90,7 +84,6 @@ class _SupervisorDashboardState extends State<SupervisorDashboard> {
                           indicatorSize: const Size.fromWidth(90),
                           animatedIconBuilder: (context, local, global) {
                             return Row(
-                              spacing: 7,
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
                                 Text(
@@ -106,22 +99,20 @@ class _SupervisorDashboardState extends State<SupervisorDashboard> {
                           style: const ToggleStyle(
                             borderColor: Colors.transparent,
                           ),
-                          styleBuilder:
-                              (i) => const ToggleStyle(
-                                indicatorGradient: LinearGradient(
-                                  begin: Alignment.centerLeft,
-                                  end: Alignment.centerRight,
-                                  colors: [
-                                    Color(0xFF0080FF),
-                                    Color(0xFF00E5FF),
-                                  ],
-                                ),
-                              ),
+                          styleBuilder: (i) => const ToggleStyle(
+                            indicatorGradient: LinearGradient(
+                              begin: Alignment.centerLeft,
+                              end: Alignment.centerRight,
+                              colors: [
+                                Color(0xFF0080FF),
+                                Color(0xFF00E5FF),
+                              ],
+                            ),
+                          ),
                           onChanged: (i) {
                             selectedIndex.value = i;
                             pageController.animateToPage(
                               i,
-                              // shorten duration to reduce jank
                               duration: const Duration(milliseconds: 300),
                               curve: Curves.easeInOut,
                             );
@@ -134,9 +125,9 @@ class _SupervisorDashboardState extends State<SupervisorDashboard> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      // Logo Aplikasi
+                      // Logo
                       Container(
-                        padding: EdgeInsets.symmetric(
+                        padding: const EdgeInsets.symmetric(
                           vertical: 5,
                           horizontal: 13,
                         ),
@@ -145,13 +136,14 @@ class _SupervisorDashboardState extends State<SupervisorDashboard> {
                           borderRadius: BorderRadius.circular(50),
                         ),
                         child: Row(
-                          spacing: 5,
                           children: [
-                            Icon(Icons.wordpress_outlined, color: Colors.white),
+                            const Icon(Icons.wordpress_outlined,
+                                color: Colors.white),
+                            const SizedBox(width: 5),
                             Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               mainAxisSize: MainAxisSize.min,
-                              children: [
+                              children: const [
                                 Text(
                                   "Dakara WeightBridge",
                                   style: TextStyle(
@@ -174,9 +166,8 @@ class _SupervisorDashboardState extends State<SupervisorDashboard> {
                         ),
                       ),
 
-                      // Account & Others Button
+                      // Account & Others
                       Row(
-                        spacing: 6,
                         children: [
                           // Notif button
                           Container(
@@ -186,11 +177,12 @@ class _SupervisorDashboardState extends State<SupervisorDashboard> {
                             ),
                             child: IconButton(
                               onPressed: () {},
-                              icon: Icon(Icons.notifications_none_rounded),
+                              icon: const Icon(Icons.notifications_none_rounded),
                               color: Colors.white,
                               iconSize: 18,
                             ),
                           ),
+                          const SizedBox(width: 6),
                           // Setting button
                           Container(
                             decoration: BoxDecoration(
@@ -199,45 +191,71 @@ class _SupervisorDashboardState extends State<SupervisorDashboard> {
                             ),
                             child: IconButton(
                               onPressed: () {},
-                              icon: Icon(Icons.settings),
+                              icon: const Icon(Icons.settings),
                               color: Colors.white,
                               iconSize: 18,
                             ),
                           ),
-                          // Account button
+                          const SizedBox(width: 6),
+                          // Account button (Popup Menu)
                           Container(
                             decoration: BoxDecoration(
                               color: Colors.white,
                               borderRadius: BorderRadius.circular(50),
                             ),
-                            child: PopupMenuButton(
+                            child: PopupMenuButton<String>(
                               onSelected: (v) {
                                 if (v == 'logout') {
                                   AuthService().logout();
                                   Navigator.pushReplacement(
                                     context,
                                     MaterialPageRoute(
-                                      builder: (context) {
-                                        return Dashboard();
-                                      },
-                                    ),
+                                        builder: (context) => Dashboard()),
                                   );
                                 }
                               },
-                              itemBuilder:
-                                  (_) => [
-                                    PopupMenuItem(
-                                      enabled: false,
-                                      child: Text(
-                                        'Hello Supervisor $_username',
+                              color: Colors.black87, // ✅ background gelap
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(10),
+                                side: BorderSide(
+                                    color: Colors.grey.withAlpha(40)),
+                              ),
+                              itemBuilder: (_) => [
+                                PopupMenuItem(
+                                  enabled: false,
+                                  child: Row(
+                                    children: [
+                                      Icon(Icons.person,
+                                          color: Colors.blueAccent),
+                                      const SizedBox(width: 8),
+                                      Text(
+                                        'Hello ${_username ?? ''}',
+                                        style: const TextStyle(
+                                          color: Colors.white70,
+                                          fontWeight: FontWeight.w500,
+                                        ),
                                       ),
-                                    ),
-                                    PopupMenuItem(
-                                      value: 'logout',
-                                      child: const Text('Logout'),
-                                    ),
-                                  ],
-                              icon: const Icon(Icons.person),
+                                    ],
+                                  ),
+                                ),
+                                const PopupMenuDivider(),
+                                PopupMenuItem(
+                                  value: 'logout',
+                                  child: Row(
+                                    children: const [
+                                      Icon(Icons.logout,
+                                          color: Colors.redAccent),
+                                      SizedBox(width: 8),
+                                      Text(
+                                        'Logout',
+                                        style: TextStyle(color: Colors.white),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                              icon: const Icon(Icons.person,
+                                  color: Colors.blueAccent),
                             ),
                           ),
                         ],

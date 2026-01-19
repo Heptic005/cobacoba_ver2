@@ -12,6 +12,7 @@ import 'package:dakara_weighbridge/Pages/commons/token_generator_page.dart';
 import 'package:dakara_weighbridge/Pages/mgr_pages/audit_transaction_page.dart';
 import 'package:dakara_weighbridge/Pages/commons/report.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:dakara_weighbridge/Themes/app_themes.dart';
 
 class ManagerDashboard extends StatefulWidget {
   const ManagerDashboard({super.key});
@@ -56,17 +57,16 @@ class _ManagerDashboardState extends State<ManagerDashboard> {
         PageView.builder(
           controller: pageController,
           itemCount: _pages.length,
-          itemBuilder:
-              (context, index) => PageStorage(
-                bucket: PageStorageBucket(),
-                child: KeyedSubtree(
-                  key: PageStorageKey('page_$index'),
-                  child: _pages[index],
-                ),
-              ),
+          itemBuilder: (context, index) => PageStorage(
+            bucket: PageStorageBucket(),
+            child: KeyedSubtree(
+              key: PageStorageKey('page_$index'),
+              child: _pages[index],
+            ),
+          ),
         ),
 
-        // Top Bar sama persis dengan dashboard.dart
+        // Top Bar
         ClipRect(
           child: BackdropFilter(
             filter: ImageFilter.blur(sigmaX: 2.0, sigmaY: 2.0),
@@ -96,7 +96,6 @@ class _ManagerDashboardState extends State<ManagerDashboard> {
                           indicatorSize: const Size.fromWidth(90),
                           animatedIconBuilder: (context, local, global) {
                             return Row(
-                              spacing: 7,
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
                                 Text(
@@ -112,17 +111,16 @@ class _ManagerDashboardState extends State<ManagerDashboard> {
                           style: const ToggleStyle(
                             borderColor: Colors.transparent,
                           ),
-                          styleBuilder:
-                              (i) => const ToggleStyle(
-                                indicatorGradient: LinearGradient(
-                                  begin: Alignment.centerLeft,
-                                  end: Alignment.centerRight,
-                                  colors: [
-                                    Color(0xFF0080FF),
-                                    Color(0xFF00E5FF),
-                                  ],
-                                ),
-                              ),
+                          styleBuilder: (i) => const ToggleStyle(
+                            indicatorGradient: LinearGradient(
+                              begin: Alignment.centerLeft,
+                              end: Alignment.centerRight,
+                              colors: [
+                                Color(0xFF0080FF),
+                                Color(0xFF00E5FF),
+                              ],
+                            ),
+                          ),
                           onChanged: (i) {
                             selectedIndex.value = i;
                             pageController.animateToPage(
@@ -140,7 +138,7 @@ class _ManagerDashboardState extends State<ManagerDashboard> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      // Logo sama dengan dashboard.dart
+                      // Logo
                       Container(
                         padding: const EdgeInsets.symmetric(
                           vertical: 5,
@@ -151,12 +149,12 @@ class _ManagerDashboardState extends State<ManagerDashboard> {
                           borderRadius: BorderRadius.circular(50),
                         ),
                         child: Row(
-                          spacing: 5,
                           children: [
                             const Icon(
                               Icons.wordpress_outlined,
                               color: Colors.white,
                             ),
+                            const SizedBox(width: 5),
                             Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               mainAxisSize: MainAxisSize.min,
@@ -183,9 +181,8 @@ class _ManagerDashboardState extends State<ManagerDashboard> {
                         ),
                       ),
 
-                      // Tombol kanan sama persis
+                      // Tombol kanan
                       Row(
-                        spacing: 6,
                         children: [
                           Container(
                             decoration: BoxDecoration(
@@ -201,7 +198,7 @@ class _ManagerDashboardState extends State<ManagerDashboard> {
                               iconSize: 18,
                             ),
                           ),
-                          // Setting button
+                          const SizedBox(width: 6),
                           Container(
                             decoration: BoxDecoration(
                               borderRadius: BorderRadius.circular(50),
@@ -214,38 +211,68 @@ class _ManagerDashboardState extends State<ManagerDashboard> {
                               iconSize: 18,
                             ),
                           ),
-                          // Account button
+                          const SizedBox(width: 6),
+                          // Account button (Popup Menu)
                           Container(
                             decoration: BoxDecoration(
                               color: Colors.white,
                               borderRadius: BorderRadius.circular(50),
                             ),
-                            child: PopupMenuButton(
+                            child: PopupMenuButton<String>(
                               onSelected: (v) {
                                 if (v == 'logout') {
                                   AuthService().logout();
                                   Navigator.pushReplacement(
                                     context,
                                     MaterialPageRoute(
-                                      builder: (context) {
-                                        return Dashboard();
-                                      },
+                                      builder: (context) => Dashboard(),
                                     ),
                                   );
                                 }
                               },
-                              itemBuilder:
-                                  (_) => [
-                                    PopupMenuItem(
-                                      enabled: false,
-                                      child: Text('Hello Manager $_username'),
-                                    ),
-                                    PopupMenuItem(
-                                      value: 'logout',
-                                      child: const Text('Logout'),
-                                    ),
-                                  ],
-                              icon: const Icon(Icons.person),
+                              color: AppThemes.cardBg, // ✅ background sesuai tema
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(10),
+                                side: BorderSide(
+                                    color: AppThemes.textGrey.withAlpha(40)),
+                              ),
+                              itemBuilder: (_) => [
+                                PopupMenuItem(
+                                  enabled: false,
+                                  child: Row(
+                                    children: [
+                                      Icon(Icons.person,
+                                          color: AppThemes.primaryCyan),
+                                      const SizedBox(width: 8),
+                                      Text(
+                                        'Hello ${_username ?? ''}',
+                                        style: TextStyle(
+                                          color: AppThemes.textGrey,
+                                          fontWeight: FontWeight.w500,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                const PopupMenuDivider(),
+                                PopupMenuItem(
+                                  value: 'logout',
+                                  child: Row(
+                                    children: [
+                                      Icon(Icons.logout,
+                                          color: AppThemes.textRed),
+                                      const SizedBox(width: 8),
+                                      Text(
+                                        'Logout',
+                                        style: TextStyle(
+                                            color: AppThemes.textWhite),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                              icon: Icon(Icons.person,
+                                  color: AppThemes.primaryCyan),
                             ),
                           ),
                         ],

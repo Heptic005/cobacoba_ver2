@@ -15,12 +15,32 @@ class _TokenGeneratorPageState extends State<TokenGeneratorPage> {
   String _generatedToken = "---";
   bool _isLoading = false;
 
-  // Color Constants
+  // SharedPreferences key
+  static const String _tokenKey = 'generated_manual_token';
+
+  // Color Constants (DESAIN ASLI)
   static const Color bgDark = Color(0xFF1E2126);
   static const Color cardBg = Color(0xFF2B2E33);
   static const Color primaryCyan = Color(0xFF00E5FF);
   static const Color inputBg = Color(0xFF383C42);
   static const Color textGrey = Color(0xFFBFC9D6);
+
+  @override
+  void initState() {
+    super.initState();
+    _loadSavedToken();
+  }
+
+  Future<void> _loadSavedToken() async {
+    final prefs = await SharedPreferences.getInstance();
+    final savedToken = prefs.getString(_tokenKey);
+
+    if (savedToken != null && savedToken.isNotEmpty) {
+      setState(() {
+        _generatedToken = savedToken;
+      });
+    }
+  }
 
   Future<void> _generateToken() async {
     setState(() => _isLoading = true);
@@ -45,13 +65,13 @@ class _TokenGeneratorPageState extends State<TokenGeneratorPage> {
         throw Exception('Generated token is empty');
       }
 
-      if (!mounted) return;
+      await prefs.setString(_tokenKey, newToken);
 
+      if (!mounted) return;
       setState(() {
         _generatedToken = newToken;
       });
 
-      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text("Token berhasil dibuat!"),
@@ -65,19 +85,15 @@ class _TokenGeneratorPageState extends State<TokenGeneratorPage> {
       String errorMessage = 'Gagal membuat token';
       if (e is Exception) {
         errorMessage = e.toString().replaceAll('Exception: ', '');
-      } else if (e is String) {
-        errorMessage = e;
       }
 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(errorMessage),
-          backgroundColor: Color(0xFFE74C3C),
-          duration: Duration(seconds: 4),
+          backgroundColor: const Color(0xFFE74C3C),
+          duration: const Duration(seconds: 4),
         ),
       );
-
-      print('Token Generation Error: $e');
     }
 
     if (!mounted) return;
@@ -86,8 +102,11 @@ class _TokenGeneratorPageState extends State<TokenGeneratorPage> {
 
   Future<void> _resetToken() async {
     setState(() => _isLoading = true);
+    final prefs = await SharedPreferences.getInstance();
 
     try {
+      await prefs.remove(_tokenKey);
+
       setState(() {
         _generatedToken = "---";
       });
@@ -103,22 +122,12 @@ class _TokenGeneratorPageState extends State<TokenGeneratorPage> {
     } catch (e) {
       if (!mounted) return;
 
-      String errorMessage = 'Gagal mereset token';
-      if (e is Exception) {
-        errorMessage = e.toString().replaceAll('Exception: ', '');
-      } else if (e is String) {
-        errorMessage = e;
-      }
-
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(errorMessage),
+        const SnackBar(
+          content: Text("Gagal mereset token"),
           backgroundColor: Color(0xFFE74C3C),
-          duration: Duration(seconds: 4),
         ),
       );
-
-      print('Token Reset Error: $e');
     }
 
     if (!mounted) return;
@@ -251,18 +260,13 @@ class _TokenGeneratorPageState extends State<TokenGeneratorPage> {
               constraints: const BoxConstraints(maxWidth: 520),
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
-                crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  // Main Card
                   Container(
                     padding: const EdgeInsets.all(32),
                     decoration: BoxDecoration(
                       color: cardBg,
                       borderRadius: BorderRadius.circular(12),
-                      border: Border.all(
-                        color: primaryCyan,
-                        width: 1,
-                      ),
+                      border: Border.all(color: primaryCyan, width: 1),
                       boxShadow: [
                         BoxShadow(
                           color: Colors.black.withOpacity(0.4),
@@ -274,184 +278,89 @@ class _TokenGeneratorPageState extends State<TokenGeneratorPage> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        // Token Display Section
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              "Token",
-                              style: TextStyle(
-                                fontSize: 14,
-                                fontWeight: FontWeight.w600,
-                                color: Colors.white,
-                                letterSpacing: 0.3,
-                              ),
+                        const Text(
+                          "Token",
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w600,
+                            color: Colors.white,
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 16, vertical: 16),
+                          decoration: BoxDecoration(
+                            color: inputBg,
+                            borderRadius: BorderRadius.circular(8),
+                            border: Border.all(
+                              color: primaryCyan,
+                              width: 2,
                             ),
-                            SizedBox(height: 12),
-                            Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 16,
-                                vertical: 16,
-                              ),
-                              decoration: BoxDecoration(
-                                color: inputBg,
-                                borderRadius: BorderRadius.circular(8),
-                                border: Border.all(
-                                  color: primaryCyan,
-                                  width: 2,
+                          ),
+                          child: Row(
+                            children: [
+                              Expanded(
+                                child: Text(
+                                  _generatedToken,
+                                  style: const TextStyle(
+                                    fontSize: 17,
+                                    fontWeight: FontWeight.w600,
+                                    color: primaryCyan,
+                                    letterSpacing: 2,
+                                    fontFamily: 'Courier New',
+                                  ),
                                 ),
                               ),
-                              child: Row(
-                                children: [
-                                  Expanded(
-                                    child: Text(
-                                      _generatedToken,
-                                      style: TextStyle(
-                                        fontSize: 17,
-                                        fontWeight: FontWeight.w600,
-                                        color: primaryCyan,
-                                        letterSpacing: 2,
-                                        fontFamily: 'Courier New',
-                                      ),
-                                      overflow: TextOverflow.ellipsis,
-                                    ),
-                                  ),
-                                  SizedBox(width: 12),
-                                  Tooltip(
-                                    message: "Salin Token",
-                                    child: Material(
-                                      color: Colors.transparent,
-                                      child: InkWell(
-                                        onTap: _generatedToken == "---"
-                                            ? null
-                                            : () {
-                                                Clipboard.setData(
-                                                  ClipboardData(
-                                                      text: _generatedToken),
-                                                );
-                                                ScaffoldMessenger.of(context)
-                                                    .showSnackBar(
-                                                  const SnackBar(
-                                                    content: Text(
-                                                        "Token telah disalin ke clipboard!"),
-                                                    backgroundColor:
-                                                        primaryCyan,
-                                                    duration: Duration(
-                                                        seconds: 2),
-                                                  ),
-                                                );
-                                              },
-                                        borderRadius:
-                                            BorderRadius.circular(6),
-                                        child: Padding(
-                                          padding: const EdgeInsets.all(8),
-                                          child: Icon(
-                                            Icons.content_copy,
-                                            size: 20,
-                                            color: _generatedToken == "---"
-                                                ? textGrey.withOpacity(0.5)
-                                                : primaryCyan,
-                                          ),
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                ],
+                              IconButton(
+                                icon: Icon(
+                                  Icons.content_copy,
+                                  color: _generatedToken == "---"
+                                      ? textGrey.withOpacity(0.5)
+                                      : primaryCyan,
+                                ),
+                                onPressed: _generatedToken == "---"
+                                    ? null
+                                    : () {
+                                        Clipboard.setData(
+                                          ClipboardData(
+                                              text: _generatedToken),
+                                        );
+                                      },
                               ),
-                            ),
-                            SizedBox(height: 10),
-                            Text(
-                              "Tekan ikon salin untuk menyalin token ke clipboard",
-                              style: TextStyle(
-                                fontSize: 11,
-                                color: textGrey.withOpacity(0.7),
-                                fontStyle: FontStyle.italic,
-                              ),
-                            ),
-                          ],
+                            ],
+                          ),
                         ),
-
-                        SizedBox(height: 32),
-
-                        // Generate Button
+                        const SizedBox(height: 32),
                         SizedBox(
                           width: double.infinity,
                           height: 48,
                           child: ElevatedButton(
+                            onPressed:
+                                _isLoading ? null : _generateToken,
                             style: ElevatedButton.styleFrom(
                               backgroundColor: primaryCyan,
                               foregroundColor: bgDark,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                              disabledBackgroundColor: textGrey.withOpacity(0.3),
-                              elevation: 2,
                             ),
-                            onPressed: _isLoading ? null : _generateToken,
                             child: _isLoading
-                                ? SizedBox(
-                                    height: 20,
-                                    width: 20,
-                                    child: CircularProgressIndicator(
-                                      valueColor:
-                                          AlwaysStoppedAnimation<Color>(
-                                        bgDark,
-                                      ),
-                                      strokeWidth: 2.5,
-                                    ),
-                                  )
-                                : Text(
-                                    "GENERATE NEW TOKEN",
-                                    style: const TextStyle(
-                                      fontSize: 14,
-                                      fontWeight: FontWeight.w700,
-                                      letterSpacing: 0.8,
-                                    ),
-                                  ),
+                                ? const CircularProgressIndicator()
+                                : const Text("GENERATE NEW TOKEN"),
                           ),
                         ),
-
-                        SizedBox(height: 12),
-
-                        // Reset Button
+                        const SizedBox(height: 12),
                         SizedBox(
                           width: double.infinity,
                           height: 48,
                           child: ElevatedButton(
+                            onPressed:
+                                _isLoading ? null : _showResetConfirmDialog,
                             style: ElevatedButton.styleFrom(
-                              backgroundColor: Color(0xFFE74C3C),
+                              backgroundColor: const Color(0xFFE74C3C),
                               foregroundColor: Colors.white,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                              disabledBackgroundColor: textGrey.withOpacity(0.3),
-                              elevation: 2,
                             ),
-                            onPressed: _isLoading ? null : _showResetConfirmDialog,
-                            child: _isLoading
-                                ? SizedBox(
-                                    height: 20,
-                                    width: 20,
-                                    child: CircularProgressIndicator(
-                                      valueColor:
-                                          AlwaysStoppedAnimation<Color>(
-                                        Colors.white,
-                                      ),
-                                      strokeWidth: 2.5,
-                                    ),
-                                  )
-                                : Text(
-                                    "RESET TOKEN",
-                                    style: const TextStyle(
-                                      fontSize: 14,
-                                      fontWeight: FontWeight.w700,
-                                      letterSpacing: 0.8,
-                                    ),
-                                  ),
+                            child: const Text("RESET TOKEN"),
                           ),
                         ),
-
-                        SizedBox(height: 16),
                       ],
                     ),
                   ),
