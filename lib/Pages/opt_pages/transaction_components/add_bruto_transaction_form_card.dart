@@ -433,9 +433,8 @@ class TransactionFormCard extends StatelessWidget {
                   child: Row(children: [const SizedBox(width: 12)]),
                 ),
                 WeightDetails(
-                  bruto: isBruto ? bruto?.toStringAsFixed(2) ?? '0' : '0',
-                  tare:
-                      isBruto == false ? bruto?.toStringAsFixed(2) ?? '0' : '0',
+                  bruto: isBruto ? bruto?.toString() ?? '0' : '0',
+                  tare: isBruto == false ? bruto?.toString() ?? '0' : '0',
                   netto: '0',
                   afterCut: '0',
                   totalPrice: '0',

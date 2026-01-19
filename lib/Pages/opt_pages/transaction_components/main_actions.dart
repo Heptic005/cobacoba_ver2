@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:dakara_weighbridge/Pages/opt_pages/transaction_components/bruto_transaction_search_bar.dart';
 import 'package:dakara_weighbridge/Services/config_service.dart';
 import 'package:dakara_weighbridge/Services/serial_service.dart';
 import 'package:flutter/material.dart';
@@ -53,6 +54,7 @@ class _MainActionsCardState extends State<MainActionsCard> {
                 children: [
                   ElevatedButton.icon(
                     onPressed: () {
+                      SearchTicketField.isSelected.value = false;
                       setState(() {
                         isWeighIn = true;
                       });

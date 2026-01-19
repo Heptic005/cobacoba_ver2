@@ -1,7 +1,10 @@
 import 'dart:async';
+import 'package:dakara_weighbridge/Services/auth_service.dart';
 import 'package:dakara_weighbridge/Services/config_service.dart';
 import 'package:dakara_weighbridge/Services/serial_service.dart';
+import 'package:dakara_weighbridge/dashboard.dart';
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class TechnicianPage extends StatefulWidget {
   const TechnicianPage({super.key});
@@ -28,14 +31,25 @@ class _TechnicianPageState extends State<TechnicianPage> {
   StreamSubscription<String>? _subscription;
   final TextEditingController _cmdController = TextEditingController();
 
+  /// User Name
+  String? _username = '';
+
+  Future<void> _loadUsername() async {
+    final prefs = await SharedPreferences.getInstance();
+    _username = prefs.getString('name');
+  }
+
   @override
   void initState() {
     super.initState();
 
-    ///
+    /// Load Username
+    _loadUsername();
+
+    /// Latest Config File
     _loadConfig();
 
-    ///
+    /// Look For Available Ports
     _refreshPorts();
     _isConnected = _serialService.isConnected;
     _selectedPort = _serialService.connectedPortName;
@@ -127,15 +141,41 @@ class _TechnicianPageState extends State<TechnicianPage> {
           style: TextStyle(color: Colors.white),
         ),
         actions: [
-          IconButton(
-            icon: const Icon(Icons.refresh, color: Colors.white),
-            onPressed: _refreshPorts,
+          PopupMenuButton(
+            onSelected: (v) {
+              if (v == 'refresh') {
+                _refreshPorts;
+              }
+              if (v == 'logout') {
+                AuthService().logout();
+                Navigator.pushReplacement(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) {
+                      return Dashboard();
+                    },
+                  ),
+                );
+              }
+            },
+            itemBuilder:
+                (_) => [
+                  PopupMenuItem(
+                    enabled: false,
+                    child: Text('Hello Teknisi $_username'),
+                  ),
+                  PopupMenuItem(
+                    value: 'refresh',
+                    child: const Text('Refresh Port'),
+                  ),
+                  PopupMenuItem(value: 'logout', child: const Text('Logout')),
+                ],
+            icon: const Icon(Icons.person),
           ),
         ],
       ),
       body: Row(
         children: [
-          // Side Panel: Config
           Container(
             width: 300,
             color: const Color(0xFF262F36),
