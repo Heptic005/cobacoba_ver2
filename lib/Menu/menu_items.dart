@@ -4,6 +4,7 @@ import 'package:dakara_weighbridge/Pages/commons/token_generator_page.dart';
 import 'package:dakara_weighbridge/Pages/opt_pages/data/data_page.dart';
 import 'package:dakara_weighbridge/Pages/commons/report.dart';
 import 'package:dakara_weighbridge/Pages/opt_pages/transaction.dart';
+import 'package:dakara_weighbridge/Pages/tec_pages/techician_page.dart';
 import 'package:flutter/material.dart';
 import 'package:dakara_weighbridge/Pages/spv_pages/create_operator_spv.dart';
 

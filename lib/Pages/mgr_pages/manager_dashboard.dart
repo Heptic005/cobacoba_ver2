@@ -3,6 +3,7 @@ import 'dart:ui';
 
 import 'package:animated_toggle_switch/animated_toggle_switch.dart';
 import 'package:dakara_weighbridge/Services/auth_service.dart';
+import 'package:dakara_weighbridge/dashboard.dart';
 import 'package:flutter/material.dart';
 
 // Import Halaman Fitur Manager
@@ -10,6 +11,7 @@ import 'package:dakara_weighbridge/Pages/mgr_pages/user_management_page.dart';
 import 'package:dakara_weighbridge/Pages/commons/token_generator_page.dart';
 import 'package:dakara_weighbridge/Pages/mgr_pages/audit_transaction_page.dart';
 import 'package:dakara_weighbridge/Pages/commons/report.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class ManagerDashboard extends StatefulWidget {
   const ManagerDashboard({super.key});
@@ -31,12 +33,21 @@ class _ManagerDashboardState extends State<ManagerDashboard> {
     const Report(),
   ];
 
-  final ValueNotifier<int> selectedIndex = ValueNotifier<int>(0);
+  /// User Name
+  String? _username = '';
 
-  void _handleLogout() {
-    AuthService().logout();
-    Navigator.of(context).pushReplacementNamed('/');
+  Future<void> _loadUsername() async {
+    final prefs = await SharedPreferences.getInstance();
+    _username = prefs.getString('name');
   }
+
+  @override
+  void initState() {
+    super.initState();
+    _loadUsername();
+  }
+
+  final ValueNotifier<int> selectedIndex = ValueNotifier<int>(0);
 
   @override
   Widget build(BuildContext context) {
@@ -176,59 +187,6 @@ class _ManagerDashboardState extends State<ManagerDashboard> {
                       Row(
                         spacing: 6,
                         children: [
-                          // Serial button
-                          Stack(
-                            alignment: Alignment.centerRight,
-                            children: [
-                              Material(
-                                color: Colors.transparent,
-                                child: Container(
-                                  height: 40,
-                                  width: 125,
-                                  decoration: BoxDecoration(
-                                    borderRadius: BorderRadius.circular(50),
-                                    border: Border.all(
-                                      color: Colors.white12,
-                                      width: 0.6,
-                                      strokeAlign:
-                                          BorderSide.strokeAlignOutside,
-                                    ),
-                                    color: const Color.fromARGB(69, 84, 88, 96),
-                                  ),
-                                  child: InkWell(
-                                    onTap: () {},
-                                    borderRadius: BorderRadius.circular(50),
-                                    child: Container(
-                                      alignment: Alignment.centerLeft,
-                                      padding: const EdgeInsets.only(left: 15),
-                                      child: const Text(
-                                        "Connected",
-                                        style: TextStyle(
-                                          color: Colors.white,
-                                          height: 1,
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              ),
-                              Container(
-                                decoration: BoxDecoration(
-                                  borderRadius: BorderRadius.circular(50),
-                                  color: const Color.fromARGB(247, 74, 86, 102),
-                                ),
-                                child: IconButton(
-                                  onPressed: () {},
-                                  icon: const Icon(
-                                    Icons.settings_input_component_rounded,
-                                  ),
-                                  color: Colors.white,
-                                  iconSize: 18,
-                                ),
-                              ),
-                            ],
-                          ),
-                          // Notif button
                           Container(
                             decoration: BoxDecoration(
                               borderRadius: BorderRadius.circular(50),
@@ -262,8 +220,31 @@ class _ManagerDashboardState extends State<ManagerDashboard> {
                               color: Colors.white,
                               borderRadius: BorderRadius.circular(50),
                             ),
-                            child: IconButton(
-                              onPressed: _handleLogout,
+                            child: PopupMenuButton(
+                              onSelected: (v) {
+                                if (v == 'logout') {
+                                  AuthService().logout();
+                                  Navigator.pushReplacement(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) {
+                                        return Dashboard();
+                                      },
+                                    ),
+                                  );
+                                }
+                              },
+                              itemBuilder:
+                                  (_) => [
+                                    PopupMenuItem(
+                                      enabled: false,
+                                      child: Text('Hello Manager $_username'),
+                                    ),
+                                    PopupMenuItem(
+                                      value: 'logout',
+                                      child: const Text('Logout'),
+                                    ),
+                                  ],
                               icon: const Icon(Icons.person),
                             ),
                           ),

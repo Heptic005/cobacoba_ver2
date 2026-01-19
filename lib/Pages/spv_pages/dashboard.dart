@@ -3,7 +3,10 @@ import 'dart:ui';
 import 'package:animated_toggle_switch/animated_toggle_switch.dart';
 import 'package:dakara_weighbridge/Menu/menu_items.dart';
 import 'package:dakara_weighbridge/Pages/tec_pages/techician_page.dart';
+import 'package:dakara_weighbridge/Services/auth_service.dart';
+import 'package:dakara_weighbridge/dashboard.dart';
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class SupervisorDashboard extends StatefulWidget {
   const SupervisorDashboard({super.key});
@@ -22,6 +25,20 @@ class _SupervisorDashboardState extends State<SupervisorDashboard> {
   Color royalGrey = const Color.fromARGB(255, 86, 105, 113);
   // Color limeGreen = const Color.fromARGB(255, 124, 233, 0);
   Color limeGreen = const Color.fromARGB(255, 151, 255, 33);
+
+  /// User Name
+  String? _username = '';
+
+  Future<void> _loadUsername() async {
+    final prefs = await SharedPreferences.getInstance();
+    _username = prefs.getString('name');
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _loadUsername();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -193,9 +210,34 @@ class _SupervisorDashboardState extends State<SupervisorDashboard> {
                               color: Colors.white,
                               borderRadius: BorderRadius.circular(50),
                             ),
-                            child: IconButton(
-                              onPressed: () {},
-                              icon: Icon(Icons.person),
+                            child: PopupMenuButton(
+                              onSelected: (v) {
+                                if (v == 'logout') {
+                                  AuthService().logout();
+                                  Navigator.pushReplacement(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) {
+                                        return Dashboard();
+                                      },
+                                    ),
+                                  );
+                                }
+                              },
+                              itemBuilder:
+                                  (_) => [
+                                    PopupMenuItem(
+                                      enabled: false,
+                                      child: Text(
+                                        'Hello Supervisor $_username',
+                                      ),
+                                    ),
+                                    PopupMenuItem(
+                                      value: 'logout',
+                                      child: const Text('Logout'),
+                                    ),
+                                  ],
+                              icon: const Icon(Icons.person),
                             ),
                           ),
                         ],

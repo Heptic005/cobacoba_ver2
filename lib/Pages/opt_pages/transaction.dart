@@ -176,14 +176,19 @@ class _TransactionState extends State<Transaction> {
           kubikasi: kubikasi,
           additionalInformation: _keteranganController.text,
           weight: _weight!,
+          price: price,
+          noContainer: noContainer,
+          cut: cut,
+          temperature: suhu,
+          noDo: _noDoController.text,
         );
       }
       SearchTicketField.isSelected.value = false;
+      _resetForm();
       if (!mounted) return;
       messenger.showSnackBar(
         const SnackBar(content: Text('Transaction finalized!')),
       );
-      _resetForm();
     } catch (e) {
       if (!mounted) return;
       SearchTicketField.isSelected.value = false;
