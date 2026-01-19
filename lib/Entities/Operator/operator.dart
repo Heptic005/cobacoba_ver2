@@ -165,16 +165,20 @@ class Operator implements AbstractOperator {
       await DbHelper.instance.updateTransaction(updated);
     } else {
       final netto = weight - t.tare;
-      final nettoAfterCut = netto - (netto * (cut ?? t.cut / 100));
+      final usedCut = cut ?? t.cut;
+      final nettoAfterCut = netto - (netto * (usedCut / 100));
       final usedPrice =
           (t.price != null && t.price! > 0) ? t.price! : (price ?? 0);
+      print(netto);
+      print(nettoAfterCut);
+      print(usedPrice);
       final updated = ListTransactionJson(
         vehiclePlate: t.vehiclePlate,
         driverName: t.driverName,
         supplierId: t.supplierId,
         customerId: t.customerId,
         productId: t.productId,
-        cut: t.cut,
+        cut: usedCut,
         kubikasi: kubikasi ?? t.kubikasi,
         noDO: noDo ?? t.noDO,
         noContainer: noContainer ?? t.noContainer,

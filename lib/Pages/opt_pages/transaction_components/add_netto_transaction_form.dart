@@ -84,6 +84,8 @@ class AddNettoTransactionFormCard extends StatefulWidget {
 }
 
 class _TransactionFormCardState extends State<AddNettoTransactionFormCard> {
+  bool _isBrutoExist = false;
+
   /// Make initialization for placeholder so the value doesn't null
   ListTransactionJson _transaction = ListTransactionJson(
     vehiclePlate: '',
@@ -110,8 +112,10 @@ class _TransactionFormCardState extends State<AddNettoTransactionFormCard> {
   void _onSelected(ListTransactionJson transaction) async {
     setState(() {
       _transaction = transaction;
-      widget.brutoController.text = _transaction.bruto.toString();
-      widget.tareController.text = _transaction.tare.toString();
+      _transaction.bruto == 0
+          ? widget.tareController.text = _transaction.tare.toString()
+          : widget.brutoController.text = _transaction.bruto.toString();
+      _transaction.bruto == 0 ? _isBrutoExist = false : _isBrutoExist = true;
       widget.transactionIdController.text =
           _transaction.transactionId.toString();
       widget.supplierController.text = _transaction.supplierName!;
@@ -228,12 +232,19 @@ class _TransactionFormCardState extends State<AddNettoTransactionFormCard> {
                   padding: const EdgeInsets.only(bottom: 12.0),
                   child: Row(children: [const SizedBox(width: 12)]),
                 ),
-                Text(
-                  _transaction.noTicket,
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontWeight: FontWeight.bold,
-                  ),
+                ValueListenableBuilder(
+                  valueListenable: SearchTicketField.isSelected,
+                  builder: (context, isSelected, _) {
+                    return isSelected
+                        ? Text(
+                          _transaction.noTicket,
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        )
+                        : const SizedBox();
+                  },
                 ),
                 Padding(
                   padding: const EdgeInsets.only(bottom: 20.0),
@@ -429,54 +440,162 @@ class _TransactionFormCardState extends State<AddNettoTransactionFormCard> {
           const SizedBox(width: 20),
           Expanded(
             flex: 2,
-
-            /// TODO : MAKE SURE THE CALCULATION IS CORRECT 16 January - 18 January ( Make Tare With Controller )
-            /// TODO : STILL BUGGING ABOUT THE NUMBER THAT OCCURE ON UI 17 January
             child: Column(
               children: [
                 const SizedBox(height: 95),
-                WeightDetails(
-                  bruto:
-                      widget.brutoController.text.isEmpty
-                          ? '0.00'
-                          : widget.brutoController.text,
-                  tare:
-                      widget.tareController.text.isEmpty
-                          ? '0.00'
-                          : widget.tareController.text,
-                  netto: ((double.tryParse(widget.brutoController.text) ?? 0) -
-                          (widget.tare?.toDouble() ?? 0))
-                      .toStringAsFixed(2),
-                  afterCut: (((double.tryParse(widget.brutoController.text) ??
-                                  0) -
-                              (widget.tare?.toDouble() ?? 0)) -
+                _isBrutoExist
+                    ? WeightDetails(
+                      bruto: widget.brutoController.text,
+                      tare: widget.tare?.toString() ?? '0',
+                      netto:
+                          ((double.tryParse(widget.brutoController.text) ?? 0) -
+                                  (widget.tare ?? 0))
+                              .toString(),
+                      afterCut:
                           (((double.tryParse(widget.brutoController.text) ??
-                                      0) -
-                                  (widget.tare?.toDouble() ?? 0)) *
-                              (double.tryParse(
-                                    widget.potonganController.text,
-                                  ) ??
-                                  0) /
-                              100))
-                      .toStringAsFixed(2),
-                  totalPrice: ((((double.tryParse(
-                                        widget.brutoController.text,
-                                      ) ??
-                                      0) -
-                                  (widget.tare?.toDouble() ?? 0)) -
-                              (((double.tryParse(widget.brutoController.text) ??
                                           0) -
-                                      (widget.tare?.toDouble() ?? 0)) *
-                                  (double.tryParse(
-                                        widget.potonganController.text,
-                                      ) ??
-                                      0) /
-                                  100)) *
-                          (double.tryParse(widget.hargaController.text) ?? 0))
-                      .toStringAsFixed(2),
-                  textGrey: widget.textGrey,
-                  cardBg: widget.cardBg,
-                ),
+                                      (widget.tare ?? 0)) -
+                                  (((double.tryParse(
+                                                widget.brutoController.text,
+                                              ) ??
+                                              0) -
+                                          (widget.tare ?? 0)) *
+                                      (double.tryParse(
+                                            widget.potonganController.text,
+                                          ) ??
+                                          0) /
+                                      100))
+                              .toString(),
+                      totalPrice: ((((double.tryParse(
+                                            widget.brutoController.text,
+                                          ) ??
+                                          0) -
+                                      (widget.tare ?? 0)) -
+                                  (((double.tryParse(
+                                                widget.brutoController.text,
+                                              ) ??
+                                              0) -
+                                          (widget.tare ?? 0)) *
+                                      (double.tryParse(
+                                            widget.potonganController.text,
+                                          ) ??
+                                          0) /
+                                      100)) *
+                              (double.tryParse(widget.hargaController.text) ??
+                                  0))
+                          .toStringAsFixed(2),
+                      textGrey: widget.textGrey,
+                      cardBg: widget.cardBg,
+                    )
+                    : WeightDetails(
+                      bruto: widget.tare?.toString() ?? '0',
+                      tare:
+                          double.tryParse(widget.tareController.text) == null
+                              ? '0'
+                              : double.tryParse(
+                                widget.tareController.text,
+                              ).toString(),
+                      netto:
+                          ((widget.tare ?? 0) -
+                                      (double.tryParse(
+                                            widget.tareController.text,
+                                          ) ??
+                                          0)) <=
+                                  0
+                              ? '0'
+                              : ((widget.tare ?? 0) -
+                                      (double.tryParse(
+                                            widget.tareController.text,
+                                          ) ??
+                                          0))
+                                  .toString(),
+                      afterCut:
+                          (((widget.tare ?? 0) -
+                                          (double.tryParse(
+                                                widget.tareController.text,
+                                              ) ??
+                                              0)) -
+                                      ((widget.tare ?? 0) -
+                                              (double.tryParse(
+                                                    widget.tareController.text,
+                                                  ) ??
+                                                  0)) *
+                                          (double.tryParse(
+                                                widget.potonganController.text,
+                                              ) ??
+                                              0) /
+                                          100) <=
+                                  0
+                              ? '0'
+                              : (((widget.tare ?? 0) -
+                                          (double.tryParse(
+                                                widget.tareController.text,
+                                              ) ??
+                                              0)) -
+                                      ((widget.tare ?? 0) -
+                                              (double.tryParse(
+                                                    widget.tareController.text,
+                                                  ) ??
+                                                  0)) *
+                                          (double.tryParse(
+                                                widget.potonganController.text,
+                                              ) ??
+                                              0) /
+                                          100)
+                                  .toString(),
+                      totalPrice:
+                          ((((widget.tare ?? 0) -
+                                              (double.tryParse(
+                                                    widget.tareController.text,
+                                                  ) ??
+                                                  0)) -
+                                          ((widget.tare ?? 0) -
+                                                  (double.tryParse(
+                                                        widget
+                                                            .tareController
+                                                            .text,
+                                                      ) ??
+                                                      0)) *
+                                              ((double.tryParse(
+                                                        widget
+                                                            .potonganController
+                                                            .text,
+                                                      ) ??
+                                                      0) /
+                                                  100)) *
+                                      (double.tryParse(
+                                            widget.hargaController.text,
+                                          ) ??
+                                          0)) <=
+                                  0
+                              ? '0'
+                              : ((((widget.tare ?? 0) -
+                                              (double.tryParse(
+                                                    widget.tareController.text,
+                                                  ) ??
+                                                  0)) -
+                                          ((widget.tare ?? 0) -
+                                                  (double.tryParse(
+                                                        widget
+                                                            .tareController
+                                                            .text,
+                                                      ) ??
+                                                      0)) *
+                                              ((double.tryParse(
+                                                        widget
+                                                            .potonganController
+                                                            .text,
+                                                      ) ??
+                                                      0) /
+                                                  100)) *
+                                      (double.tryParse(
+                                            widget.hargaController.text,
+                                          ) ??
+                                          0))
+                                  .toString(),
+                      textGrey: widget.textGrey,
+                      cardBg: widget.cardBg,
+                    ),
               ],
             ),
           ),

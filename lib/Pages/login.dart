@@ -8,7 +8,6 @@ import 'package:dakara_weighbridge/Json/listaccount_json.dart';
 import 'package:dakara_weighbridge/Entities/Supervisor/supervisor.dart';
 import 'package:dakara_weighbridge/Pages/spv_pages/dashboard.dart';
 
-
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
 
@@ -93,7 +92,7 @@ class _LoginPageState extends State<LoginPage> {
   Widget build(BuildContext context) {
     // Determine theme based on time of day
     final isDark = _isNightTime();
-    
+
     final bgColor = _getBackgroundColor(isDark);
     final cardBgColor = _getCardColor(isDark);
     final textColor = _getTextColor(isDark);
@@ -113,29 +112,32 @@ class _LoginPageState extends State<LoginPage> {
                 gradient: LinearGradient(
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
-                  colors: isDark
-                      ? [
-                          cardBgColor.withAlpha((0.95 * 255).round()),
-                          cardBgColor.withAlpha((0.6 * 255).round()),
-                          Colors.black.withAlpha((0.25 * 255).round()),
-                        ]
-                      : [
-                          cardBgColor.withAlpha((0.95 * 255).round()),
-                          cardBgColor.withAlpha((0.7 * 255).round()),
-                          Colors.white.withAlpha((0.1 * 255).round()),
-                        ],
+                  colors:
+                      isDark
+                          ? [
+                            cardBgColor.withAlpha((0.95 * 255).round()),
+                            cardBgColor.withAlpha((0.6 * 255).round()),
+                            Colors.black.withAlpha((0.25 * 255).round()),
+                          ]
+                          : [
+                            cardBgColor.withAlpha((0.95 * 255).round()),
+                            cardBgColor.withAlpha((0.7 * 255).round()),
+                            Colors.white.withAlpha((0.1 * 255).round()),
+                          ],
                 ),
                 borderRadius: BorderRadius.circular(12),
                 border: Border.all(
-                  color: isDark
-                      ? textColor.withAlpha((0.06 * 255).round())
-                      : Colors.black.withAlpha((0.1 * 255).round()),
+                  color:
+                      isDark
+                          ? textColor.withAlpha((0.06 * 255).round())
+                          : Colors.black.withAlpha((0.1 * 255).round()),
                 ),
                 boxShadow: [
                   BoxShadow(
-                    color: isDark
-                        ? Colors.black.withAlpha((0.65 * 255).round())
-                        : Colors.grey.withAlpha((0.3 * 255).round()),
+                    color:
+                        isDark
+                            ? Colors.black.withAlpha((0.65 * 255).round())
+                            : Colors.grey.withAlpha((0.3 * 255).round()),
                     blurRadius: 30,
                     spreadRadius: 2,
                     offset: const Offset(0, 10),
@@ -161,7 +163,11 @@ class _LoginPageState extends State<LoginPage> {
                             children: [
                               Text(
                                 'EN',
-                                style: TextStyle(color: textColor.withAlpha((0.7 * 255).round())),
+                                style: TextStyle(
+                                  color: textColor.withAlpha(
+                                    (0.7 * 255).round(),
+                                  ),
+                                ),
                               ),
                               const SizedBox(width: 8),
                               SizedBox(
@@ -197,9 +203,14 @@ class _LoginPageState extends State<LoginPage> {
                           Container(
                             padding: const EdgeInsets.all(12),
                             decoration: BoxDecoration(
-                              color: isDark
-                                  ? Colors.black.withAlpha((0.06 * 255).round())
-                                  : Colors.black.withAlpha((0.03 * 255).round()),
+                              color:
+                                  isDark
+                                      ? Colors.black.withAlpha(
+                                        (0.06 * 255).round(),
+                                      )
+                                      : Colors.black.withAlpha(
+                                        (0.03 * 255).round(),
+                                      ),
                               borderRadius: BorderRadius.circular(8),
                             ),
                             child: Text(
@@ -218,7 +229,9 @@ class _LoginPageState extends State<LoginPage> {
                               children: [
                                 TextField(
                                   controller: _usernameController,
-                                  style: TextStyle(color: isDark ? Colors.white : Colors.black),
+                                  style: TextStyle(
+                                    color: isDark ? Colors.white : Colors.black,
+                                  ),
                                   decoration: InputDecoration(
                                     labelText: 'Username',
                                     labelStyle: TextStyle(color: textColor),
@@ -234,7 +247,9 @@ class _LoginPageState extends State<LoginPage> {
                                 TextField(
                                   controller: _passwordController,
                                   obscureText: true,
-                                  style: TextStyle(color: isDark ? Colors.white : Colors.black),
+                                  style: TextStyle(
+                                    color: isDark ? Colors.white : Colors.black,
+                                  ),
                                   decoration: InputDecoration(
                                     labelText: 'Password',
                                     labelStyle: TextStyle(color: textColor),
@@ -277,21 +292,6 @@ class _LoginPageState extends State<LoginPage> {
                                           ),
                                 ),
                                 const SizedBox(height: 18),
-                                TextButton(
-                                  onPressed: () async {
-                                    final token =
-                                        await TokenService.createToken();
-                                    print(token.createdBy);
-                                    print(token.tokenCode);
-                                  },
-                                  child: Text(
-                                    'Need help? Contact Customer Services',
-                                    style: TextStyle(
-                                      decoration: TextDecoration.underline,
-                                      color: const Color(0xFF00E5FF),
-                                    ),
-                                  ),
-                                ),
                               ],
                             ),
                           ),
@@ -312,9 +312,10 @@ class _LoginPageState extends State<LoginPage> {
                   VerticalDivider(
                     width: 1,
                     thickness: 1,
-                    color: isDark
-                        ? Colors.black26
-                        : Colors.black.withAlpha((0.1 * 255).round()),
+                    color:
+                        isDark
+                            ? Colors.black26
+                            : Colors.black.withAlpha((0.1 * 255).round()),
                   ),
 
                   // Right column: image/illustration placeholder
@@ -325,18 +326,22 @@ class _LoginPageState extends State<LoginPage> {
                         width: 260,
                         height: 260,
                         decoration: BoxDecoration(
-                          color: isDark
-                              ? Colors.grey.shade700.withAlpha(
-                                  (0.18 * 255).round(),
-                                )
-                              : Colors.grey.shade300.withAlpha(
-                                  (0.3 * 255).round(),
-                                ),
+                          color:
+                              isDark
+                                  ? Colors.grey.shade700.withAlpha(
+                                    (0.18 * 255).round(),
+                                  )
+                                  : Colors.grey.shade300.withAlpha(
+                                    (0.3 * 255).round(),
+                                  ),
                           borderRadius: BorderRadius.circular(20),
                           border: Border.all(
-                            color: isDark
-                                ? Colors.black12
-                                : Colors.black.withAlpha((0.1 * 255).round()),
+                            color:
+                                isDark
+                                    ? Colors.black12
+                                    : Colors.black.withAlpha(
+                                      (0.1 * 255).round(),
+                                    ),
                           ),
                         ),
                         child: Icon(
